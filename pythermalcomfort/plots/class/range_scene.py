@@ -16,7 +16,10 @@ class Parameter:
 
 
 # Map model function to the attribute to plot from the result
-MODEL_METRIC = {utci: "utci", pmv_ppd_iso: "pmv"}
+MODEL_METRIC = {
+    utci: "utci",
+    pmv_ppd_iso: "pmv"
+}
 
 # ----------------------------
 # Model-specific parameter classes
@@ -136,8 +139,14 @@ class RangeScene:
 
 ax1 = (
     RangeScene(utci)
-    .axes({UTCIParameters.TDB: (10, 40), UTCIParameters.RH: (20, 80)})
-    .parameters({UTCIParameters.V: 0.5, UTCIParameters.TR: 25})
+    .axes({
+        UTCIParameters.TDB: (10, 40),
+        UTCIParameters.RH: (20, 80)
+    })
+    .parameters({
+        UTCIParameters.V: 0.5,
+        UTCIParameters.TR: 25
+    })
     .plot(cmap="coolwarm")
 )
 ax1.set_title("UTCI")
@@ -145,16 +154,17 @@ plt.show()
 
 ax2 = (
     RangeScene(pmv_ppd_iso)
-    .axes({PMVParameters.TDB: (18, 30), PMVParameters.RH: (30, 70)})
-    .parameters(
-        {
-            PMVParameters.MET: 1.2,
-            PMVParameters.CLO: 0.5,
-            PMVParameters.VR: 0.1,
-            PMVParameters.WME: 0.0,
-            PMVParameters.TR: 25,
-        }
-    )
+    .axes({
+        PMVParameters.TDB: (18, 30),
+        PMVParameters.RH: (30, 70)
+    })
+    .parameters({
+        PMVParameters.MET: 1.2,
+        PMVParameters.CLO: 0.5,
+        PMVParameters.VR: 0.1,
+        PMVParameters.WME: 0.0,
+        PMVParameters.TR: 25,
+    })
     .plot(cmap="coolwarm")
 )
 ax2.set_title("PMV")
