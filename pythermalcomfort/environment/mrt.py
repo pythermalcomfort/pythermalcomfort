@@ -36,7 +36,7 @@ def _no_geometry(p: NoGeometryInputs) -> MRT:
 
 # ── Dispatcher ───────────────────────────────────────────────────────
 
-def calculate_mrt(params: ForthPowerInputs | NoGeometryInputs) -> MRT:
+def mrt(params: ForthPowerInputs | NoGeometryInputs) -> MRT:
     match params:
         case ForthPowerInputs():
             return _forth_power(params)
