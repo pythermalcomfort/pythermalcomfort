@@ -1,9 +1,16 @@
+from numpy import float64
+from numpy._typing._array_like import NDArray
 from dataclasses import dataclass
+from typing import Any, Literal
+import numpy as np
+
+from pythermalcomfort.classes_return import MRT
 
 @dataclass
 class ForthPower:
-    surface_temps: list[float]   # Celsius
-    angle_factors: list[float]   
+    surface_temps: list[float]  # °C or °F
+    angle_factors: list[float]
+    units: Literal["SI", "IP"] = "SI"
 
     def __post_init__(self) -> None:
         self._check_equal_lengths()
@@ -27,27 +34,47 @@ class NoGeometry:
     tdb: float
     tr: float
     asw: float
+    units: Literal["SI", "IP"] = "SI"
 
-def _forth_power(p: ForthPower) -> float:
-    return sum((t + 273.15)**4 * f for t, f in zip(p.surface_temps, p.angle_factors)) ** 0.25 - 273.15
+# ── Helpers ─────────────────────────────────────────────────────────
 
-def _no_geometry(i: NoGeometry) -> float:
-    # lots of complex logic can live here cleanly
-    weighted = i.asw * i.tdb + (1 - i.asw) * i.tr
-    return weighted
+def _f_to_c(value: np.ndarray) -> np.ndarray:
+    return (value - 32) * 5 / 9
 
-# ── Dispatcher ──────────────────────────────────────────────────────
+def _c_to_f(value: np.ndarray) -> np.ndarray:
+    return value * 9 / 5 + 32
 
-def calculate_mrt(inputs: ForthPower | NoGeometry) -> float:
-    match inputs:
+def _forth_power(p: ForthPower) -> MRT:
+    temps: NDArray[np.float64] = np.asarray(p.surface_temps)
+    factors: NDArray[np.float64] = np.asarray(p.angle_factors)
+    if p.units == "IP":
+        temps: NDArray[float64] = _f_to_c(value=temps)
+    mrt = np.sum((temps + 273.15) ** 4 * factors) ** 0.25 - 273.15
+    if p.units == "IP":
+        mrt = _c_to_f(value=mrt)
+    return MRT(mrt=mrt)
+
+def _no_geometry(p: NoGeometry) -> MRT:
+    tdb = np.asarray(p.tdb)
+    tr = np.asarray(p.tr)
+    if p.units == "IP":
+        tdb = _f_to_c(tdb)
+        tr = _f_to_c(tr)
+    mrt = p.asw * tdb + (1 - p.asw) * tr
+    if p.units == "IP":
+        mrt = _c_to_f(mrt)
+    return MRT(mrt=mrt)
+
+# ── Dispatcher ───────────────────────────────────────────────────────
+
+def calculate_mrt(params: ForthPower | NoGeometry) -> MRT:
+    match params:
         case ForthPower():
-            return _forth_power(inputs)
+            return _forth_power(params)
         case NoGeometry():
-            return _no_geometry(inputs)
-        case _:
-            raise ValueError(f"Unknown input type '{type(inputs)}'")
-
+            return _no_geometry(params)
 
 # Testing:
 print(calculate_mrt(ForthPower(surface_temps=[27.0, 17.0, 37.0], angle_factors=[0.4, 0.3, 0.3])))
+print(calculate_mrt(ForthPower(surface_temps=[80.6, 62.6, 98.6], angle_factors=[0.4, 0.3, 0.3], units="IP")))
 print(calculate_mrt(NoGeometry(tdb=25, tr=30, asw=0.6)))

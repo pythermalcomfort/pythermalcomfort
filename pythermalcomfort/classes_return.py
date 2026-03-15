@@ -317,6 +317,17 @@ class Humidex(AutoStrMixin):
     humidex: float | list[float]
     discomfort: str | list[str]
 
+@dataclass(frozen=True, repr=False)
+class MRT(AutoStrMixin):
+    """Dataclass to represent the Mean Radiant Temperature (MRT).
+
+    Attributes
+    ----------
+    mrt : float or list of floats
+        Mean Radiant Temperature, [°C] or [°F].
+    """
+
+    mrt: float | list[float]
 
 @dataclass(frozen=True, repr=False)
 class NET(AutoStrMixin):
