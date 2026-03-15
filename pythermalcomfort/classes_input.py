@@ -205,6 +205,12 @@ class BaseInputs:
     fcn: float | int | np.ndarray | list = field(
         default=1, metadata={"types": (float, int, np.ndarray, list)}
     )
+    surface_temps: list[float] | None = field(
+    default=None, metadata={"types": (list,)}
+    )
+    angle_factors: list[float] | None = field(
+        default=None, metadata={"types": (list,)}
+    )
 
     def __post_init__(self) -> None:
         """Validate and normalize fields using metadata declared on each field."""
@@ -1282,3 +1288,46 @@ class ScaleWindSpeedLogInputs(BaseInputs):
         self.z1 = z1
         self.z0 = z0
         self.d = d
+
+
+@dataclass
+class ForthPowerInputs(BaseInputs):
+    def __init__(self, surface_temps, angle_factors, units=Units.SI.value):
+        super().__init__(
+            surface_temps=surface_temps,
+            angle_factors=angle_factors,
+            units=units,
+        )
+
+    def __post_init__(self):
+        super().__post_init__()
+        if len(self.surface_temps) != len(self.angle_factors):
+            raise ValueError(
+                f"surface_temps and angle_factors must be the same length, "
+                f"got {len(self.surface_temps)} and {len(self.angle_factors)}"
+            )
+        if abs(sum(self.angle_factors) - 1.0) > 1e-9:
+            raise ValueError(
+                f"angle_factors must sum to 1, got {sum(self.angle_factors)}"
+            )
+
+@dataclass
+class NoGeometryInputs(BaseInputs):
+    def __init__(self, tdb, tr, asw, units=Units.SI.value):
+        super().__init__(
+            tdb=tdb,
+            tr=tr,
+            asw=asw,
+            units=units,
+        )
+
+# Just a test
+@dataclass
+class NoGeometryInputs(BaseInputs):
+    def __init__(self, tdb, tr, asw, units=Units.SI.value):
+        super().__init__(
+            tdb=tdb,
+            tr=tr,
+            asw=asw,
+            units=units,
+        )
