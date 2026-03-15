@@ -1,0 +1,5 @@
+{
+    "reportMissingImports": "none",
+    "reportMissingModuleSource": "none",
+    "typeCheckingMode": "off"
+}
