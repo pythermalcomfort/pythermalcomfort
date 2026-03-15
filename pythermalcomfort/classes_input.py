@@ -211,6 +211,9 @@ class BaseInputs:
     angle_factors: list[float] | None = field(
         default=None, metadata={"types": (list,)}
     )
+    surface_areas: list[float] | None = field(
+    default=None, metadata={"types": (list,)}
+)
 
     def __post_init__(self) -> None:
         """Validate and normalize fields using metadata declared on each field."""
@@ -1292,14 +1295,14 @@ class ScaleWindSpeedLogInputs(BaseInputs):
 
 @dataclass
 class ForthPowerInputs(BaseInputs):
-    def __init__(self, surface_temps, angle_factors, units=Units.SI.value):
+    def __init__(self, surface_temps, angle_factors, units=Units.SI.value) -> None:
         super().__init__(
             surface_temps=surface_temps,
             angle_factors=angle_factors,
             units=units,
         )
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         if len(self.surface_temps) != len(self.angle_factors):
             raise ValueError(
@@ -1312,22 +1315,18 @@ class ForthPowerInputs(BaseInputs):
             )
 
 @dataclass
-class NoGeometryInputs(BaseInputs):
-    def __init__(self, tdb, tr, asw, units=Units.SI.value):
+class AreaWeightedInputs(BaseInputs):
+    def __init__(self, surface_temps, surface_areas, units=Units.SI.value) -> None:
         super().__init__(
-            tdb=tdb,
-            tr=tr,
-            asw=asw,
+            surface_temps=surface_temps,
+            surface_areas=surface_areas,
             units=units,
         )
 
-# Just a test
-@dataclass
-class NoGeometryInputs(BaseInputs):
-    def __init__(self, tdb, tr, asw, units=Units.SI.value):
-        super().__init__(
-            tdb=tdb,
-            tr=tr,
-            asw=asw,
-            units=units,
-        )
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if len(self.surface_temps) != len(self.surface_areas):
+            raise ValueError(
+                f"surface_temps and surface_areas must be the same length, "
+                f"got {len(self.surface_temps)} and {len(self.surface_areas)}"
+            )
