@@ -330,6 +330,30 @@ class MRT(AutoStrMixin):
     mrt: float | list[float]
 
 @dataclass(frozen=True, repr=False)
+class SkyTemperature(AutoStrMixin):
+    """Dataclass to represent the Mean Radiant Temperature (MRT).
+
+    Attributes
+    ----------
+    t_sky : float or list of floats
+        Temperature sky, [°C] or [°F].
+    """
+
+    t_sky: float | list[float]
+
+@dataclass(frozen=True, repr=False)
+class SkyEmissivity(AutoStrMixin):
+    """Dataclass to represent the Mean Radiant Temperature (MRT).
+
+    Attributes
+    ----------
+    eps_sky : xxx
+    """
+
+    eps_sky: float | list[float]
+
+
+@dataclass(frozen=True, repr=False)
 class NET(AutoStrMixin):
     """Dataclass to represent the Normal Effective Temperature (NET).
 

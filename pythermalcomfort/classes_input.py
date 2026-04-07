@@ -29,11 +29,43 @@ class BaseInputs:
     tdb : float
         Dry bulb temperature in degrees Celsius (°C).
     eps_sky : float
-        Sky emissivity, physically constrained between 0 and 1.
+        Sky emissivity, physically constrained between 0 and 1. Need to remove, since we dont need to distinguisch betwee ndifferent emissivities. all 0 to 1
     tdp : float
         Dew point temperature in degrees Celsius (°C).
     fcn : float
-        Fraction
+        Fraction, what is this? Need to remove?
+    surface_temps : list of float
+        Temperatures of the surrounding surfaces as seen by the person [°C].
+        Must be the same length as angle_factors or surface_areas.
+    angle_factors : list of float
+        View factors (angle factors) between the person and each surrounding
+        surface, representing the fraction of radiation leaving the person that
+        strikes each surface. Must sum to 1.
+    surface_areas : list of float
+        Areas of the surrounding surfaces [m²]. Used in the area-weighted method
+        to derive angle factors proportional to each surface's share of the total
+        area.
+    svf : float
+        Sky View Factor, the fraction of the sky hemisphere visible from a point
+        on the ground, accounting for obstructions such as buildings and trees [0–1].
+    dni : float
+        Direct Normal Irradiance, the solar radiation received per unit area on a
+        surface perpendicular to the sun [W m⁻²].
+    dhi : float
+        Diffuse Horizontal Irradiance, the solar radiation received per unit area
+        on a horizontal surface from the sky, excluding the direct solar beam [W m⁻²].
+    t_surr : float
+        Mean temperature of surrounding surfaces (walls, ground, vegetation) as
+        seen by the person [°C].
+    albedo_ground : float
+        Shortwave reflectance of the ground surface, between 0 (fully absorbing)
+        and 1 (fully reflecting). Default is 0.2.
+    alpha_k : float
+        Shortwave radiation absorption coefficient of the human body, between 0
+        and 1. Default is 0.7, representing a standard clothed person.
+    emissivity : float
+        Longwave emissivity of the human body surface, between 0 and 1. Default
+        is 0.97, representing skin and standard clothing.
     """
 
     a_coefficient: float | int = field(default=None, metadata={"types": (float, int)})
@@ -199,6 +231,7 @@ class BaseInputs:
     wme: float | int | np.ndarray | list = field(
         default=0, metadata={"types": (float, int, np.ndarray, list)}
     )
+    # i wanne remove this, use emissivity?
     eps_sky: float | int | np.ndarray | list = field(
         default=0.7, metadata={"types": (float, int, np.ndarray, list)}
     )
@@ -212,8 +245,30 @@ class BaseInputs:
         default=None, metadata={"types": (list,)}
     )
     surface_areas: list[float] | None = field(
-    default=None, metadata={"types": (list,)}
-)
+        default=None, metadata={"types": (list,)}
+    )
+    svf: float | int | np.ndarray | list = field(
+    default=None, metadata={"types": (float, int, np.ndarray, list)}
+    )
+    dni: float | int | np.ndarray | list = field(
+        default=None, metadata={"types": (float, int, np.ndarray, list)}
+    )
+    dhi: float | int | np.ndarray | list = field(
+        default=None, metadata={"types": (float, int, np.ndarray, list)}
+    )
+    t_surr: float | int | np.ndarray | list = field(
+        default=None, metadata={"types": (float, int, np.ndarray, list)}
+    )
+    albedo_ground: float | int | np.ndarray | list = field(
+        default=0.2, metadata={"types": (float, int, np.ndarray, list)}
+    )
+    alpha_k: float | int | np.ndarray | list = field(
+        default=0.7, metadata={"types": (float, int, np.ndarray, list)}
+    )
+    emissivity: float | int | np.ndarray | list = field(
+        default=0.97, metadata={"types": (float, int, np.ndarray, list)}
+    )
+
 
     def __post_init__(self) -> None:
         """Validate and normalize fields using metadata declared on each field."""
@@ -1330,3 +1385,95 @@ class AreaWeightedInputs(BaseInputs):
                 f"surface_temps and surface_areas must be the same length, "
                 f"got {len(self.surface_temps)} and {len(self.surface_areas)}"
             )
+
+@dataclass
+class RayMenInputs(BaseInputs):
+    def __init__(
+        self,
+        svf: float,
+        dni: float,
+        dhi: float,
+        sol_altitude: float,       # solar elevation angle [degrees] — already in BaseInputs
+        t_surr: float,             # mean surrounding surface temp [°C]
+        albedo_ground: float = 0.2,
+        alpha_k: float = 0.7,      # shortwave absorption of human body
+        emissivity: float = 0.97,  # longwave emissivity of human body
+        units: str = Units.SI.value,
+    ) -> None:
+        super().__init__(
+            svf=svf,
+            dni=dni,
+            dhi=dhi,
+            sol_altitude=sol_altitude,
+            t_surr=t_surr,
+            albedo_ground=albedo_ground,
+            alpha_k=alpha_k,
+            emissivity=emissivity,
+            units=units,
+        )
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+
+        if not (0.0 <= self.svf <= 1.0):
+            raise ValueError(
+                f"svf must be between 0 and 1, got {self.svf}"
+            )
+        if self.dni < 0:
+            raise ValueError(f"dni must be non-negative, got {self.dni}")
+        if self.dhi < 0:
+            raise ValueError(f"dhi must be non-negative, got {self.dhi}")
+        if not (0.0 <= self.albedo_ground <= 1.0):
+            raise ValueError(
+                f"albedo_ground must be between 0 and 1, got {self.albedo_ground}"
+            )
+        if not (0.0 < self.emissivity <= 1.0):
+            raise ValueError(
+                f"emissivity must be between 0 and 1, got {self.emissivity}"
+            )
+        if not (0.0 <= self.sol_altitude <= 90.0):
+            raise ValueError(
+                f"sol_altitude must be between 0 and 90 degrees, got {self.sol_altitude}"
+            )
+
+@dataclass
+class SkyTemperatureInputs(BaseInputs):
+    """
+    Inputs for calculating the effective sky temperature.
+
+    Parameters
+    ----------
+    tdb : float, list, or np.ndarray
+        Dry bulb air temperature.
+    eps_sky : float, list, or np.ndarray
+        Sky emissivity (0-1), usually calculated via a SkyEmissivity model.
+    units : str, default "SI"
+        Units of `tdb`. "SI" = °C, "IP" = °F.
+    """
+
+    def __init__(
+        self,
+        tdb: float | list[float] | np.ndarray,
+        eps_sky: float | list[float] | np.ndarray,
+        units: str = Units.SI.value,
+    ) -> None:
+        super().__init__(
+            tdb=tdb,
+            eps_sky=eps_sky,
+            units=units,
+        )
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+
+        # Validation for emissivity range
+        eps = np.asarray(self.eps_sky)
+        if np.any(eps < 0.0) or np.any(eps > 1.0):
+            raise ValueError(
+                f"eps_sky must be between 0 and 1, got values ranging from "
+                f"{np.min(eps)} to {np.max(eps)}"
+            )
+
+        # Ensure tdb is provided
+        if self.tdb is None:
+            raise ValueError("tdb (dry bulb temperature) must be provided.")
