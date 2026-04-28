@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import pytest
 
 # Import the AutoStrMixin class
-from pythermalcomfort.classes_return import AutoStrMixin
+from pythermalcomfort.classes_return import UTCI, AutoStrMixin
 
 
 @dataclass(repr=False)
@@ -74,3 +74,17 @@ def test_autostr_getitem_method_key_error() -> None:
     obj = TestDataClass(field1=42, field2="test", field3=[1, 2, 3])
     with pytest.raises(KeyError):
         _ = obj["non_existent"]
+
+
+def test_autostr_includes_field_units() -> None:
+    """Test that AutoStrMixin includes field units when defined."""
+    result = UTCI(
+        utci=[24.6, 40.6],
+        stress_category=["no thermal stress", "very strong heat stress"],
+    )
+
+    output = str(result)
+
+    assert "utci [C]" in output
+    assert "stress_category" in output
+    assert "stress_category [" not in output

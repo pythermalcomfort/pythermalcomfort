@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as dt
 import textwrap
 from dataclasses import dataclass, fields, is_dataclass
+from typing import ClassVar
 
 import numpy as np
 import numpy.typing as npt
@@ -10,6 +11,8 @@ from numpy._typing import NDArray
 
 
 class AutoStrMixin:
+    _field_units: ClassVar[dict[str, str]] = {}
+
     def __str__(self) -> str:
         """Pretty-print dataclass fields as aligned single-line 'name : value'.
 
@@ -23,6 +26,10 @@ class AutoStrMixin:
         MAX_STR_WIDTH = 80
         names = [f.name for f in fields(type(self))]
         values = [getattr(self, n) for n in names]
+        display_names = [
+            f"{name} [{self._field_units[name]}]" if name in self._field_units else name
+            for name in names
+        ]
 
         # Format values as strings, using comma separation for arrays/lists
         def value_to_str(val):
@@ -52,11 +59,11 @@ class AutoStrMixin:
 
         value_strs = [value_to_str(v) for v in values]
         # Find max name length for alignment
-        max_name_len = max(len(n) for n in names) if names else 0
+        max_name_len = max(len(n) for n in display_names) if display_names else 0
         # Compose lines with aligned colons
         lines = [
             f"{n.ljust(max_name_len)} : {v}"
-            for n, v in zip(names, value_strs, strict=True)
+            for n, v in zip(display_names, value_strs, strict=True)
         ]
         # Shorten each line to MAX_STR_WIDTH
         lines = [
@@ -673,6 +680,8 @@ class UTCI(AutoStrMixin):
     stress_category : str or list of strs
         UTCI categorized in terms of thermal stress [Blazejczyk2013]_.
     """
+
+    _field_units: ClassVar[dict[str, str]] = {"utci": "C"}
 
     utci: float | list[float]
     stress_category: str | list[str]
