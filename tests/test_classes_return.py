@@ -85,6 +85,13 @@ def test_autostr_includes_field_units() -> None:
 
     output = str(result)
 
-    assert "utci [C]" in output
+    assert "utci [°C]" in output
     assert "stress_category" in output
     assert "stress_category [" not in output
+
+    scalar_output = str(UTCI(utci=24.6, stress_category="no thermal stress"))
+
+    assert "utci [°C]" in scalar_output
+    assert "24.6" in scalar_output
+    assert "[24.6]" not in scalar_output
+    assert "stress_category [" not in scalar_output

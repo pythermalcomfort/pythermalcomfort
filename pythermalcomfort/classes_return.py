@@ -681,7 +681,7 @@ class UTCI(AutoStrMixin):
         UTCI categorized in terms of thermal stress [Blazejczyk2013]_.
     """
 
-    _field_units: ClassVar[dict[str, str]] = {"utci": "C"}
+    _field_units: ClassVar[dict[str, str]] = {"utci": "°C"}
 
     utci: float | list[float]
     stress_category: str | list[str]
