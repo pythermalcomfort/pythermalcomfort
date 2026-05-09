@@ -4,7 +4,7 @@ import numpy as np
 
 from pythermalcomfort.classes_input import HIInputs
 from pythermalcomfort.classes_return import HI
-from pythermalcomfort.shared_functions import mapping
+from pythermalcomfort.shared_functions import mapping, valid_range
 
 
 def heat_index_rothfusz(
@@ -24,6 +24,15 @@ def heat_index_rothfusz(
         Relative humidity, [%].
     round_output : bool, optional
         If True, rounds output value. If False, it does not round it. Defaults to True.
+    limit_inputs : bool, optional
+        If True, limits the inputs to the standard applicability limits. Defaults to True.
+
+        .. note::
+            By default, if the inputs are outside the standard applicability limits the
+            function returns NaN. If False returns heat index
+            values even if input values are outside the applicability limits of the model.
+
+            The applicability limit is tdb >= 27°C.
 
     Returns
     -------
@@ -59,9 +68,8 @@ def heat_index_rothfusz(
 
     # heat index should only be calculated for temperatures above 27 °C
     if limit_inputs:
-        tdb_valid = np.where((tdb >= 27.0), tdb, np.nan)
-        all_valid = ~(np.isnan(tdb_valid))
-        hi_valid = np.where(all_valid, hi, np.nan)
+        tdb_valid = valid_range(tdb, (27.0, np.inf), "tdb")
+        hi_valid = np.where(~np.isnan(tdb_valid), hi, np.nan)
     else:
         hi_valid = hi
 

@@ -162,21 +162,6 @@ def pmv_ppd_iso(
             "PMV calculations can only be performed in compliance with ISO 7730-2005",
         )
 
-    (
-        tdb_valid,
-        tr_valid,
-        v_valid,
-        met_valid,
-        clo_valid,
-    ) = _check_standard_compliance_array(
-        standard=Models.iso_7730_2005.value,
-        tdb=tdb,
-        tr=tr,
-        v=vr,
-        met=met,
-        clo=clo,
-    )
-
     pmv_array = _pmv_ppd_optimized(tdb, tr, vr, rh, met, clo, wme)
 
     ppd_array = 100.0 - 95.0 * np.exp(
@@ -185,6 +170,20 @@ def pmv_ppd_iso(
 
     # Checks that inputs are within the bounds accepted by the model if not return nan
     if limit_inputs:
+        (
+            tdb_valid,
+            tr_valid,
+            v_valid,
+            met_valid,
+            clo_valid,
+        ) = _check_standard_compliance_array(
+            standard=Models.iso_7730_2005.value,
+            tdb=tdb,
+            tr=tr,
+            v=vr,
+            met=met,
+            clo=clo,
+        )
         pmv_valid = valid_range(pmv_array, (-2, 2))  # this is the ISO limit
 
         all_valid = ~(

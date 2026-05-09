@@ -182,11 +182,11 @@ def _check_ridge_regression_compliance(
         Five arrays with valid values preserved and out-of-range values set to NaN:
         (age_valid, height_valid, weight_valid, temp_valid, rh_valid).
     """
-    age_valid = valid_range(age, (60, 100))
-    height_valid = valid_range(height, (130, 230))
-    weight_valid = valid_range(weight, (40, 140))
-    temp_valid = valid_range(tdb, (0, 60))
-    rh_valid = valid_range(rh, (0, 100))
+    age_valid = valid_range(age, (60, 100), "age")
+    height_valid = valid_range(height, (130, 230), "height")
+    weight_valid = valid_range(weight, (40, 140), "weight")
+    temp_valid = valid_range(tdb, (0, 60), "tdb")
+    rh_valid = valid_range(rh, (0, 100), "rh")
     return age_valid, height_valid, weight_valid, temp_valid, rh_valid
 
 

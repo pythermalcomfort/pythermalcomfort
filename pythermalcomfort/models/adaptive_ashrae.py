@@ -113,14 +113,6 @@ def adaptive_ashrae(
             v=v,
         )
 
-    tdb_valid, tr_valid, v_valid = _check_standard_compliance_array(
-        Models.ashrae_55_2023.value,
-        tdb=tdb,
-        tr=tr,
-        v=v,
-    )
-    trm_valid = valid_range(t_running_mean, (10.0, 33.5))
-
     to = operative_tmp(tdb, tr, v, standard=standard)
 
     # Calculate cooling effect (ce) of elevated air speed when top > 25 degC.
@@ -133,6 +125,13 @@ def adaptive_ashrae(
     t_cmf = 0.31 * t_running_mean + 17.8
 
     if limit_inputs:
+        tdb_valid, tr_valid, v_valid = _check_standard_compliance_array(
+            Models.ashrae_55_2023.value,
+            tdb=tdb,
+            tr=tr,
+            v=v,
+        )
+        trm_valid = valid_range(t_running_mean, (10.0, 33.5), "t_running_mean")
         all_valid = ~(
             np.isnan(tdb_valid)
             | np.isnan(tr_valid)

@@ -81,8 +81,8 @@ def pmv_ppd_ashrae(
 
         .. note::
             By default, if the inputs are outside the standard applicability limits, the
-            function returns nan. If False returns pmv and ppd values even if input values are
-            outside the applicability limits of the model.
+            function returns NaN. If False returns pmv and ppd
+            values even if input values are outside the applicability limits of the model.
 
             The ASHRAE 55 2020 limits are 10 < tdb [°C] < 40, 10 < tr [°C] < 40,
             0 < vr [m/s] < 2, 1 < met [met] < 4, and 0 < clo [clo] < 1.5.
@@ -173,21 +173,24 @@ def pmv_ppd_ashrae(
         )
         raise ValueError(error_msg)
 
-    (
-        tdb_valid,
-        tr_valid,
-        v_valid,
-        met_valid,
-        clo_valid,
-    ) = _check_standard_compliance_array(
-        standard=Models.ashrae_55_2023.value,
-        tdb=tdb,
-        tr=tr,
-        v=vr,
-        met=met,
-        clo=clo,
-        airspeed_control=airspeed_control,
-    )
+    # Checks that inputs are within the bounds accepted by the model if not return nan
+    # Must be done before CE correction to use the original input values
+    if limit_inputs:
+        (
+            tdb_valid,
+            tr_valid,
+            v_valid,
+            met_valid,
+            clo_valid,
+        ) = _check_standard_compliance_array(
+            standard=Models.ashrae_55_2023.value,
+            tdb=tdb,
+            tr=tr,
+            v=vr,
+            met=met,
+            clo=clo,
+            airspeed_control=airspeed_control,
+        )
 
     # if v_r is higher than 0.1 follow methodology ASHRAE Appendix H, H3
     ce = np.where(
@@ -211,7 +214,6 @@ def pmv_ppd_ashrae(
     # Ensure object dtype for compliance array
     compliance_array = np.asarray(compliance_array, dtype=object)
 
-    # Checks that inputs are within the bounds accepted by the model if not return nan
     if limit_inputs:
         all_valid = ~(
             np.isnan(tdb_valid)

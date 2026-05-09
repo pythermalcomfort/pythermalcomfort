@@ -114,9 +114,9 @@ def utci(
 
     # Checks that inputs are within the bounds accepted by the model if not return nan
     if limit_inputs:
-        tdb_valid = valid_range(tdb, (-50.0, 50.0))
-        diff_valid = valid_range(tr - tdb, (-30.0, 70.0))
-        v_valid = valid_range(v, (0.5, 17.0))
+        tdb_valid = valid_range(tdb, (-50.0, 50.0), "tdb")
+        diff_valid = valid_range(tr - tdb, (-30.0, 70.0), "tr - tdb")
+        v_valid = valid_range(v, (0.5, 17.0), "v")
         all_valid = ~(np.isnan(tdb_valid) | np.isnan(diff_valid) | np.isnan(v_valid))
         utci_approx = np.where(all_valid, utci_approx, np.nan)
 

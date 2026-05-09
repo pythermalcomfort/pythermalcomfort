@@ -1,12 +1,36 @@
+import warnings
 from collections.abc import Mapping
 from typing import Any
 
 import numpy as np
 
 
-def valid_range(x, valid) -> np.ndarray:
+def valid_range(x, valid, param_name=None) -> np.ndarray:
     """Filter values based on a valid range."""
-    return np.where((x >= valid[0]) & (x <= valid[1]), x, np.nan)
+    x_arr = np.asarray(x)
+    out_of_range_mask = (x_arr < valid[0]) | (x_arr > valid[1])
+
+    if param_name is not None and np.any(out_of_range_mask):
+        if x_arr.ndim == 0:  # scalar input
+            warnings.warn(
+                f"Value of '{param_name}' ({float(x_arr.item())}) is outside the "
+                f"applicability limits [{valid[0]}, {valid[1]}] and will be "
+                f"set to NaN.",
+                UserWarning,
+                stacklevel=2,
+            )
+        else:  # array input
+            bad_indices = np.flatnonzero(out_of_range_mask).tolist()
+            bad_values = x_arr[out_of_range_mask].tolist()
+            warnings.warn(
+                f"Some values of '{param_name}' are outside the applicability "
+                f"limits [{valid[0]}, {valid[1]}] and will be set to NaN. "
+                f"Out-of-range values: {bad_values} at indices {bad_indices}.",
+                UserWarning,
+                stacklevel=2,
+            )
+
+    return np.where(~out_of_range_mask, x_arr, np.nan)
 
 
 def _finalize_scalar_or_array(arr: Any) -> Any:
