@@ -119,8 +119,8 @@ class _PlotDefaults:
         rh_label_fontsize: int = 8
         rh_label_offset_fraction: float = 0.01
         rh_curve_step: int = 10
-        zorder_rh_mask: float = 1.6
-        zorder_rh_lines: float = 2.0
+        zorder_rh_mask: float = 3.5
+        zorder_rh_lines: float = 4.0
 
     class Summary:
         """Defaults specific to :class:`SummaryPlot`."""
@@ -131,11 +131,11 @@ class _PlotDefaults:
         label_fontsize: int = 11
         pct_min_to_show: float = 5.0
         h_xlim: tuple = (0.0, 100.0)
-        h_ylim: tuple = (-0.48, 0.72)  # with side labels: bar at 60% of height
-        h_ylim_legend: tuple = (-0.48, 0.48)  # legend handles labels: bar at ~75%
+        h_ylim: tuple = (-0.25, 0.42)          
+        h_ylim_legend: tuple = (-0.25, 0.25)   
         h_bar_y: float = 0.0
-        h_bar_height: float = 0.72  # bar fills most of the vertical span
-        h_label_y: float = 0.38  # sits just above bar top (0.36)
+        h_bar_height: float = 0.5  
+        h_label_y: float = 0.29
         v_xlim: tuple = (-0.50, 0.90)  # with side labels
         v_xlim_legend: tuple = (-0.50, 0.50)  # legend handles labels: bar at ~80%
         v_ylim: tuple = (0.0, 100.0)
@@ -501,3 +501,37 @@ def _is_light_color(color: str) -> bool:
     red, green, blue = mcolors.to_rgb(color)
     luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue
     return luminance > 0.7
+
+# ── dynamic layout helpers ─────────────────────────────────────────────────
+
+def _resolve_layout(title: str | None, labels: Sequence[str], default_ncol: int, is_summary: bool = False) -> tuple[int, float, float]:
+    """Dynamically calculate legend columns, legend Y anchor, and title pad to prevent overlaps."""
+    n_labels = len(labels)
+    if n_labels == 0:
+        ncol = default_ncol
+        n_legend_rows = 0
+    else:
+        total_chars = sum(len(str(lbl)) for lbl in labels)
+        if total_chars > 45 and n_labels > 2:
+            ncol = max(2, (n_labels + 1) // 2)
+        else:
+            ncol = min(n_labels, default_ncol)
+        n_legend_rows = (n_labels + ncol - 1) // ncol
+
+    # The legend is uniformly anchored above the upper edge of the coordinate axis
+    legend_anchor_y = 1.01 if is_summary else 1.02
+
+    if n_legend_rows == 0:
+        base_pad = 6.0 if is_summary else 8.0
+    elif n_legend_rows == 1:
+        base_pad = 32.0 if is_summary else 34.0  
+    else:
+        base_pad = (32.0 if is_summary else 34.0) + (n_legend_rows - 1) * (12.0 if is_summary else 16.0)
+
+    if title:
+        newlines = title.count('\n')
+        title_pad = base_pad + (newlines * (10.0 if is_summary else 12.0))
+    else:
+        title_pad = base_pad
+
+    return ncol, legend_anchor_y, title_pad

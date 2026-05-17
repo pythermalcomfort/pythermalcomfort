@@ -21,6 +21,7 @@ from pythermalcomfort.plots.matplotlib._shared import (
     _PYTHERMALCOMFORT_RC,
     BasePlotResult,
     _PlotDefaults,
+    _resolve_layout,
 )
 
 #: Default color for grid cells that fall outside the model's applicability limits.
@@ -218,24 +219,33 @@ class ThresholdPlot(GridBasePlot):
                 else:
                     fills.append(cast(PolyCollection, filled_contours))
 
-            if invalid.any():
-                invalid_cells = (
-                    invalid[:-1, :-1]
-                    | invalid[1:, :-1]
-                    | invalid[:-1, 1:]
-                    | invalid[1:, 1:]
-                )
-                invalid_mask = np.ma.masked_where(
-                    ~invalid_cells,
-                    np.ones_like(invalid_cells, dtype=float),
-                )
-                ax.pcolormesh(
+            extended_levels = [-np.inf, *rc.thresholds, np.inf]
+            fills: list[PolyCollection] = []
+            if finite.any():
+                filled_contours = ax.contourf(
                     x,
                     y,
-                    invalid_mask,
-                    cmap=ListedColormap([invalid_color]),
-                    shading="flat",
-                    zorder=_PlotDefaults.Threshold.zorder_invalid,
+                    z_masked,
+                    levels=extended_levels,
+                    colors=rc.colors,
+                    extend="neither",
+                    **fill_opts,
+                )
+
+                if hasattr(filled_contours, "collections"):
+                    fills.extend(
+                        cast(list[PolyCollection], list(filled_contours.collections))
+                    )
+                else:
+                    fills.append(cast(PolyCollection, filled_contours))
+
+            if invalid.any():
+                ax.set_facecolor(invalid_color)
+
+            lines: list[Line2D] = []
+            if show_lines and finite.any():
+                contour_lines = ax.contour(
+                    x, y, z_masked, levels=rc.thresholds, antialiased=True
                 )
 
             lines: list[Line2D] = []
@@ -267,22 +277,36 @@ class ThresholdPlot(GridBasePlot):
                             label="Out of model limits",
                         )
                     )
-                legend_opts.setdefault(
-                    "ncol", min(len(handles), _PlotDefaults.Threshold.legend_ncol_max)
+                
+                labels_text = [h.get_label() for h in handles]
+                dynamic_ncol, dynamic_anchor, dynamic_title_pad = _resolve_layout(
+                    title=title, 
+                    labels=labels_text, 
+                    default_ncol=_PlotDefaults.Threshold.legend_ncol_max
                 )
+
+                legend_opts = dict(legend_kws or {})
+                legend_opts.setdefault("loc", _PlotDefaults.Threshold.legend_loc)
+                legend_opts.setdefault(
+                    "bbox_to_anchor",
+                    (0.5, dynamic_anchor) if title is not None else _PlotDefaults.Threshold.legend_bbox_to_anchor,
+                )
+                legend_opts.setdefault("ncol", dynamic_ncol)
+                
                 legend_artist = ax.legend(
                     handles=handles,
                     **legend_opts,
                 )
+            else:
+                _, _, dynamic_title_pad = _resolve_layout(title, [], 1)
 
             ax.set_xlim(x_min, x_max)
             ax.set_ylim(y_min, y_max)
             ax.set_xlabel(self._x_axis.name)
             ax.set_ylabel(self._y_axis.name)
+            
             if title is not None:
-                ax.set_title(
-                    title, y=_PlotDefaults.title_y_with_legend if legend else None
-                )
+                ax.set_title(title, pad=dynamic_title_pad)
 
             return ThresholdPlotResult(
                 fig=fig,

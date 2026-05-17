@@ -31,6 +31,7 @@ from pythermalcomfort.plots.matplotlib._shared import (
     _PYTHERMALCOMFORT_RC,
     BasePlotResult,
     _PlotDefaults,
+    _resolve_layout,
 )
 from pythermalcomfort.utilities import adaptive_cooling_effect
 
@@ -539,17 +540,6 @@ class AdaptivePlot(BasePlot):
 
             legend_artist: Legend | None = None
             if legend:
-                lg_opts = dict(legend_kws or {})
-                if title is not None:
-                    lg_opts.setdefault("loc", "lower center")
-                    lg_opts.setdefault(
-                        "bbox_to_anchor",
-                        _PlotDefaults.legend_bbox_to_anchor_with_title,
-                    )
-                else:
-                    lg_opts.setdefault("loc", _PlotDefaults.Adaptive.legend_loc)
-                lg_opts.setdefault("ncol", _PlotDefaults.Adaptive.legend_ncol)
-
                 handles: list[Any] = []
                 for band in reversed(bands):
                     handles.append(
@@ -568,7 +558,25 @@ class AdaptivePlot(BasePlot):
                             **dict(_PlotDefaults.Adaptive.center_line_defaults),
                         )
                     )
+
+                labels_text = [h.get_label() for h in handles]
+                dynamic_ncol, dynamic_anchor, dynamic_title_pad = _resolve_layout(
+                    title=title, 
+                    labels=labels_text, 
+                    default_ncol=_PlotDefaults.Adaptive.legend_ncol
+                )
+
+                lg_opts = dict(legend_kws or {})
+                if title is not None:
+                    lg_opts.setdefault("loc", "lower center")
+                    lg_opts.setdefault("bbox_to_anchor", (0.5, dynamic_anchor))
+                else:
+                    lg_opts.setdefault("loc", _PlotDefaults.Adaptive.legend_loc)
+
+                lg_opts.setdefault("ncol", dynamic_ncol)
                 legend_artist = ax.legend(handles=handles, **lg_opts)
+            else:
+                _, _, dynamic_title_pad = _resolve_layout(title, [], 1)
 
             if grid:
                 ax.grid(True)
@@ -578,9 +586,7 @@ class AdaptivePlot(BasePlot):
             if ylabel is not None:
                 ax.set_ylabel(ylabel)
             if title is not None:
-                ax.set_title(
-                    title, y=_PlotDefaults.title_y_with_legend if legend else None
-                )
+                ax.set_title(title, pad=dynamic_title_pad)
 
             ax.set_xlim(self._t_rm_range)
             if self._y_range is not None:

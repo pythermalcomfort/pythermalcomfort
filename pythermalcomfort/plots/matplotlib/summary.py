@@ -20,6 +20,7 @@ from pythermalcomfort.plots.matplotlib._shared import (
     BasePlotResult,
     _is_light_color,
     _PlotDefaults,
+    _resolve_layout,
 )
 
 # ── result container ───────────────────────────────────────────────────────
@@ -170,10 +171,14 @@ def _plot_summary(
     region_labels: Sequence[str],
     region_colors: Sequence[str],
     show_region_labels: bool,
+    bar_kws: Mapping[str, Any] | None = None,
 ) -> list[Any]:
-    """Render a stacked summary bar (horizontal or vertical) with annotations."""
     D = _PlotDefaults.Summary
     artists: list[Any] = []
+
+    bar_opts = dict(bar_kws or {})
+    bar_opts.setdefault("edgecolor", D.bar_edgecolor)
+    bar_opts.setdefault("linewidth", D.bar_linewidth)
 
     if vertical:
         ax.set_xlim(*(D.v_xlim if show_region_labels else D.v_xlim_legend))
@@ -194,8 +199,7 @@ def _plot_summary(
                 width=D.v_bar_width,
                 bottom=cumulative,
                 color=color,
-                edgecolor=D.bar_edgecolor,
-                linewidth=D.bar_linewidth,
+                **bar_opts,  
             )
         else:
             bar = ax.barh(
@@ -204,9 +208,9 @@ def _plot_summary(
                 left=cumulative,
                 height=D.h_bar_height,
                 color=color,
-                edgecolor=D.bar_edgecolor,
-                linewidth=D.bar_linewidth,
+                **bar_opts, 
             )
+        
         artists.append(bar)
 
         if value >= D.pct_min_to_show:
@@ -331,6 +335,7 @@ class SummaryPlot(BasePlot):
         vertical: bool = False,
         legend: bool = True,
         legend_kws: Mapping[str, Any] | None = None,
+        bar_kws: Mapping[str, Any] | None = None,
         # fixme missing bar kwargs
     ) -> SummaryPlotResult:
         """Render a threshold summary plot for the configured output column.
@@ -370,7 +375,10 @@ class SummaryPlot(BasePlot):
             rc = self._region_config
 
             if ax is None:
-                fig, ax = plt.subplots(figsize=_PlotDefaults.figsize)
+                fsize = (7, 2.0) if not vertical else _PlotDefaults.figsize
+                fig, ax = plt.subplots(figsize=fsize)
+                if not vertical:
+                    fig.subplots_adjust(left=0.02, right=0.98, bottom=0.05, top=0.75)
             else:
                 fig = ax.figure
 
@@ -389,31 +397,36 @@ class SummaryPlot(BasePlot):
                 region_labels=rc.labels,
                 region_colors=rc.colors,
                 show_region_labels=not legend,
+                bar_kws=bar_kws,
             )
 
             legend_artist: Legend | None = None
             if legend:
+                dynamic_ncol, dynamic_anchor, dynamic_title_pad = _resolve_layout(
+                    title=title, 
+                    labels=rc.labels, 
+                    default_ncol=_PlotDefaults.Threshold.legend_ncol_max,
+                    is_summary=True
+                )
+                
                 lg_opts = dict(legend_kws or {})
                 lg_opts.setdefault("loc", "lower center")
                 lg_opts.setdefault(
                     "bbox_to_anchor",
-                    _PlotDefaults.legend_bbox_to_anchor_with_title
-                    if title is not None
-                    else _PlotDefaults.Threshold.legend_bbox_to_anchor,
+                    (0.5, dynamic_anchor) if title is not None else _PlotDefaults.Threshold.legend_bbox_to_anchor,
                 )
-                lg_opts.setdefault(
-                    "ncol", min(len(rc.labels), _PlotDefaults.Threshold.legend_ncol_max)
-                )
+                lg_opts.setdefault("ncol", dynamic_ncol)
+
                 handles = [
                     Patch(facecolor=color, label=label)
                     for label, color in zip(rc.labels, rc.colors, strict=False)
                 ]
                 legend_artist = ax.legend(handles=handles, **lg_opts)
+            else:
+                _, _, dynamic_title_pad = _resolve_layout(title, [], 1, is_summary=True)
 
             if title is not None:
-                ax.set_title(
-                    title, y=_PlotDefaults.title_y_with_legend if legend else None
-                )
+                ax.set_title(title, pad=dynamic_title_pad)
 
             return SummaryPlotResult(
                 fig=fig,

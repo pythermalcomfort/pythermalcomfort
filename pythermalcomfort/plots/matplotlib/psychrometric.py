@@ -311,26 +311,6 @@ class PsychrometricPlot(ThresholdPlot):
             edgecolor="none",
         )
 
-        # Clip threshold boundary lines to the valid region so they do not
-        # extend above the saturation curve.  The clip path is a closed polygon
-        # tracing the bottom of the plot → saturation curve (right-to-left) → close.
-        if result.lines:
-            x_min = self._x_axis.min_val
-            x_max = self._x_axis.max_val
-            y_min = self._y_axis.min_val
-            clip_x = np.concatenate([[x_min, x_max], t_dense[::-1]])
-            clip_y = np.concatenate([[y_min, y_min], hr_100[::-1]])
-            n = len(clip_x)
-            verts = np.column_stack(
-                [np.append(clip_x, clip_x[0]), np.append(clip_y, clip_y[0])]
-            )
-            codes = np.array(
-                [MplPath.MOVETO] + [MplPath.LINETO] * (n - 1) + [MplPath.CLOSEPOLY],
-                dtype=np.uint8,
-            )
-            valid_clip = MplPath(verts, codes)
-            for line in result.lines:
-                line.set_clip_path(valid_clip, ax.transData)
 
         step = _PlotDefaults.Psychrometric.rh_curve_step
         for rh_target in range(step, 110, step):
