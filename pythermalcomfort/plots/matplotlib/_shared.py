@@ -119,14 +119,14 @@ class _PlotDefaults:
         rh_label_fontsize: int = 8
         rh_label_offset_fraction: float = 0.01
         rh_curve_step: int = 10
-        zorder_rh_mask: float = 3.5
-        zorder_rh_lines: float = 4.0
+        zorder_rh_mask: float = 4.5  
+        zorder_rh_lines: float = 5.0
 
     class Summary:
         """Defaults specific to :class:`SummaryPlot`."""
 
-        bar_edgecolor: str = "white"
-        bar_linewidth: float = 1.0
+        bar_edgecolor: str = "none"
+        bar_linewidth: float = 0.0
         percentage_fontsize: int = 12
         label_fontsize: int = 11
         pct_min_to_show: float = 5.0

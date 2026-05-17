@@ -199,60 +199,65 @@ class ThresholdPlot(GridBasePlot):
             invalid = ~finite
             z_masked = np.ma.masked_invalid(z)
 
-            extended_levels = [-np.inf, *rc.thresholds, np.inf]
-            fills: list[PolyCollection] = []
-            if finite.any():
-                filled_contours = ax.contourf(
-                    x,
-                    y,
-                    z_masked,
-                    levels=extended_levels,
-                    colors=rc.colors,
-                    extend="neither",
-                    **fill_opts,
-                )
-
-                if hasattr(filled_contours, "collections"):
-                    fills.extend(
-                        cast(list[PolyCollection], list(filled_contours.collections))
-                    )
-                else:
-                    fills.append(cast(PolyCollection, filled_contours))
-
-            extended_levels = [-np.inf, *rc.thresholds, np.inf]
-            fills: list[PolyCollection] = []
-            if finite.any():
-                filled_contours = ax.contourf(
-                    x,
-                    y,
-                    z_masked,
-                    levels=extended_levels,
-                    colors=rc.colors,
-                    extend="neither",
-                    **fill_opts,
-                )
-
-                if hasattr(filled_contours, "collections"):
-                    fills.extend(
-                        cast(list[PolyCollection], list(filled_contours.collections))
-                    )
-                else:
-                    fills.append(cast(PolyCollection, filled_contours))
-
+            # Layer 1: Set the canvas background color to an invalid color
             if invalid.any():
                 ax.set_facecolor(invalid_color)
 
-            lines: list[Line2D] = []
-            if show_lines and finite.any():
-                contour_lines = ax.contour(
-                    x, y, z_masked, levels=rc.thresholds, antialiased=True
+            extended_levels = [-np.inf, *rc.thresholds, np.inf]
+            fills: list[PolyCollection] = []
+            
+            if finite.any():
+                # Layer 2: Limited interval pure white opacity (zorder=2)
+                z_min, z_max = np.nanmin(z), np.nanmax(z)
+                underlay_levels = [z_min - 1.0, z_max + 1.0] if z_min != z_max else [z_min - 1.0, z_min + 1.0]
+                
+                underlay_opts = {k: v for k, v in fill_opts.items() if k != "alpha"}
+                ax.contourf(
+                    x,
+                    y,
+                    z_masked,
+                    levels=underlay_levels,
+                    colors=["white"],
+                    extend="neither",
+                    zorder=2,  
+                    **underlay_opts,
                 )
 
+                # Layer 3: HD Color Blocks (zorder=3)
+                filled_contours = ax.contourf(
+                    x,
+                    y,
+                    z_masked,
+                    levels=extended_levels,
+                    colors=rc.colors,
+                    extend="neither",
+                    zorder=3,
+                    **fill_opts,
+                )
+
+                if hasattr(filled_contours, "collections"):
+                    for c in filled_contours.collections:
+                        c.set_edgecolor("face")
+                        c.set_linewidth(0.5)
+                    fills.extend(
+                        cast(list[PolyCollection], list(filled_contours.collections))
+                    )
+                else:
+                    if hasattr(filled_contours, "set_edgecolor"):
+                        filled_contours.set_edgecolor("face")
+                    if hasattr(filled_contours, "set_linewidth"):
+                        filled_contours.set_linewidth(0.5)
+                    fills.append(cast(PolyCollection, filled_contours))
+
+            # Layer 4: Border black line (zorder=4) 
             lines: list[Line2D] = []
             if show_lines and finite.any():
                 contour_lines = ax.contour(
-                    x, y, z_masked, levels=rc.thresholds, antialiased=True
+                    x, y, z_masked, levels=rc.thresholds, antialiased=True, linewidths=0
                 )
+                
+                line_opts = dict(line_opts)
+                line_opts.setdefault("zorder", 4)
                 lines = _contour_paths_to_lines(
                     ax,
                     contour_set=contour_lines,
