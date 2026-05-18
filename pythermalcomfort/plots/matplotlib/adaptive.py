@@ -79,6 +79,11 @@ _BAND_KEYS: dict[str, list[str]] = {
     std: [b.key for b in cfg["bands"]] for std, cfg in _STANDARD_CONFIGS.items()
 }
 
+_ACCEPTABILITY_FIELDS: dict[str, list[str]] = {
+    "ashrae": ["acceptability_80", "acceptability_90"],
+    "en": ["acceptability_cat_iii", "acceptability_cat_ii", "acceptability_cat_i"],
+}
+
 
 # ── public config ──────────────────────────────────────────────────────────
 

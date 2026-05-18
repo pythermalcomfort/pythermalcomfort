@@ -142,6 +142,8 @@ class _PlotDefaults:
         v_bar_x: float = 0.0
         v_bar_width: float = 0.80  # bar fills most of the horizontal span
         v_label_x_offset: float = 0.42  # just past bar right edge (0.40)
+        outside_label: str = "Outside"
+        outside_color: str = "#D9D9D9"
 
 
 # ── package-wide Matplotlib style ─────────────────────────────────────────
