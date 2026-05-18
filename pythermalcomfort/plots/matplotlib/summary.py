@@ -21,6 +21,13 @@ from pythermalcomfort.plots.matplotlib._shared import (
     _is_light_color,
     _PlotDefaults,
 )
+from pythermalcomfort.plots.matplotlib.adaptive import (
+    _ACCEPTABILITY_FIELDS,
+    _MODEL_TO_STANDARD,
+    _STANDARD_CONFIGS,
+    RegionsConfig,
+    _BandSpec,
+)
 
 # ── result container ───────────────────────────────────────────────────────
 
@@ -121,6 +128,46 @@ def _compute_region_percentages(
     )
     result.index = pd.Index(region_labels)
     return result
+
+
+def _compute_adaptive_percentages(
+    df: pd.DataFrame,
+    *,
+    model_func: Any,
+    col_tdb: str,
+    col_tr: str,
+    col_t_rm: str,
+    col_v: str,
+    visible_specs: list[_BandSpec],
+    visible_fields: list[str],
+    labels: list[str],
+    colors: list[str],
+) -> tuple[list[str], list[str], pd.Series]:
+    result = model_func(
+        tdb=df[col_tdb].values,
+        tr=df[col_tr].values,
+        t_running_mean=df[col_t_rm].values,
+        v=df[col_v].values,
+    )
+
+    n = len(df)
+    categories = np.full(n, len(visible_specs), dtype=int)
+
+    for i, field_name in enumerate(visible_fields):
+        accepted = np.asarray(getattr(result, field_name), dtype=bool)
+        categories[accepted] = i
+
+    outside_label = _PlotDefaults.Summary.outside_label
+    outside_color = _PlotDefaults.Summary.outside_color
+    all_labels = labels + [outside_label]
+    all_colors = colors + [outside_color]
+    counts = np.bincount(categories, minlength=len(all_labels))
+    percentages = pd.Series(
+        np.round(counts / n * 100, 1),
+        index=all_labels,
+    )
+
+    return all_labels, all_colors, percentages
 
 
 # ── axis preparation ───────────────────────────────────────────────────────
@@ -277,6 +324,18 @@ class SummaryPlot(BasePlot):
         _validate_dataframe(df)
         self._df = df
 
+        # adaptive mode
+        self._adaptive_model: Any | None = None
+        self._adaptive_standard: str | None = None
+        self._adaptive_col_tdb: str | None = None
+        self._adaptive_col_tr: str | None = None
+        self._adaptive_col_t_rm: str | None = None
+        self._adaptive_col_v: str | None = None
+        self._adaptive_labels: list[str] | None = None
+        self._adaptive_colors: list[str] | None = None
+        self._adaptive_visible_specs: list[_BandSpec] | None = None
+        self._adaptive_visible_fields: list[str] | None = None
+
     def set_regions(
         self,
         *,
@@ -313,6 +372,8 @@ class SummaryPlot(BasePlot):
             If the output column is missing or has invalid values, or if
             thresholds/labels/colors are invalid.
         """
+        self._adaptive_model = None
+
         output_name = _validate_output_column(self._df, output)
         _validate_output_values(self._df, output_name)
         super().set_regions(
@@ -323,6 +384,143 @@ class SummaryPlot(BasePlot):
         )
         return self
 
+    def set_adaptive_regions(
+        self,
+        *,
+        model_func: Any,
+        tdb: str,
+        tr: str,
+        t_running_mean: str,
+        v: str,
+        show: RegionsConfig | Sequence[str] | None = None,
+        labels: Sequence[str] | None = None,
+        colors: Sequence[str] | None = None,
+    ) -> SummaryPlot:
+        """Configure adaptive comfort band classification.
+
+        Uses the adaptive model's ``acceptability_*`` outputs to classify
+        each row, instead of fixed thresholds.  Cannot be combined with
+        :meth:`set_regions` — calling one clears the other.
+
+        Parameters
+        ----------
+        model_func : callable
+            ``adaptive_ashrae`` or ``adaptive_en``.
+        tdb : str
+            Column name for dry-bulb air temperature.
+        tr : str
+            Column name for mean radiant temperature.
+        t_running_mean : str
+            Column name for running mean outdoor temperature.
+        v : str
+            Column name for air speed.
+        show : RegionsConfig, sequence of str, or None
+            Band keys to display (same as :meth:`AdaptivePlot.set_regions`).
+        labels : sequence of str, optional
+            Custom labels for the visible bands.
+        colors : sequence of str, optional
+            Custom colors for the visible bands.
+
+        Returns
+        -------
+        SummaryPlot
+            Self, to support method chaining.
+
+        Raises
+        ------
+        ValueError
+            If model is not recognized, columns are missing, or band
+            keys are invalid.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from pythermalcomfort.models import adaptive_ashrae
+
+            SummaryPlot(df).set_adaptive_regions(
+                model_func=adaptive_ashrae,
+                tdb="tdb",
+                tr="tr",
+                t_running_mean="t_rm",
+                v="v",
+            ).plot(title="Adaptive Comfort Distribution")
+        """
+        # Clear threshold mode
+        self._region_config = None
+
+        # Validate model
+        name = getattr(model_func, "__name__", "")
+        if name not in _MODEL_TO_STANDARD:
+            valid = ", ".join(sorted(_MODEL_TO_STANDARD))
+            msg = (
+                f"model_func must be one of the adaptive model functions "
+                f"({valid}), got '{name}'."
+            )
+            raise ValueError(msg)
+
+        standard = _MODEL_TO_STANDARD[name]
+
+        # Validate columns
+        missing = [c for c in [tdb, tr, t_running_mean, v] if c not in self._df.columns]
+        if missing:
+            msg = f"Column(s) not found in DataFrame: {', '.join(missing)}"
+            raise ValueError(msg)
+
+        # Resolve RegionsConfig
+        if isinstance(show, RegionsConfig):
+            if labels is not None or colors is not None:
+                raise ValueError(
+                    "labels and colors must not be provided separately when "
+                    "show is a RegionsConfig instance."
+                )
+            config = show
+        else:
+            config = RegionsConfig(show=show, labels=labels, colors=colors)
+        config._validate(standard)
+
+        # Resolve visible bands
+        cfg = _STANDARD_CONFIGS[standard]
+        all_specs: list[_BandSpec] = cfg["bands"]
+        all_fields = _ACCEPTABILITY_FIELDS[standard]
+
+        if config.show is not None:
+            show_set = set(config.show)
+            visible_specs = [s for s in all_specs if s.key in show_set]
+            visible_fields = [
+                f
+                for s, f in zip(all_specs, all_fields, strict=False)
+                if s.key in show_set
+            ]
+        else:
+            visible_specs = list(all_specs)
+            visible_fields = list(all_fields)
+
+        resolved_labels: list[str] = []
+        resolved_colors: list[str] = []
+        for i, spec in enumerate(visible_specs):
+            lbl = spec.default_label
+            clr = spec.default_color
+            if config.labels is not None:
+                lbl = str(config.labels[i])
+            if config.colors is not None:
+                clr = str(config.colors[i])
+            resolved_labels.append(lbl)
+            resolved_colors.append(clr)
+
+        self._adaptive_model = model_func
+        self._adaptive_standard = standard
+        self._adaptive_col_tdb = tdb
+        self._adaptive_col_tr = tr
+        self._adaptive_col_t_rm = t_running_mean
+        self._adaptive_col_v = v
+        self._adaptive_visible_specs = visible_specs
+        self._adaptive_visible_fields = visible_fields
+        self._adaptive_labels = resolved_labels
+        self._adaptive_colors = resolved_colors
+
+        return self
+
     def plot(
         self,
         *,
@@ -331,63 +529,83 @@ class SummaryPlot(BasePlot):
         vertical: bool = False,
         legend: bool = True,
         legend_kws: Mapping[str, Any] | None = None,
-        # fixme missing bar kwargs
     ) -> SummaryPlotResult:
-        """Render a threshold summary plot for the configured output column.
+        """Render a summary plot.
+
+        Works in two modes depending on configuration:
+
+        - **Threshold mode** (via :meth:`set_regions`): fixed-threshold
+          classification using ``pd.cut``.
+        - **Adaptive mode** (via :meth:`set_adaptive_regions`): per-row
+          classification using the adaptive model's acceptability outputs.
 
         Parameters
         ----------
         ax : Axes, optional
-            Existing axis to draw on.  If ``None``, a new figure/axis is created
-            with a default size of ``(7, 4)`` inches.
+            Existing axis.  If ``None``, a new figure/axis is created.
         title : str, optional
-            Optional axis title.  When both *title* and *legend* are shown the
-            legend sits just above the chart and the title floats above it,
-            matching the spacing used by :class:`ThresholdPlot`.
+            Optional chart title.
         vertical : bool
-            If ``True``, render a vertical stacked bar; otherwise horizontal.
+            If ``True``, render a vertical stacked bar.
         legend : bool
-            Whether to draw a colour-coded legend above the bar.  When
-            ``True``, region labels are omitted from the bar itself.
+            Whether to draw a legend.
         legend_kws : dict, optional
-            Keyword overrides forwarded to ``ax.legend``.
+            Overrides for the legend.
 
         Returns
         -------
         SummaryPlotResult
-            Result with figure, axis, percentages, artists, and legend handle.
+            Result with figure, axis, percentages, artists, and legend.
 
         Raises
         ------
         ValueError
-            If regions are not configured first via :meth:`set_regions`.
+            If neither :meth:`set_regions` nor :meth:`set_adaptive_regions`
+            has been called.
         """
         with mpl.rc_context(_PYTHERMALCOMFORT_RC):
-            if self._region_config is None:
-                raise ValueError(
-                    "Regions are not set. Call set_regions(...) before plot(...)."
+            # Determine mode and compute percentages
+            if self._adaptive_model is not None:
+                all_labels, all_colors, percentages = _compute_adaptive_percentages(
+                    self._df,
+                    model_func=self._adaptive_model,
+                    col_tdb=self._adaptive_col_tdb,
+                    col_tr=self._adaptive_col_tr,
+                    col_t_rm=self._adaptive_col_t_rm,
+                    col_v=self._adaptive_col_v,
+                    visible_specs=self._adaptive_visible_specs,
+                    visible_fields=self._adaptive_visible_fields,
+                    labels=self._adaptive_labels,
+                    colors=self._adaptive_colors,
                 )
-            rc = self._region_config
+            elif self._region_config is not None:
+                rc = self._region_config
+                percentages = _compute_region_percentages(
+                    self._df,
+                    output_column=rc.output_name,
+                    levels=rc.thresholds,
+                    region_labels=rc.labels,
+                )
+                all_labels = rc.labels
+                all_colors = rc.colors
+            else:
+                raise ValueError(
+                    "Regions are not set. Call set_regions(...) or "
+                    "set_adaptive_regions(...) before plot(...)."
+                )
 
             if ax is None:
                 fig, ax = plt.subplots(figsize=_PlotDefaults.figsize)
             else:
                 fig = ax.figure
 
-            percentages = _compute_region_percentages(
-                self._df,
-                output_column=rc.output_name,
-                levels=rc.thresholds,
-                region_labels=rc.labels,
-            )
-
             _prepare_axis(ax)
             artists = _plot_summary(
                 ax,
                 vertical=vertical,
                 region_percentages=percentages,
-                region_labels=rc.labels,
-                region_colors=rc.colors,
+                region_labels=all_labels,
+                region_colors=all_colors,
                 show_region_labels=not legend,
             )
 
@@ -402,11 +620,12 @@ class SummaryPlot(BasePlot):
                     else _PlotDefaults.Threshold.legend_bbox_to_anchor,
                 )
                 lg_opts.setdefault(
-                    "ncol", min(len(rc.labels), _PlotDefaults.Threshold.legend_ncol_max)
+                    "ncol",
+                    min(len(all_labels), _PlotDefaults.Threshold.legend_ncol_max),
                 )
                 handles = [
                     Patch(facecolor=color, label=label)
-                    for label, color in zip(rc.labels, rc.colors, strict=False)
+                    for label, color in zip(all_labels, all_colors, strict=False)
                 ]
                 legend_artist = ax.legend(handles=handles, **lg_opts)
 
