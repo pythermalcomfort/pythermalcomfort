@@ -8,9 +8,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.legend import Legend
 
-from pythermalcomfort.plots.matplotlib.summary import (
-    SummaryPlot,
+from pythermalcomfort.plots.matplotlib.threshold_summary import (
     SummaryPlotResult,
+    ThresholdSummary,
 )
 
 
@@ -31,28 +31,28 @@ def pmv_df() -> pd.DataFrame:
     )
 
 
-def _new_summary(pmv_df: pd.DataFrame) -> SummaryPlot:
-    return SummaryPlot(pmv_df).set_regions(output="pmv", thresholds=[-0.5, 0.5])
+def _new_summary(pmv_df: pd.DataFrame) -> ThresholdSummary:
+    return ThresholdSummary(pmv_df).set_regions(output="pmv", thresholds=[-0.5, 0.5])
 
 
 def test_init_rejects_non_dataframe() -> None:
     with pytest.raises(TypeError, match="pandas DataFrame"):
-        SummaryPlot([1, 2, 3])
+        ThresholdSummary([1, 2, 3])
 
 
 def test_init_rejects_empty_dataframe() -> None:
     with pytest.raises(ValueError, match="at least one row"):
-        SummaryPlot(pd.DataFrame())
+        ThresholdSummary(pd.DataFrame())
 
 
 def test_plot_requires_set_regions(pmv_df: pd.DataFrame) -> None:
     with pytest.raises(ValueError, match="Call set_regions"):
-        SummaryPlot(pmv_df).plot()
+        ThresholdSummary(pmv_df).plot()
 
 
 def test_set_regions_rejects_empty_output_name(pmv_df: pd.DataFrame) -> None:
     with pytest.raises(ValueError, match="non-empty string"):
-        SummaryPlot(pmv_df).set_regions(output="   ", thresholds=[-0.5, 0.5])
+        ThresholdSummary(pmv_df).set_regions(output="   ", thresholds=[-0.5, 0.5])
 
 
 def test_set_regions_rejects_missing_output_column(pmv_df: pd.DataFrame) -> None:
@@ -60,12 +60,12 @@ def test_set_regions_rejects_missing_output_column(pmv_df: pd.DataFrame) -> None
         ValueError,
         match="output column 'utci' was not found in the DataFrame.",
     ):
-        SummaryPlot(pmv_df).set_regions(output="utci", thresholds=[9, 26])
+        ThresholdSummary(pmv_df).set_regions(output="utci", thresholds=[9, 26])
 
 
 def test_set_regions_rejects_wrong_label_count(pmv_df: pd.DataFrame) -> None:
     with pytest.raises(ValueError, match="labels must have length 3"):
-        SummaryPlot(pmv_df).set_regions(
+        ThresholdSummary(pmv_df).set_regions(
             output="pmv",
             thresholds=[-0.5, 0.5],
             labels=["Cold", "Hot"],
@@ -74,7 +74,7 @@ def test_set_regions_rejects_wrong_label_count(pmv_df: pd.DataFrame) -> None:
 
 def test_set_regions_rejects_wrong_color_count(pmv_df: pd.DataFrame) -> None:
     with pytest.raises(ValueError, match="colors must have length 3"):
-        SummaryPlot(pmv_df).set_regions(
+        ThresholdSummary(pmv_df).set_regions(
             output="pmv",
             thresholds=[-0.5, 0.5],
             colors=["#4c78a8", "#e15759"],
@@ -107,7 +107,7 @@ def test_plot_uses_compact_default_figsize(pmv_df: pd.DataFrame) -> None:
 
 def test_vertical_empty_labels_uses_compact_xlim(pmv_df: pd.DataFrame) -> None:
     result = (
-        SummaryPlot(pmv_df)
+        ThresholdSummary(pmv_df)
         .set_regions(output="pmv", thresholds=[-0.5, 0.5], labels=[])
         .plot(vertical=True, legend=False)
     )
@@ -158,7 +158,7 @@ def test_plot_returns_percentages(pmv_df: pd.DataFrame) -> None:
 def test_plot_uses_custom_labels_when_provided(pmv_df: pd.DataFrame) -> None:
     custom_labels = ["Cold", "Neutral", "Hot"]
     result = (
-        SummaryPlot(pmv_df)
+        ThresholdSummary(pmv_df)
         .set_regions(
             output="pmv",
             thresholds=[-0.5, 0.5],
@@ -178,7 +178,7 @@ def test_plot_supports_utci_like_existing_column() -> None:
         }
     )
 
-    result = SummaryPlot(df).set_regions(output="utci", thresholds=[9, 26]).plot()
+    result = ThresholdSummary(df).set_regions(output="utci", thresholds=[9, 26]).plot()
 
     expected_labels = ["UTCI < 9", "9 ≤ UTCI < 26", "UTCI ≥ 26"]
     assert result.percentages.index.tolist() == expected_labels
@@ -189,20 +189,20 @@ def test_set_regions_rejects_non_numeric_output_values() -> None:
     df = pd.DataFrame({"pmv": [0.1, "bad", 0.2]})
 
     with pytest.raises(ValueError, match="non-numeric"):
-        SummaryPlot(df).set_regions(output="pmv", thresholds=[-0.5, 0.5])
+        ThresholdSummary(df).set_regions(output="pmv", thresholds=[-0.5, 0.5])
 
 
 def test_set_regions_rejects_non_finite_output_values() -> None:
     df = pd.DataFrame({"pmv": [0.1, float("inf"), 0.2]})
 
     with pytest.raises(ValueError, match="non-finite"):
-        SummaryPlot(df).set_regions(output="pmv", thresholds=[-0.5, 0.5])
+        ThresholdSummary(df).set_regions(output="pmv", thresholds=[-0.5, 0.5])
 
 
 def test_summary_with_custom_labels() -> None:
     df = pd.DataFrame({"pmv": [0.7, -0.3, 0.1, -0.8, 1.2]})
     result = (
-        SummaryPlot(df)
+        ThresholdSummary(df)
         .set_regions(
             output="pmv",
             thresholds=[-0.5, 0.5],
@@ -216,7 +216,9 @@ def test_summary_with_custom_labels() -> None:
 
 def test_summary_handles_numeric_string_column() -> None:
     df = pd.DataFrame({"pmv": ["0.7", "-0.3", "0.1", "-0.8", "1.2"]})
-    result = SummaryPlot(df).set_regions(output="pmv", thresholds=[-0.5, 0.5]).plot()
+    result = (
+        ThresholdSummary(df).set_regions(output="pmv", thresholds=[-0.5, 0.5]).plot()
+    )
     assert isinstance(result, SummaryPlotResult)
     assert result.percentages.sum() > 99.9
 
@@ -266,7 +268,7 @@ def test_plot_result_has_no_data_attribute(pmv_df: pd.DataFrame) -> None:
 
 def test_set_regions_empty_labels_suppresses_label_text(pmv_df: pd.DataFrame) -> None:
     result = (
-        SummaryPlot(pmv_df)
+        ThresholdSummary(pmv_df)
         .set_regions(output="pmv", thresholds=[-0.5, 0.5], labels=[])
         .plot()
     )
@@ -279,7 +281,7 @@ def test_empty_labels_suppresses_label_text_via_thresholds(
     pmv_df: pd.DataFrame,
 ) -> None:
     result = (
-        SummaryPlot(pmv_df)
+        ThresholdSummary(pmv_df)
         .set_regions(output="pmv", thresholds=[-0.5, 0.5], labels=[])
         .plot()
     )

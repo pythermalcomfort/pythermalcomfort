@@ -331,7 +331,7 @@ def _default_legend_ncol(*, vertical: bool, n_labels: int) -> int:
 # ── public API ─────────────────────────────────────────────────────────────
 
 
-class SummaryPlot(BasePlot):
+class ThresholdSummary(BasePlot):
     """Build and render a threshold summary plot from tabular model outputs.
 
     The class works with an existing DataFrame that already contains the target
@@ -364,7 +364,7 @@ class SummaryPlot(BasePlot):
         thresholds: Sequence[float],
         labels: Sequence[str] | None = None,
         colors: Sequence[str] | None = None,
-    ) -> SummaryPlot:
+    ) -> ThresholdSummary:
         """Set output variable and threshold region configuration.
 
         Parameters
@@ -382,7 +382,7 @@ class SummaryPlot(BasePlot):
 
         Returns
         -------
-        SummaryPlot
+        ThresholdSummary
             Self, to support method chaining.
 
         Raises
