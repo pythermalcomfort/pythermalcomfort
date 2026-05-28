@@ -3,6 +3,7 @@ from pythermalcomfort.plots.matplotlib.adaptive import (
     AdaptivePlotResult,
     RegionsConfig,
 )
+from pythermalcomfort.plots.matplotlib.heatmap import HeatmapPlot, HeatmapPlotResult
 from pythermalcomfort.plots.matplotlib.psychrometric import PsychrometricPlot
 from pythermalcomfort.plots.matplotlib.summary import SummaryPlot, SummaryPlotResult
 from pythermalcomfort.plots.matplotlib.threshold import (
@@ -19,4 +20,6 @@ __all__ = [
     "AdaptivePlot",
     "AdaptivePlotResult",
     "RegionsConfig",
+    "HeatmapPlot",
+    "HeatmapPlotResult",
 ]

@@ -206,10 +206,17 @@ def pmv_ppd_iso(
 
 ### When adding new plots
 
-1. Use the fluent API pattern from `plots/matplotlib/`: setters return `self`, final `plot()` returns figure/axis
-2. Pass `thresholds`, `labels`, and `colors` directly to `set_regions` (no wrapper dataclass needed)
-3. Return Matplotlib handles (`ax`, lines, patches) for user customization
-4. Document via docstrings and examples in `plots/README.md`
+**Class hierarchy in `plots/matplotlib/`:**
+- `BasePlot` (`_base.py`): abstract base, defines `set_regions()` interface
+- `GridBasePlot` (`_base.py`): extends BasePlot with model inspection, axis/param config, and grid evaluation — used by `ThresholdPlot` and `PsychrometricPlot`
+- Standalone plots (e.g., `SummaryPlot`, `AdaptivePlot`) inherit directly from `BasePlot`
+
+**Conventions:**
+1. Use the fluent API pattern: setters return `self`, final `plot()` returns a `BasePlotResult` subclass
+2. Define visual defaults as a nested class inside `_PlotDefaults` in `_shared.py`
+3. Return Matplotlib handles (`fig`, `ax`, plus any extra artists) in the result dataclass for user customization
+4. Export the new class from `plots/matplotlib/__init__.py`
+5. Add a paired example notebook under `docs/documentation/plots/matplotlib/`
 
 ### Branch naming convention
 

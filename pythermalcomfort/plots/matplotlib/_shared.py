@@ -122,6 +122,15 @@ class _PlotDefaults:
         zorder_rh_mask: float = 1.6
         zorder_rh_lines: float = 2.0
 
+    class Heatmap:
+        """Defaults specific to :class:`HeatmapPlot`."""
+
+        figsize: tuple = (12, 5)
+        hour_ticks: list = [0, 6, 12, 18, 24]
+        legend_loc: str = "lower center"
+        legend_bbox_to_anchor: tuple = (0.5, 1.02)
+        legend_ncol_max: int = 7
+
     class Summary:
         """Defaults specific to :class:`SummaryPlot`."""
 
