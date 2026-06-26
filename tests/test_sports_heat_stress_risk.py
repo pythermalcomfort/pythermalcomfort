@@ -387,6 +387,16 @@ def test_sports_heat_stress_risk_extreme_interpolation_uses_lower_model_threshol
     assert severe_result.risk_level_interpolated >= base_result.risk_level_interpolated
 
 
+def test_sports_croquet_values():
+    """Test Croquet preset values."""
+    assert (Sports.CROQUET.clo, Sports.CROQUET.met, Sports.CROQUET.vr) == (
+        0.7,
+        4.5,
+        0.5,
+    )
+    assert Sports.CROQUET.duration == 90
+
+
 def test_sports_heat_stress_risk_all_sports():
     """Test that all predefined sports in Sports dataclass work correctly."""
     # Get all sport attributes from Sports dataclass
@@ -399,6 +409,7 @@ def test_sports_heat_stress_risk_all_sports():
         Sports.BOWLS,
         Sports.CANOEING,
         Sports.CRICKET,
+        Sports.CROQUET,
         Sports.CYCLING,
         Sports.EQUESTRIAN,
         Sports.FIELD_ATHLETICS,

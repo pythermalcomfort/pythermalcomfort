@@ -58,6 +58,7 @@ class Sports:
     BOWLS = _SportsValues(clo=0.5, met=5.0, vr=0.5, duration=180)
     CANOEING = _SportsValues(clo=0.6, met=7.5, vr=2.0, duration=60)
     CRICKET = _SportsValues(clo=0.7, met=6.0, vr=0.75, duration=120)
+    CROQUET = _SportsValues(clo=0.7, met=4.5, vr=0.5, duration=90)
     CYCLING = _SportsValues(clo=0.4, met=7.0, vr=3.0, duration=60)
     EQUESTRIAN = _SportsValues(clo=0.9, met=7.4, vr=3.0, duration=60)
     FIELD_ATHLETICS = _SportsValues(clo=0.3, met=7.0, vr=1.0, duration=60)
