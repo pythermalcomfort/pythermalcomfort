@@ -230,6 +230,12 @@ def pmv_ppd_iso(
 
 ## Development Notes
 
+### When adding a new model
+
+Use the **`/add-model`** skill (`.claude/skills/add-model/SKILL.md`). It walks the
+seven files that must change in lockstep and includes the verification commands,
+including a parity check for `models/__init__.py` that no test covers.
+
 ### When modifying models
 
 1. **Maintain input/output contracts**: Model functions must accept scalar and array inputs, return dataclass with same attributes
