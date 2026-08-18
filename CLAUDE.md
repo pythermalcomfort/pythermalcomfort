@@ -69,59 +69,21 @@ pipenv run pre-commit run --all-files
 
 ### Release Process
 
-`bump-my-version` auto-commits and auto-tags (`commit = true`, `tag = true` in
-`.bumpversion.toml`), and correctly picks between the `Xrc{N}` and plain `X.Y.Z`
-serialize formats on its own (via `pre_n`'s `optional_value`) — so in the normal case
-you don't need to touch git yourself after running it, just push.
+Use the **`/release`** skill (`.claude/skills/release/SKILL.md`). It carries the full
+procedure with a verification gate at each step, so it is not repeated here.
 
-0. **Check the `validation-data-comfort-models` pin is current.** `tests/conftest.py`'s
-   `unit_test_data_prefix` is pinned to a tag of that repo, not `main`. Compare it against
-   [that repo's latest tag](https://github.com/FedericoTartarini/validation-data-comfort-models/tags)
-   and its `CHANGELOG.md`; if behind, bump the pin and re-run the affected tests before
-   proceeding. See `CONTRIBUTING.rst`'s "Keeping the validation-data-comfort-models pin
-   current" for details — don't ship a release still pointed at a stale tag.
+Shape of it: an RC tag (`vX.Y.ZrcN`) cut from `development` publishes to TestPyPI; a
+final tag (`vX.Y.Z`) cut from `master` publishes to PyPI. `bump-my-version`
+auto-commits and auto-tags, and picks the `rc` vs plain format on its own.
 
-1. **Update ``CHANGELOG.rst``** with all changes since the last release, then commit.
+Two things that bite, both covered in detail by the skill:
 
-2. **On `development`**, cut an RC (deploys to TestPyPI for verification). Pick
-   whichever part reflects the change (`patch` / `minor` / `major`); it lands on
-   `X.Y.Zrc1` automatically:
-   ```bash
-   pipenv run bump-my-version bump minor   # or patch / major
-   git push origin development --tags
-   ```
-3. **Verify** the package on TestPyPI and confirm the GitHub Actions `deploy-testpypi` job passed.
-4. **Found an issue and need another RC?** Just increment the RC number:
-   ```bash
-   pipenv run bump-my-version bump pre_n
-   git push origin development --tags
-   ```
-5. **Merge `development` → `master`** via PR and confirm CI passes.
-6. **Checkout master and pull**:
-   ```bash
-   git checkout master && git pull
-   ```
-7. **Finalize the release** (deploys to PyPI). This still needs an explicit target
-   since dropping the RC suffix isn't a single-word part bump:
-   ```bash
-   pipenv run bump-my-version bump --new-version X.Y.Z
-   git push origin master --tags
-   ```
-8. **Confirm** the `Test and publish pythermalcomfort` action succeeded and the package is live on PyPI.
-9. **Sync master back into development** so the version-bump commit is not lost:
-   ```bash
-   git checkout development && git pull
-   git merge origin/master --no-edit
-   git push origin development
-   ```
-
-> **Note**: RC tags (`v*rc*`) must be created from `development` — the CI workflow enforces
-> this with a `merge-base` check. Final release tags (`v*`) must be created from `master`.
-> `bump-my-version` may fail to auto-commit/tag if a pre-commit hook (e.g. `ruff format`)
-> modifies a file mid-commit. If that happens, stage the reformatted file manually
-> (`git add <file>`), commit with the message `bump-my-version` printed
-> (`Bump version: A.B.C → X.Y.Z`), and tag manually:
-> `git tag vX.Y.Z -m "Bump version: A.B.C → X.Y.Z"`.
+- The final-release workflow triggers on `v*` and does **not** verify the tag is on
+  `master` (only the RC workflow checks its branch). A final tag pushed from
+  `development` still publishes to PyPI — check the branch yourself.
+- Before releasing, confirm `tests/conftest.py`'s `unit_test_data_prefix` still points
+  at the current `validation-data-comfort-models` tag. See `CONTRIBUTING.rst`'s
+  "Keeping the validation-data-comfort-models pin current".
 
 ## Architecture Overview
 

@@ -72,3 +72,7 @@ docs/_build
 
 # Mypy Cache
 .mypy_cache/
+
+# Claude Code: per-developer permission grants. The skills/ directory IS tracked,
+# since those are shared project workflows.
+.claude/settings.local.json
