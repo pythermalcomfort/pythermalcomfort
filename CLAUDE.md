@@ -4,46 +4,62 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Quick Start Commands
 
+### Python environment
+
+This project uses **pipenv** (the env PyCharm is linked to, Python 3.12). Always run
+Python tooling through `pipenv run` — never bare `pytest`/`python3`, never `uvx`, and
+never create a new virtualenv. Doing so produces a second, divergent environment: the
+repo already accumulated a stray 523 MB `.venv-docs/` that way, duplicating what
+`pipenv run tox -e docs` already does.
+
+```bash
+pipenv install --dev    # one-time setup
+pipenv run python -c "import sys; print(sys.executable)"   # confirm the env
+```
+
 ### Testing
 ```bash
 # Run all tests
-pytest tests/
+pipenv run pytest tests/
 
 # Run single test file
-pytest tests/test_pmv_ppd_iso.py
+pipenv run pytest tests/test_pmv_ppd_iso.py
 
 # Run specific test
-pytest tests/test_pmv_ppd_iso.py::test_pmv_ppd
+pipenv run pytest tests/test_pmv_ppd_iso.py::test_pmv_ppd
 
 # Run tests matching pattern
-pytest -k "pmv"
+pipenv run pytest -k "pmv"
 
 # Run with coverage
-pytest tests/ --cov --cov-report=term-missing -vv
+pipenv run pytest tests/ --cov --cov-report=term-missing -vv
 
 # Full test suite via tox (tests Python 3.10-3.14)
-tox
+pipenv run tox
+
+# Build the docs (do NOT hand-roll a sphinx venv — this env already exists)
+pipenv run tox -e docs
 ```
 
 ### Linting and Formatting
 ```bash
 # Check formatting
-ruff format --check ./pythermalcomfort ./tests
+pipenv run ruff format --check ./pythermalcomfort ./tests
 
 # Apply formatting (in-place)
-ruff format ./pythermalcomfort ./tests
+pipenv run ruff format ./pythermalcomfort ./tests
 
 # Lint check
-ruff check ./pythermalcomfort ./tests
+pipenv run ruff check ./pythermalcomfort ./tests
 
 # Lint with auto-fix
-ruff check --fix ./pythermalcomfort ./tests
+pipenv run ruff check --fix ./pythermalcomfort ./tests
 
 # Format docstrings
-docformatter -r -i --wrap-summaries 88 --wrap-descriptions 88 pythermalcomfort
+pipenv run docformatter -r -i --wrap-summaries 88 --wrap-descriptions 88 pythermalcomfort
 
 # Run pre-commit hooks manually
-pre-commit run --all-files
+pipenv run pre-commit run --all-files
 ```
 
 ### CI/CD Workflow

@@ -14,7 +14,7 @@ tox = "*"
 tabulate = "*"
 matplotlib = "*"
 seaborn = "*"
-ruff = "*"
+ruff = "==0.16.3"  # keep in sync with the ruff-pre-commit rev in .pre-commit-config.yaml
 docformatter = "*"
 autopep8 = "*"
 bump-my-version = "*"
