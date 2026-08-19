@@ -100,7 +100,7 @@ def utci(
             (-1.8680009 * np.power(10.0, -13)),
         ]
         tk = t_db + 273.15  # air temp in K
-        es = 2.7150305 * np.log1p(tk)
+        es = 2.7150305 * np.log(tk)
         for count, i in enumerate(g):
             es = es + (i * np.power(tk, count - 2))
         es = np.exp(es) * 0.01  # convert Pa to hPa

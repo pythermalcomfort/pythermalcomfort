@@ -1,7 +1,9 @@
 import numpy as np
+import pytest
 
 from pythermalcomfort.models import utci
 from pythermalcomfort.models.utci import _utci_optimized
+from pythermalcomfort.utilities import p_sat
 from tests.conftest import Urls, retrieve_reference_table, validate_result
 
 
@@ -34,7 +36,7 @@ def test_utci_ip_uses_si_thresholds_for_stress_category() -> None:
     """Test that IP stress categories use the underlying SI UTCI value."""
     result = utci(tdb=77, tr=77, v=3.28084, rh=50, units="IP")
 
-    assert result.utci == 76.4
+    assert result.utci == 76.3
     assert result.stress_category == "no thermal stress"
 
 
@@ -48,7 +50,7 @@ def test_utci_ip_vector_stress_category() -> None:
         units="IP",
     )
 
-    np.testing.assert_allclose(result.utci, [76.4, 110.7])
+    np.testing.assert_allclose(result.utci, [76.3, 110.5])
     np.testing.assert_array_equal(
         result.stress_category,
         ["no thermal stress", "very strong heat stress"],
@@ -57,8 +59,8 @@ def test_utci_ip_vector_stress_category() -> None:
 
 def test_utci_stress_category_uses_rounded_si_value_by_default() -> None:
     """Test that default SI category mapping preserves rounded-output behavior."""
-    rounded = utci(tdb=26.24, tr=26.24, v=1, rh=50)
-    unrounded = utci(tdb=26.24, tr=26.24, v=1, rh=50, round_output=False)
+    rounded = utci(tdb=26.27, tr=26.27, v=1, rh=50)
+    unrounded = utci(tdb=26.27, tr=26.27, v=1, rh=50, round_output=False)
 
     assert rounded.utci == 26.0
     assert rounded.stress_category == "no thermal stress"
@@ -69,8 +71,8 @@ def test_utci_stress_category_uses_rounded_si_value_by_default() -> None:
 def test_utci_ip_stress_category_uses_unrounded_si_value_when_not_rounding() -> None:
     """Test that unrounded IP output maps categories from unrounded SI values."""
     result = utci(
-        tdb=79.232,
-        tr=79.232,
+        tdb=79.286,
+        tr=79.286,
         v=3.28084,
         rh=50,
         units="IP",
@@ -96,6 +98,25 @@ def test_utci_ip_out_of_range_stress_category_is_nan() -> None:
         units="IP",
     )
 
-    np.testing.assert_allclose(vector_result.utci, [76.4, np.nan], equal_nan=True)
+    np.testing.assert_allclose(vector_result.utci, [76.3, np.nan], equal_nan=True)
     assert vector_result.stress_category[0] == "no thermal stress"
     assert np.isnan(vector_result.stress_category[1])
+
+
+def test_utci_saturation_vapour_pressure_matches_p_sat() -> None:
+    """Test that UTCI's vapour pressure matches the independent p_sat formulation.
+
+    Regression test for #372, where np.log1p was used instead of np.log in the
+    Hardy equation, inflating the saturation vapour pressure by ~1%. Saturation
+    vapour pressure grows exponentially with temperature, so a given relative
+    error only becomes detectable in hot, humid conditions: at 25 C / 50% RH it
+    shifts UTCI by ~0.03 C, but at 40 C / 80% RH it reaches ~0.7 C.
+    """
+    tdb = 40
+    tr = 40
+    v = 1
+    rh = 80
+    pa = p_sat(tdb) * (rh / 100) / 1000
+    expected = _utci_optimized(tdb, v, tr - tdb, pa)
+    actual = utci(tdb=tdb, tr=tr, v=v, rh=rh, round_output=False).utci
+    assert actual == pytest.approx(expected, abs=0.1)
