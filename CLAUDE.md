@@ -19,8 +19,9 @@ pipenv run python -c "import sys; print(sys.executable)"   # confirm the env
 
 ### Testing
 ```bash
-# Run all tests
+# Run all tests (add -n auto to run across CPU cores via pytest-xdist, ~5x faster)
 pipenv run pytest tests/
+pipenv run pytest tests/ -n auto
 
 # Run single test file
 pipenv run pytest tests/test_pmv_ppd_iso.py

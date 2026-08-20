@@ -23,6 +23,7 @@ readme-renderer = "*"
 pre-commit = "*"
 blacken-docs = "*"
 pytest = ">=9.0.3"  # CVE-2025-71176: fixed in 9.0.3+
+pytest-xdist = "*"  # enables `pytest -n auto` to run tests across CPU cores
 filelock = ">=3.20.3"  # CVE-2025-68146: fixed in 3.20.1+; CVE-2026-22701: fixed in 3.20.3+
 requests = ">=2.33.0"  # CVE-2024-47081: fixed in 2.32.4+; CVE-2026-25645: fixed in 2.33.0+
 setuptools = ">=78.1.1"  # CVE-2025-47273: fixed in 78.1.1+
