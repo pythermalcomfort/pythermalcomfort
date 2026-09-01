@@ -228,6 +228,27 @@ def test_set_regions_returns_self_for_chaining() -> None:
     assert plot.set_regions(show=["90"]) is plot
 
 
+def test_set_regions_labels_follow_show_order() -> None:
+    config = RegionsConfig(
+        show=["90", "80"],
+        labels=["Narrow band", "Wide band"],
+        colors=["#ff0000", "#00ff00"],
+    )
+    plot = AdaptivePlot(adaptive_ashrae).set_regions(show=config)
+    resolved = {b.spec.key: (b.label, b.color) for b in plot._resolve_bands()}
+    assert resolved["90"] == ("Narrow band", "#ff0000")
+    assert resolved["80"] == ("Wide band", "#00ff00")
+
+
+def test_set_regions_labels_follow_show_order_en() -> None:
+    plot = AdaptivePlot(adaptive_en).set_regions(
+        show=["cat_i", "cat_iii"], labels=["First", "Third"]
+    )
+    resolved = {b.spec.key: b.label for b in plot._resolve_bands()}
+    assert resolved["cat_i"] == "First"
+    assert resolved["cat_iii"] == "Third"
+
+
 # ── plot — ASHRAE ──────────────────────────────────────────────────────────
 
 
