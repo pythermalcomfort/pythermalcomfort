@@ -205,6 +205,13 @@ def test_length_mismatch_raises_value_error() -> None:
         )
 
     assert "must have the same length" in str(exc.value)
+    assert "thickness_quilt" in str(exc.value)
+
+
+def test_empty_time_series_raises_value_error() -> None:
+    """Empty inputs do not define a simulation duration."""
+    with pytest.raises(ValueError, match="must not be empty"):
+        two_nodes_gagge_sleep([], [], [], [], [], [])
 
 
 def test_unexpected_kwargs_raises_type_error() -> None:

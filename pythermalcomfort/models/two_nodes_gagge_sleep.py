@@ -111,19 +111,21 @@ def two_nodes_gagge_sleep(
         p_atm=p_atm,
     )
 
-    tdb = np.atleast_1d(tdb).astype(np.float64)
-    tr = np.atleast_1d(tr).astype(np.float64)
-    v = np.atleast_1d(v).astype(np.float64)
-    rh = np.atleast_1d(rh).astype(np.float64)
-    clo = np.atleast_1d(clo).astype(np.float64)
-    thickness_quilt = np.atleast_1d(thickness_quilt).astype(np.float64)
+    tdb = np.atleast_1d(np.asarray(tdb, dtype=np.float64))
+    tr = np.atleast_1d(np.asarray(tr, dtype=np.float64))
+    v = np.atleast_1d(np.asarray(v, dtype=np.float64))
+    rh = np.atleast_1d(np.asarray(rh, dtype=np.float64))
+    clo = np.atleast_1d(np.asarray(clo, dtype=np.float64))
+    thickness_quilt = np.atleast_1d(np.asarray(thickness_quilt, dtype=np.float64))
 
     # These variables should have the same length, which will be the duration
     lengths = [len(x) for x in (tdb, tr, v, rh, clo, thickness_quilt)]
     if len(set(lengths)) != 1:
-        error_message = f"Parameters tdb, tr, v, rh, clo and thickness must have the same length. Got lengths {lengths}"
+        error_message = f"Parameters tdb, tr, v, rh, clo and thickness_quilt must have the same length. Got lengths {lengths}"
         raise ValueError(error_message)
     duration = lengths[0]
+    if duration == 0:
+        raise ValueError("Time-series inputs must not be empty.")
 
     result_arrays = _two_nodes_gagge_sleep_optimized(
         tdb=tdb,
