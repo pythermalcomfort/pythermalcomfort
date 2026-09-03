@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 
 import numpy as np
+from numba import njit
 
 from pythermalcomfort.classes_input import GaggeTwoNodesSleepInputs, NumericInput
 from pythermalcomfort.classes_return import GaggeTwoNodesSleep
@@ -87,7 +88,9 @@ def two_nodes_gagge_sleep(
     c_dil = kwargs.pop("c_dil", 120)
     c_str = kwargs.pop("c_str", 0.5)
     temp_skin_neutral = kwargs.pop("temp_skin_neutral", 33.7)
-    temp_core_neutral = kwargs.pop("temp_core_neutral", 36.8)
+    # Kept as an accepted keyword for backwards compatibility. The model derives
+    # core temperature from the Yan et al. time polynomial at every time step.
+    kwargs.pop("temp_core_neutral", 36.8)
     e_skin = kwargs.pop("e_skin", 0.094)
     alfa = kwargs.pop("alfa", 0.1)
     skin_blood_flow = kwargs.pop("skin_blood_flow", 6.3)
@@ -108,12 +111,12 @@ def two_nodes_gagge_sleep(
         p_atm=p_atm,
     )
 
-    tdb = np.atleast_1d(tdb)
-    tr = np.atleast_1d(tr)
-    v = np.atleast_1d(v)
-    rh = np.atleast_1d(rh)
-    clo = np.atleast_1d(clo)
-    thickness_quilt = np.atleast_1d(thickness_quilt)
+    tdb = np.atleast_1d(tdb).astype(np.float64)
+    tr = np.atleast_1d(tr).astype(np.float64)
+    v = np.atleast_1d(v).astype(np.float64)
+    rh = np.atleast_1d(rh).astype(np.float64)
+    clo = np.atleast_1d(clo).astype(np.float64)
+    thickness_quilt = np.atleast_1d(thickness_quilt).astype(np.float64)
 
     # These variables should have the same length, which will be the duration
     lengths = [len(x) for x in (tdb, tr, v, rh, clo, thickness_quilt)]
@@ -122,72 +125,158 @@ def two_nodes_gagge_sleep(
         raise ValueError(error_message)
     duration = lengths[0]
 
-    # Initialize physiological state variables to be updated in each iteration
-    result = {
-        "t_core": temp_core_neutral,
-        "t_skin": temp_skin_neutral,
-        "e_skin": e_skin,
-        "met_shivering": met_shivering,
-        "alfa": alfa,
-        "skin_blood_flow": skin_blood_flow,
+    result_arrays = _two_nodes_gagge_sleep_optimized(
+        tdb=tdb,
+        tr=tr,
+        v=v,
+        rh=rh,
+        clo=clo,
+        thickness_quilt=thickness_quilt,
+        wme=float(wme),
+        p_atm=float(p_atm),
+        ltime=int(ltime),
+        height=float(height),
+        weight=float(weight),
+        c_sw=float(c_sw),
+        c_dil=float(c_dil),
+        c_str=float(c_str),
+        temp_skin_neutral=float(temp_skin_neutral),
+        e_skin=float(e_skin),
+        alfa=float(alfa),
+        skin_blood_flow=float(skin_blood_flow),
+        met_shivering=float(met_shivering),
+    )
+
+    fields = (
+        "set",
+        "t_core",
+        "t_skin",
+        "wet",
+        "t_sens",
+        "disc",
+        "e_skin",
+        "met_shivering",
+        "alfa",
+        "skin_blood_flow",
+    )
+    output = {
+        field: values[0] if duration == 1 else values
+        for field, values in zip(fields, result_arrays, strict=True)
     }
 
-    results = []
+    return GaggeTwoNodesSleep(**output)
+
+
+@njit(cache=True)
+def _two_nodes_gagge_sleep_optimized(
+    tdb,
+    tr,
+    v,
+    rh,
+    clo,
+    thickness_quilt,
+    wme,
+    p_atm,
+    ltime,
+    height,
+    weight,
+    c_sw,
+    c_dil,
+    c_str,
+    temp_skin_neutral,
+    e_skin,
+    alfa,
+    skin_blood_flow,
+    met_shivering,
+):
+    """Run the stateful sleep simulation inside one Numba-compiled loop."""
+    duration = tdb.size
+    out_set = np.empty(duration, dtype=np.float64)
+    out_t_core = np.empty(duration, dtype=np.float64)
+    out_t_skin = np.empty(duration, dtype=np.float64)
+    out_wet = np.empty(duration, dtype=np.float64)
+    out_t_sens = np.empty(duration, dtype=np.float64)
+    out_disc = np.empty(duration, dtype=np.float64)
+    out_e_skin = np.empty(duration, dtype=np.float64)
+    out_met_shivering = np.empty(duration, dtype=np.float64)
+    out_alfa = np.empty(duration, dtype=np.float64)
+    out_skin_blood_flow = np.empty(duration, dtype=np.float64)
+
+    state_t_skin = temp_skin_neutral
+    state_e_skin = e_skin
+    state_met_shivering = met_shivering
+    state_alfa = alfa
+    state_skin_blood_flow = skin_blood_flow
 
     for i in range(duration):
-        # Calculate metabolic rate using polynomial equation from Yan et al. (2022)
+        hour = (i - 1) / 60
         met = (
-            -0.000000000000575 * ((i - 1) / 60) ** 5
-            + 0.000000000785521 * ((i - 1) / 60) ** 4
-            - 0.00000039173563 * ((i - 1) / 60) ** 3
-            + 0.000087620232151 * ((i - 1) / 60) ** 2
-            - 0.008801558913211 * ((i - 1) / 60)
+            -0.000000000000575 * hour**5
+            + 0.000000000785521 * hour**4
+            - 0.00000039173563 * hour**3
+            + 0.000087620232151 * hour**2
+            - 0.008801558913211 * hour
             + 1.09952538864493
         )
+        t_core_neutral = 0.022234 * hour**2 - 0.27677 * hour + 37.02
 
-        # Calculate core temperature using quadratic equation from Yan et al. (2022)
-        t_core = 0.022234 * ((i - 1) / 60) ** 2 - 0.27677 * ((i - 1) / 60) + 37.02
-
-        result = _sleep_set(
+        (
+            out_set[i],
+            out_t_core[i],
+            out_t_skin[i],
+            out_wet[i],
+            out_t_sens[i],
+            out_disc[i],
+            out_e_skin[i],
+            out_met_shivering[i],
+            out_alfa[i],
+            out_skin_blood_flow[i],
+        ) = _sleep_set_optimized(
             tdb[i],
             tr[i],
             v[i],
             rh[i],
             clo[i],
-            thickness=thickness_quilt[i],
-            met=met,
-            wme=wme,
-            p_atm=p_atm,
-            ltime=ltime,
-            height=height,
-            weight=weight,
-            c_sw=c_sw,
-            c_dil=c_dil,
-            c_str=c_str,
-            temp_skin_neutral=result["t_skin"],
-            temp_core_neutral=t_core,
-            e_skin=result["e_skin"],
-            alfa=result["alfa"],
-            skin_blood_flow=result["skin_blood_flow"],
-            met_shivering=result["met_shivering"],
+            thickness_quilt[i],
+            met,
+            wme,
+            p_atm,
+            ltime,
+            height,
+            weight,
+            c_sw,
+            c_dil,
+            c_str,
+            state_t_skin,
+            t_core_neutral,
+            state_e_skin,
+            state_alfa,
+            state_skin_blood_flow,
+            state_met_shivering,
         )
 
-        # results should be a list of the local dataclass
-        results.append(result)
+        state_t_skin = out_t_skin[i]
+        state_e_skin = out_e_skin[i]
+        state_met_shivering = out_met_shivering[i]
+        state_alfa = out_alfa[i]
+        state_skin_blood_flow = out_skin_blood_flow[i]
 
-    if not results:
-        output = {}
-    else:
-        output = {}
-        for key in results[0]:
-            vals = [d[key] for d in results]
-            # only wrap in an array if there’s more than one element
-            output[key] = np.asarray(vals) if len(vals) > 1 else vals[0]
+    return (
+        out_set,
+        out_t_core,
+        out_t_skin,
+        out_wet,
+        out_t_sens,
+        out_disc,
+        out_e_skin,
+        out_met_shivering,
+        out_alfa,
+        out_skin_blood_flow,
+    )
 
-    return GaggeTwoNodesSleep(**output)
 
-
-def _sleep_set(
+@njit(cache=True)
+def _sleep_set_optimized(
     tdb: float,
     tr: float,
     v: float,
@@ -209,7 +298,7 @@ def _sleep_set(
     alfa: float,
     skin_blood_flow: float,
     met_shivering: float,
-) -> dict:
+) -> tuple[float, float, float, float, float, float, float, float, float, float]:
     m = met * 58.2
     w = wme * 58.2
     k_clo = 0.25
@@ -391,20 +480,21 @@ def _sleep_set(
     if disc < 0:
         disc = t_sens
 
-    return {
-        "set": set_temp,
-        "t_core": t_core,
-        "t_skin": t_skin,
-        "wet": wet,
-        "t_sens": t_sens,
-        "disc": disc,
-        "e_skin": e_skin,
-        "met_shivering": met_shivering,
-        "alfa": alfa,
-        "skin_blood_flow": skin_blood_flow,
-    }
+    return (
+        set_temp,
+        t_core,
+        t_skin,
+        wet,
+        t_sens,
+        disc,
+        e_skin,
+        met_shivering,
+        alfa,
+        skin_blood_flow,
+    )
 
 
+@njit(cache=True)
 def _fnsvp(t):
     """Calculate saturation vapor pressure at temperature t.
 
@@ -421,6 +511,7 @@ def _fnsvp(t):
     return math.exp(18.6686 - 4030.183 / (t + 235))
 
 
+@njit(cache=True)
 def _fnerre(x, hsk, hd, tsk, w, he, pssk):
     """Error function for iterative solution of SET temperature.
 
@@ -429,6 +520,7 @@ def _fnerre(x, hsk, hd, tsk, w, he, pssk):
     return hsk - hd * (tsk - x) - w * he * (pssk - 0.5 * _fnsvp(x))
 
 
+@njit(cache=True)
 def _fnerrs(x, hsk, hd_s, tsk, w, he_s, pssk):
     """Error function for iterative solution of SET temperature (second version).
 
