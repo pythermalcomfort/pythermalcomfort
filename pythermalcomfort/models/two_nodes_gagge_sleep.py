@@ -191,7 +191,30 @@ def _two_nodes_gagge_sleep_optimized(
     skin_blood_flow,
     met_shivering,
 ):
-    """Run the stateful sleep simulation inside one Numba-compiled loop."""
+    """Run the stateful sleep simulation inside one Numba-compiled loop.
+
+    Carries ``t_skin``, ``e_skin``, ``alfa``, ``skin_blood_flow`` and
+    ``met_shivering`` forward from one time step to the next, since each step
+    depends on the physiological state left by the previous one.
+
+    Parameters
+    ----------
+    tdb, tr, v, rh, clo, thickness_quilt : 1-D float64 array
+        Per-time-step inputs, all the same length. See
+        :py:func:`two_nodes_gagge_sleep` for units.
+    wme, p_atm, ltime, height, weight, c_sw, c_dil, c_str : float or int
+        Constants held fixed across the whole simulation. See
+        :py:func:`two_nodes_gagge_sleep` for units.
+    temp_skin_neutral, e_skin, alfa, skin_blood_flow, met_shivering : float
+        Initial physiological state for the first time step.
+
+    Returns
+    -------
+    tuple of 1-D float64 array
+        ``(set, t_core, t_skin, wet, t_sens, disc, e_skin, met_shivering,
+        alfa, skin_blood_flow)``, one array per output field, each the same
+        length as the inputs.
+    """
     duration = tdb.size
     out_set = np.empty(duration, dtype=np.float64)
     out_t_core = np.empty(duration, dtype=np.float64)

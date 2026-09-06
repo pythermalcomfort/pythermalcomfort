@@ -5,7 +5,9 @@ Unreleased
 ----------
 
 * Sped up ``two_nodes_gagge_sleep`` by compiling its stateful simulation loop
-  with Numba while preserving its public output values and shapes.
+  with Numba while preserving its public output values and shapes. Empty
+  ``tdb``/``tr``/``v``/``rh``/``clo``/``thickness_quilt`` inputs now raise a
+  clear ``ValueError`` instead of failing with an unrelated ``TypeError``.
 * Pinned ``tests/conftest.py``'s ``validation-data-comfort-models`` fixture URL to the
   ``v1.0.0`` tag instead of ``main``, so upstream fixture changes can't silently affect
   CI before the pin is deliberately bumped and reviewed. See ``CONTRIBUTING.rst``'s
