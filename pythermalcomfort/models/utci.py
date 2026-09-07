@@ -69,7 +69,7 @@ def utci(
         print(result.stress_category)  # "no thermal stress"
 
         result = utci(tdb=[25, 40], tr=25, v=1.0, rh=50)
-        print(result.utci)  # [24.6, 40.6]
+        print(result.utci)  # [24.6, 40.4]
     """
     # Validate inputs using the UtciInputs class
     UTCIInputs(
