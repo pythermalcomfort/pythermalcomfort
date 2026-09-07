@@ -3,6 +3,9 @@ import pytest
 
 from pythermalcomfort.classes_return import GaggeTwoNodesSleep
 from pythermalcomfort.models import two_nodes_gagge_sleep
+from pythermalcomfort.models.two_nodes_gagge_sleep import (
+    _two_nodes_gagge_sleep_optimized,
+)
 
 
 def test_two_nodes_gagge_sleep_single_input() -> None:
@@ -109,6 +112,86 @@ def test_two_nodes_gagge_sleep_long_duration() -> None:
         )
 
 
+def test_two_nodes_gagge_sleep_numba_full_time_series_parity() -> None:
+    """Pin the complete optimized time series to the pre-Numba implementation."""
+    result = two_nodes_gagge_sleep(
+        tdb=[18, 19, 20],
+        tr=[18, 18.5, 19],
+        v=[0.05, 0.1, 0.15],
+        rh=[50, 55, 60],
+        clo=[1.4, 1.3, 1.2],
+        thickness_quilt=[1.76, 1.6, 1.5],
+    )
+
+    expected = {
+        "set": [
+            24.285471240487254,
+            23.69753060178574,
+            23.55973896722113,
+        ],
+        "t_core": [
+            37.03223590335804,
+            37.026301386399254,
+            37.022232367376795,
+        ],
+        "t_skin": [
+            33.670550615860265,
+            33.56972917281989,
+            33.522385202322575,
+        ],
+        "wet": [
+            0.2709382101612528,
+            0.11868202497357694,
+            0.08468947408201234,
+        ],
+        "t_sens": [
+            1.1283814676194304,
+            0.2030740970076956,
+            -0.00007100712419982713,
+        ],
+        "disc": [
+            1.479755896275013,
+            0.29422228310400694,
+            0.02764862771183254,
+        ],
+        "e_skin": [
+            28.76139367298244,
+            12.562622189484204,
+            9.061735937484093,
+        ],
+        "met_shivering": [0, 0, 0],
+        "alfa": [
+            0.13861663831083165,
+            0.14512664326204494,
+            0.14635629215748827,
+        ],
+        "skin_blood_flow": [
+            7.1093443630662945,
+            6.624666007608543,
+            6.5398921420592,
+        ],
+    }
+
+    for field, reference in expected.items():
+        np.testing.assert_allclose(
+            getattr(result, field),
+            reference,
+            rtol=1e-12,
+            atol=1e-12,
+            err_msg=f"full time-series {field} mismatch",
+        )
+
+    assert _two_nodes_gagge_sleep_optimized.nopython_signatures
+
+
+def test_two_nodes_gagge_sleep_scalar_shape_is_preserved() -> None:
+    """The compiled array kernel must not change the scalar public API."""
+    result = two_nodes_gagge_sleep(18, 18, 0.05, 50, 1.4, 1.76)
+
+    for field in result.__dataclass_fields__:
+        assert np.ndim(getattr(result, field)) == 0
+
+
 def test_length_mismatch_raises_value_error() -> None:
     """Test that length mismatch in input lists raises ValueError."""
     with pytest.raises(ValueError) as exc:
@@ -122,6 +205,13 @@ def test_length_mismatch_raises_value_error() -> None:
         )
 
     assert "must have the same length" in str(exc.value)
+    assert "thickness_quilt" in str(exc.value)
+
+
+def test_empty_time_series_raises_value_error() -> None:
+    """Empty inputs do not define a simulation duration."""
+    with pytest.raises(ValueError, match="must not be empty"):
+        two_nodes_gagge_sleep([], [], [], [], [], [])
 
 
 def test_unexpected_kwargs_raises_type_error() -> None:
