@@ -44,9 +44,10 @@ exposures to thermal transients", J. Appl. Physiol. 21(6) (1966) 1799-1806,
 https://doi.org/10.1152/jappl.1966.21.6.1799 (both are commonly cited
 together as "Stolwijk and Hardy, 1966"; see also Werner 1980 for the related
 sheet shipped in the same dataset). The digitised experimental values are the
-same ``human_subject_experiment_dataset.xlsx`` sheet already shipped and
-provenance-cleared for ``examples/calc_jos3.py``; this script reuses that
-file rather than duplicating it.
+same Stolwijk1966 data already shipped and provenance-cleared for
+``examples/calc_jos3.py``; this script reuses that file rather than
+duplicating it. It is read from the CSV exported from the archival
+spreadsheet, so running this example needs no Excel reader.
 """
 
 from __future__ import annotations
@@ -65,10 +66,10 @@ from pythermalcomfort.models import JOS3
 DATASET_PATH = (
     Path(__file__).resolve().parent.parent
     / "jos3_output_example"
-    / "human_subject_experiment_dataset.xlsx"
+    / "human_subject_experiment_dataset_Stolwijk1966.csv"
 )
 OUTPUT_DIR = Path(__file__).resolve().parent / "output"
-OUTPUT_FIGURE = OUTPUT_DIR / "jos3_transient_validation.png"
+OUTPUT_FIGURE = OUTPUT_DIR / "jos3_transient_validation.pdf"
 
 # Local insulation pattern used throughout the Stolwijk & Hardy validation:
 # briefs/shorts over the pelvis and thighs only, otherwise nude, matching the
@@ -194,7 +195,9 @@ def simulate_condition(condition: TransientCondition) -> pd.DataFrame:
 
 def load_reference_data(sheet_condition: str) -> pd.DataFrame:
     """Load the digitised experimental time series for one condition."""
-    reference = pd.read_excel(DATASET_PATH, sheet_name="Stolwijk1966")
+    # float_precision="round_trip" keeps the parsed values bit-identical to the
+    # archival spreadsheet these CSVs are exported from.
+    reference = pd.read_csv(DATASET_PATH, float_precision="round_trip")
     reference = reference.loc[reference["Condition"] == sheet_condition].copy()
     reference.index = pd.RangeIndex(len(reference)) * 5  # data is 5-min spaced
     return reference
@@ -213,6 +216,13 @@ def plot_condition(ax: plt.Axes, condition: TransientCondition) -> None:
 
     core_rmse = rmse(simulated["t_core_pelvis"], reference["Tre"])
     skin_rmse = rmse(simulated["t_skin_mean"], reference["Tsk"])
+
+    # Also report the errors on stdout, so the numbers quoted in the manuscript
+    # can be checked without reading them off the figure.
+    print(
+        f"{condition.label}: rectal RMSE {core_rmse:.2f} degC, "
+        f"skin RMSE {skin_rmse:.2f} degC, {len(reference)} reference points",
+    )
 
     ax.plot(
         reference.index,
@@ -295,7 +305,7 @@ def main() -> None:
     """Run the JOS-3 transient validation and save the manuscript figure."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     fig = build_figure(CONDITIONS)
-    fig.savefig(OUTPUT_FIGURE, dpi=300, bbox_inches="tight")
+    fig.savefig(OUTPUT_FIGURE, bbox_inches="tight")
     print(f"Saved figure to {OUTPUT_FIGURE}")
 
 
