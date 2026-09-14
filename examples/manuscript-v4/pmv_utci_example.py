@@ -1,14 +1,11 @@
 # !pip install pythermalcomfort
-#
-# Reproduces the PMV/PPD and UTCI code listing from the "pythermalcomfort"
-# Building Simulation manuscript (software description section).
 
 from pythermalcomfort.models import pmv_ppd_iso, utci
 
 # Calculate PMV and PPD using ISO 7730 standard
 result = pmv_ppd_iso(
-    tdb=25,  # Dry Bulb Air Temperature in degC
-    tr=25,  # Mean Radiant Temperature in degC
+    tdb=25,  # Dry Bulb Air Temperature in $^\circ$C
+    tr=25,  # Mean Radiant Temperature in $^\circ$C
     vr=0.1,  # Relative Air Speed in m/s
     rh=50,  # Relative Humidity in %
     met=1.4,  # Metabolic Rate in met
@@ -25,8 +22,8 @@ print(result)
 
 # Calculate PMV and PPD using ISO 7730 standard in IP units
 result = pmv_ppd_iso(
-    tdb=77,  # Dry Bulb Air Temperature in degF
-    tr=77,  # Mean Radiant Temperature in degF
+    tdb=77,  # Dry Bulb Air Temperature in $^\circ$F
+    tr=77,  # Mean Radiant Temperature in $^\circ$F
     vr=0.1,  # Relative Air Speed in fps
     rh=50,  # Relative Humidity in %
     met=1.4,  # Metabolic Rate in met

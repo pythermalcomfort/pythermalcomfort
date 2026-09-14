@@ -12,7 +12,7 @@ writes its output figure(s) to `output/` (created on first run).
 | `plotting_api_example.py` | Software description: `ThresholdPlot` plotting API code listing |
 | `example-1.py` | Illustrative example 1: PMV/UTCI/Heat Index T-RH comparison and PMV psychrometric chart |
 | `example-epw-analysis.py` | Illustrative example 2: Beijing hourly UTCI analysis from an EPW climate file |
-| `example-field-study.py` | Illustrative example 3: PMV, adaptive comfort, and thermal preference analysis of Cozie field-study data |
+| `example-field-study.py` | Illustrative example 3: PMV (ISO 7730) analysis of Cozie wearable field-study data |
 
 ## Running
 

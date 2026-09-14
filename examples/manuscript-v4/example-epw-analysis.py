@@ -7,9 +7,6 @@ and a monthly stress-category distribution.
 Mean radiant temperature (tr) is set equal to dry-bulb air temperature (tdb),
 representing a person sheltered from direct solar radiation.
 
-Reproduces the illustrative example 2 figure of the "pythermalcomfort"
-Building Simulation manuscript.
-
 Usage
 -----
     python3 examples/manuscript-v4/example-epw-analysis.py
@@ -18,7 +15,6 @@ Usage
 
 import csv
 import os
-import sys
 
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
@@ -29,7 +25,7 @@ from pythermalcomfort.models import utci
 from pythermalcomfort.plots.matplotlib import SummaryPlot
 
 # ---------------------------------------------------------------------------
-# UTCI stress categories, thresholds (degC), and colors for plotting
+# UTCI stress categories, thresholds ($^\circ$C), and colors for plotting
 # ---------------------------------------------------------------------------
 UTCI_THRESHOLDS = [-40, -27, -13, 0, 9, 26, 32, 38, 46]
 UTCI_LABELS = [
@@ -45,16 +41,16 @@ UTCI_LABELS = [
     "Extreme heat stress",
 ]
 UTCI_COLORS = [
-    "#053061",  # extreme cold
-    "#2166ac",  # very strong cold
-    "#4393c3",  # strong cold
-    "#92c5de",  # moderate cold
-    "#74add1",  # slight cold
-    "#abdda4",  # no stress
+    "#313695",  # extreme cold
+    "#4575b4",  # very strong cold
+    "#74add1",  # strong cold
+    "#abd9e9",  # moderate cold
+    "#e0f3f8",  # slight cold
+    "#66bd63",  # no stress
     "#fee08b",  # moderate heat
-    "#f46d43",  # strong heat
-    "#d73027",  # very strong heat
-    "#d73027",  # extreme heat
+    "#fdae61",  # strong heat
+    "#f46d43",  # very strong heat
+    "#a50026",  # extreme heat
 ]
 MONTH_LABELS = [
     "Jan",
@@ -72,13 +68,12 @@ MONTH_LABELS = [
 ]
 LEGEND_MIN_MONTHLY_PCT = 1.0
 EPW_HEADER_ROWS = 8
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_EPW_PATH = os.path.join(SCRIPT_DIR, "data", "beijing.epw")
 
 
 def parse_epw(path):
-    """Return month, day, hour (0-based), tdb (degC), v (m/s) and rh (%) from an EPW file."""
+    r"""Return month, day, hour (0-based), tdb ($^\circ$C), v (m/s) and rh (%) from an EPW file."""
     months, days, hours, tdb_vals, v_vals, rh_vals = [], [], [], [], [], []
     with open(path, newline="", encoding="utf-8") as fh:
         reader = csv.reader(fh)
@@ -107,7 +102,7 @@ def parse_epw(path):
 
 
 def main():
-    epw_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_EPW_PATH
+    epw_path = DEFAULT_EPW_PATH
     if not os.path.isfile(epw_path):
         msg = f"EPW file not found: {epw_path}"
         raise FileNotFoundError(msg)
@@ -181,16 +176,10 @@ def main():
         )
         .plot(ax=ax_sum, vertical=True, legend=False)
     )
-    ax_sum.text(
-        0.8,
-        0.5,
-        "Annual distribution",
-        ha="center",
-        va="center",
-        transform=ax_sum.transAxes,
-        rotation=90,
-        fontsize=12,
-    )
+    # Label the panel itself via a right-side axis label rather than a text
+    # box drawn over the bar, so it no longer overlaps the plotted segments.
+    ax_sum.yaxis.set_label_position("right")
+    ax_sum.set_ylabel("Annual distribution", rotation=270, labelpad=15, fontsize=12)
 
     # Bottom: monthly stacked bar of UTCI stress categories
     dark_labels = {
@@ -251,13 +240,19 @@ def main():
     ax_bar.set_xticklabels(MONTH_LABELS)
     ax_bar.set_ylim(0, 100)
     ax_bar.set_ylabel("Percentage of time (%)")
-    ax_bar.set_title("Monthly UTCI (shade)")
+    ax_bar.set_title(r"Monthly UTCI (shade)")
     ax_bar.grid(False)
-    ax_bar.legend(
+
+    # One legend for the whole figure, placed above all three panels, since
+    # the heatmap, annual-distribution, and monthly panels all share the same
+    # category-color mapping (UTCI_COLORS) -- a reader should not need to
+    # hunt for a legend attached to only one of the three (Reviewer 3,
+    # Comment 10).
+    fig.legend(
         legend_handles,
         legend_labels_plot,
         loc="upper center",
-        bbox_to_anchor=(0.5, -0.15),
+        bbox_to_anchor=(0.5, 1.08),
         ncol=min(4, max(1, len(legend_labels_plot))),
         fontsize=9,
         frameon=False,

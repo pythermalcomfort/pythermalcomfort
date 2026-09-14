@@ -1,12 +1,5 @@
 """Example 1: Compare PMV, UTCI, and Heat Index Lu across a T-RH grid,
 and display PMV comfort zones on a psychrometric chart with scatter data.
-
-Reproduces Figures 2 and 3 of the "pythermalcomfort" Building Simulation
-manuscript (illustrative example 1).
-
-Usage
------
-    python3 examples/manuscript-v4/example-1.py
 """
 
 import os
@@ -25,6 +18,7 @@ from pythermalcomfort.utilities import psy_ta_rh
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTDIR = os.path.join(SCRIPT_DIR, "output")
+os.makedirs(OUTDIR, exist_ok=True)
 os.makedirs(OUTDIR, exist_ok=True)
 
 RNG = np.random.default_rng(42)
@@ -66,7 +60,7 @@ fig, axes = plt.subplots(
     )
     .plot(ax=axes[0], legend_kws=legend_kws)
 )
-axes[0].set(ylabel="Relative humidity (%)", xlabel=r"Operative temperature ($^\circ$C)")
+axes[0].set(ylabel="Relative humidity (%)", xlabel=r"Dry-bulb temperature ($^\circ$C)")
 axes[0].set_title("PMV (ISO 7730)", y=Y_TITLE_OFFSET)
 
 legend_kws.update({"ncol": 2})
@@ -92,7 +86,7 @@ legend_kws.update({"ncol": 2})
     )
     .plot(ax=axes[1], legend_kws=legend_kws)
 )
-axes[1].set(ylabel="Relative humidity (%)", xlabel=r"Operative temperature ($^\circ$C)")
+axes[1].set(ylabel="Relative humidity (%)", xlabel=r"Dry-bulb temperature ($^\circ$C)")
 axes[1].set_title("UTCI", y=Y_TITLE_OFFSET + 0.15)
 
 # Panel C -- Heat Index (Lu and Romps 2022)

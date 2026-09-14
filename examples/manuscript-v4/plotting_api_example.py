@@ -1,6 +1,3 @@
-# Reproduces the ThresholdPlot code listing from the "pythermalcomfort"
-# Building Simulation manuscript (software description section).
-
 from matplotlib import pyplot as plt
 
 from pythermalcomfort.models import pmv_ppd_iso
