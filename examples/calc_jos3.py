@@ -284,10 +284,13 @@ def validation_simulation():
             model.simulate(60)
 
             sim = pd.DataFrame(model.dict_results())
+            # Keep numeric columns only. The frame also carries "sex", which is
+            # a string, and segment columns that are undefined for parts of the
+            # body; averaging across subjects below would fail on those.
             sim = sim.loc[
                 10:,
                 "t_skin_mean":,
-            ]
+            ].select_dtypes(include="number")
             result.append(sim.copy())
 
         avgsim = (result[0] + result[1] + result[2]) / 3
