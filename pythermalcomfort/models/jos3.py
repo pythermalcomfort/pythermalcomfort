@@ -1267,7 +1267,11 @@ class JOS3:
             for key, value in dictout.__dict__.items():
                 keys = key2keys[key]
                 # make list if value is not iter
-                values = [value] if len(keys) == 1 else value.__dict__
+                # NOTE: iterating a JOS3BodyParts' __dict__ directly yields its
+                # KEYS (the body part names), so every per-segment column ended
+                # up holding the segment name instead of its value. Take
+                # .values() explicitly.
+                values = [value] if len(keys) == 1 else list(value.__dict__.values())
                 row.update(dict(zip(keys, values, strict=False)))
             data.append(row)
 
