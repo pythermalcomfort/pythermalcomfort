@@ -205,29 +205,34 @@ def validation_simulation():
     """
     Following code is for validation between experimental and predicted data
     """
-    exp_dataset_name = "human_subject_experiment_dataset.xlsx"
-    exp_dataset_path = os.path.join(jos3_example_directory, exp_dataset_name)
-
     # Initialize an empty dictionary to hold the datasets
     exp_dataset = {}
 
-    # List of sheet names and their respective header row indices to be read
-    sheet_names = [("Stolwijk1966", 0), ("Werner1980", 0)]
+    # Datasets are stored as CSV so that running the examples needs no Excel
+    # reader. They are exported verbatim from
+    # human_subject_experiment_dataset.xlsx, which is kept alongside them as the
+    # archival source; see export_experiment_dataset_to_csv.py.
+    dataset_names = ["Stolwijk1966", "Werner1980"]
 
-    try:
-        # Loop through each sheet name and read the data into a DataFrame
-        for sheet_name, header in sheet_names:
-            exp_dataset[sheet_name] = pd.read_excel(
-                exp_dataset_path,
-                header=header,
-                sheet_name=sheet_name,
+    for dataset_name in dataset_names:
+        dataset_path = os.path.join(
+            jos3_example_directory,
+            f"human_subject_experiment_dataset_{dataset_name}.csv",
+        )
+        try:
+            # float_precision="round_trip" makes the parsed values bit-identical
+            # to the original spreadsheet; the default parser can be 1 ULP off.
+            exp_dataset[dataset_name] = pd.read_csv(
+                dataset_path,
+                header=0,
+                float_precision="round_trip",
             )
-    # Handle the case where the file is not found
-    except FileNotFoundError:
-        print(f"File {exp_dataset_path} not found.")
-    # Handle other general exceptions
-    except Exception as e:
-        print(f"An error occurred: {e}")
+        # Handle the case where the file is not found
+        except FileNotFoundError:
+            print(f"File {dataset_path} not found.")
+        # Handle other general exceptions
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
     # Concatenate all the individual data frames into a single DataFrame
     sim_dataset = {}
