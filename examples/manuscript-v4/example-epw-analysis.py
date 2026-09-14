@@ -15,6 +15,7 @@ Usage
 
 import csv
 import os
+import sys
 
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
@@ -102,7 +103,8 @@ def parse_epw(path):
 
 
 def main():
-    epw_path = DEFAULT_EPW_PATH
+    # The usage note above documents an optional positional EPW path; honour it.
+    epw_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_EPW_PATH
     if not os.path.isfile(epw_path):
         msg = f"EPW file not found: {epw_path}"
         raise FileNotFoundError(msg)
@@ -261,7 +263,9 @@ def main():
     outdir = os.path.join(SCRIPT_DIR, "output")
     os.makedirs(outdir, exist_ok=True)
     out = os.path.join(outdir, "example2_epw_utci.pdf")
-    fig.savefig(out)
+    # tight bbox: the shared legend is anchored above the axes (y=1.08) and the
+    # default bounding box can crop it. Matches the other example scripts.
+    fig.savefig(out, bbox_inches="tight")
     plt.show()
     print(f"\nFigure saved to {out}")
 

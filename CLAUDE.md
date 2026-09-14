@@ -64,7 +64,7 @@ pipenv run pre-commit run --all-files
 ```
 
 ### CI/CD Workflow
-- **Pull Request (development branch)**: Runs format checks and tests on Python 3.10 only, for fast feedback. numba's `llvmlite` dependency has no prebuilt wheel for very new Python versions yet (e.g. 3.14), so including them here would build from source on every PR run (~4 min vs ~1 min). The full `3.10`-`3.14` matrix across ubuntu/macos/windows runs in `build-test-publish.yml` on every release tag instead, so full compatibility is still verified before anything ships.
+- **Pull Request (development branch)**: Runs the format job on Python 3.13 and the test matrix on Python 3.10 only, for fast feedback. numba's `llvmlite` dependency has no prebuilt wheel for very new Python versions yet (e.g. 3.14), so including them here would build from source on every PR run (~4 min vs ~1 min). The full `3.10`-`3.14` matrix across ubuntu/macos/windows runs in `build-test-publish.yml` on every release tag instead, so full compatibility is still verified before anything ships.
 - **Tag `v*rc*` on development**: Runs tests and deploys to TestPyPI
 - **Tag `v*` (non-RC) on master**: Runs full test matrix and deploys to PyPI
 

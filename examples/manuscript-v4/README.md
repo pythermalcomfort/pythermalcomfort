@@ -3,8 +3,10 @@
 Reproducible example scripts for the *Building Simulation* manuscript
 **"pythermalcomfort: An Open-Source Python Package for Thermal Comfort, Heat
 Stress, and Cold Stress"** (pythermalcomfort v4.0.0, this tag). Each script is
-self-contained: it reads its input data from `data/` (where needed) and
-writes its output figure(s) to `output/` (created on first run).
+self-contained and reads its input data from `data/` where needed. The
+figure-producing scripts write to `output/` (created on first run); the two
+code-listing scripts, `pmv_utci_example.py` and `plotting_api_example.py`,
+only print results or show a plot interactively, and write no files.
 
 | Script | Manuscript figure / section |
 |---|---|

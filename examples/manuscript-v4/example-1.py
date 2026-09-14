@@ -19,7 +19,6 @@ from pythermalcomfort.utilities import psy_ta_rh
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTDIR = os.path.join(SCRIPT_DIR, "output")
 os.makedirs(OUTDIR, exist_ok=True)
-os.makedirs(OUTDIR, exist_ok=True)
 
 RNG = np.random.default_rng(42)
 
