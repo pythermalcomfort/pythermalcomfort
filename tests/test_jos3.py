@@ -1819,3 +1819,57 @@ def test_resp_heat_loss() -> None:
 
     res_sh, _ = resp_heat_loss(tdb, p_a, q_thermogenesis_total)
     assert res_sh == 0.0
+
+
+def test_dict_results_returns_values_not_body_part_names() -> None:
+    """Per-segment columns must hold simulated values, not the segment name.
+
+    Regression test for issue #264: dict_results() zipped its column keys
+    against a JOS3BodyParts' __dict__, and iterating a dict yields its keys, so
+    every per-segment column held its own body part name as a string.
+    """
+    model = JOS3(height=1.7, weight=60, age=30)
+    model.to = 28
+    model.rh = 40
+    model.v = 0.1
+    model.par = 1.0
+    model.simulate(3)
+
+    results = model.dict_results()
+
+    # The reported bug: the column held the string "head".
+    assert not isinstance(results["t_skin_head"][-1], str)
+    assert isinstance(results["t_skin_head"][-1], (int, float, np.floating))
+
+    # "sex" is the only column that is legitimately a string.
+    string_columns = [
+        key
+        for key, series in results.items()
+        if any(isinstance(entry, str) for entry in series)
+    ]
+    assert string_columns == ["sex"], (
+        f"unexpected string-valued columns: {string_columns}"
+    )
+
+
+def test_dict_results_subset_variables_align_with_results() -> None:
+    """Variables defined on a subset of segments must pick the right segments.
+
+    t_muscle and t_fat exist only for head and pelvis, but are carried in a
+    full 17-segment container. Selecting the first len(keys) values rather than
+    the VINDEX-indicated ones paired t_muscle_pelvis with the neck's value.
+    """
+    model = JOS3(height=1.7, weight=60, age=30)
+    model.to = 28
+    model.rh = 40
+    model.v = 0.1
+    model.par = 1.0
+    model.simulate(3)
+
+    flat = model.dict_results()
+    structured = model.results()
+
+    assert flat["t_muscle_head"][-1] == structured.t_muscle.head[-1]
+    assert flat["t_muscle_pelvis"][-1] == structured.t_muscle.pelvis[-1]
+    assert flat["t_fat_head"][-1] == structured.t_fat.head[-1]
+    assert flat["t_fat_pelvis"][-1] == structured.t_fat.pelvis[-1]

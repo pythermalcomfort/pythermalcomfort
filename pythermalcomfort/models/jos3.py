@@ -1224,7 +1224,15 @@ class JOS3:
         # Set column titles
         # If the values are iter, add the body names as suffix words.
         # If the values are not iter and the single value data, convert it to iter.
+        # key2indices records WHICH body part each column of a key refers to, so
+        # the values can later be selected with the same indices the column
+        # names were built from. Variables that only exist for a subset of the
+        # body (superficial vein, muscle, fat) still carry all 17 values, so
+        # selecting the first len(keys) of them would silently pair, say,
+        # "t_muscle_pelvis" with the neck's value. None means "not per-segment".
+        body_names = JOS3BodyParts.get_attribute_names()
         key2keys = {}  # Column keys
+        key2indices = {}  # Body part indices behind those keys
         for key, value in self._history[0].__dict__.items():
             try:
                 if isinstance(value, JOS3BodyParts):
@@ -1233,46 +1241,45 @@ class JOS3:
                     length = len(value)
                 if isinstance(value, str):
                     keys = [key]  # str is iter. Convert to list without suffix
-                elif check_word_contain(key, "sve", "sfv", "superficialvein"):
-                    keys = [
-                        key + "_" + JOS3BodyParts.get_attribute_names()[i]
-                        for i in VINDEX["sfvein"]
-                    ]
-                elif check_word_contain(key, "ms", "muscle"):
-                    keys = [
-                        key + "_" + JOS3BodyParts.get_attribute_names()[i]
-                        for i in VINDEX["muscle"]
-                    ]
-                elif check_word_contain(key, "fat"):
-                    keys = [
-                        key + "_" + JOS3BodyParts.get_attribute_names()[i]
-                        for i in VINDEX["fat"]
-                    ]
-                elif length == Default.num_body_parts:  # if data contains 17 values
-                    keys = [
-                        key + "_" + bn for bn in JOS3BodyParts.get_attribute_names()
-                    ]
+                    indices = None
                 else:
-                    keys = [
-                        key + "_" + JOS3BodyParts.get_attribute_names()[i]
-                        for i in range(length)
-                    ]
+                    if check_word_contain(key, "sve", "sfv", "superficialvein"):
+                        indices = list(VINDEX["sfvein"])
+                    elif check_word_contain(key, "ms", "muscle"):
+                        indices = list(VINDEX["muscle"])
+                    elif check_word_contain(key, "fat"):
+                        indices = list(VINDEX["fat"])
+                    elif length == Default.num_body_parts:  # data contains 17 values
+                        indices = list(range(Default.num_body_parts))
+                    else:
+                        indices = list(range(length))
+                    keys = [key + "_" + body_names[i] for i in indices]
             except TypeError:  # if the value is not iter.
                 keys = [key]  # convert to iter
+                indices = None
             key2keys.update({key: keys})
+            key2indices.update({key: indices})
 
         data = []
         for _i, dictout in enumerate(self._history):
             row = {}
             for key, value in dictout.__dict__.items():
                 keys = key2keys[key]
-                # make list if value is not iter
-                # NOTE: iterating a JOS3BodyParts' __dict__ directly yields its
-                # KEYS (the body part names), so every per-segment column ended
-                # up holding the segment name instead of its value. Take
-                # .values() explicitly.
-                values = [value] if len(keys) == 1 else list(value.__dict__.values())
-                row.update(dict(zip(keys, values, strict=False)))
+                indices = key2indices[key]
+                if indices is None:
+                    # not per-segment: wrap the scalar so it can be zipped
+                    values = [value]
+                else:
+                    # NOTE: iterating a JOS3BodyParts' __dict__ yields its KEYS
+                    # (the body part names), so this must take .values(), and
+                    # then pick out the segments these columns actually name.
+                    all_values = (
+                        list(value.__dict__.values())
+                        if isinstance(value, JOS3BodyParts)
+                        else list(value)
+                    )
+                    values = [all_values[i] for i in indices]
+                row.update(dict(zip(keys, values, strict=True)))
             data.append(row)
 
         out_dict = dict(
