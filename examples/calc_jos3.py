@@ -242,7 +242,10 @@ def validation_simulation():
     def sim_stolwijk_hardy(models, tolist, rhlist):
         result = []
         for model in models:
-            model.icl = np.asarray(
+            # JOS3 exposes clothing insulation as .clo (backed by _clo); there
+            # is no .icl, so assigning it silently left the model nude
+            # (Default.clothing_insulation = 0).
+            model.clo = np.asarray(
                 [
                     0,
                     0,
