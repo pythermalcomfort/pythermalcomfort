@@ -14,6 +14,14 @@ jos3_example_directory = os.path.join(current_directory, directory_name)
 if not os.path.exists(jos3_example_directory):
     os.makedirs(jos3_example_directory)
 
+# The reference datasets ship next to this script, so they must be located
+# relative to the file rather than the working directory. Outputs still go to
+# the working directory, which is what jos3_example_directory above is for.
+jos3_data_directory = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    directory_name,
+)
+
 # -------------------------------------------
 # EXAMPLE 1 (simple simulation)
 # -------------------------------------------
@@ -209,30 +217,24 @@ def validation_simulation():
     exp_dataset = {}
 
     # Datasets are stored as CSV so that running the examples needs no Excel
-    # reader. They are exported verbatim from
-    # human_subject_experiment_dataset.xlsx, which is kept alongside them as the
-    # archival source; see export_experiment_dataset_to_csv.py.
+    # reader. See the README in jos3_output_example/ for their provenance.
     dataset_names = ["Stolwijk1966", "Werner1980"]
 
     for dataset_name in dataset_names:
         dataset_path = os.path.join(
-            jos3_example_directory,
+            jos3_data_directory,
             f"human_subject_experiment_dataset_{dataset_name}.csv",
         )
-        try:
-            # float_precision="round_trip" makes the parsed values bit-identical
-            # to the original spreadsheet; the default parser can be 1 ULP off.
-            exp_dataset[dataset_name] = pd.read_csv(
-                dataset_path,
-                header=0,
-                float_precision="round_trip",
-            )
-        # Handle the case where the file is not found
-        except FileNotFoundError:
-            print(f"File {dataset_path} not found.")
-        # Handle other general exceptions
-        except Exception as e:
-            print(f"An error occurred: {e}")
+        # Deliberately not caught: a missing or unreadable dataset used to be
+        # printed and swallowed, which left exp_dataset empty and surfaced much
+        # later as a confusing KeyError. Failing here says what actually broke.
+        # float_precision="round_trip" makes the parsed values bit-identical to
+        # the original spreadsheet; the default parser can be 1 ULP off.
+        exp_dataset[dataset_name] = pd.read_csv(
+            dataset_path,
+            header=0,
+            float_precision="round_trip",
+        )
 
     # Concatenate all the individual data frames into a single DataFrame
     sim_dataset = {}
