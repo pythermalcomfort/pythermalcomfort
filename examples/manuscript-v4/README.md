@@ -15,6 +15,7 @@ only print results or show a plot interactively, and write no files.
 | `example-1.py` | Illustrative example 1: PMV/UTCI/Heat Index T-RH comparison and PMV psychrometric chart |
 | `example-epw-analysis.py` | Illustrative example 2: Beijing hourly UTCI analysis from an EPW climate file |
 | `example-field-study.py` | Illustrative example 3: PMV (ISO 7730) analysis of Cozie wearable field-study data |
+| `jos3_transient_validation.py` | Illustrative example 4: JOS-3 transient simulation vs. Stolwijk & Hardy (1966) human-subject data |
 
 ## Running
 
@@ -24,6 +25,7 @@ pipenv run python examples/manuscript-v4/pmv_utci_example.py
 pipenv run python examples/manuscript-v4/plotting_api_example.py
 pipenv run python examples/manuscript-v4/example-epw-analysis.py
 pipenv run python examples/manuscript-v4/example-field-study.py
+pipenv run python examples/manuscript-v4/jos3_transient_validation.py
 ```
 
 `example-epw-analysis.py` optionally accepts a path to an alternative EPW

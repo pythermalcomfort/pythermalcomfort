@@ -71,9 +71,9 @@ DATASET_PATH = (
 OUTPUT_DIR = Path(__file__).resolve().parent / "output"
 OUTPUT_FIGURE = OUTPUT_DIR / "jos3_transient_validation.pdf"
 
-# Local insulation pattern used throughout the Stolwijk & Hardy validation:
-# briefs/shorts over the pelvis and thighs only, otherwise nude, matching the
-# original calorimetry protocol (order follows JOS3.body_names).
+# Local insulation pattern used throughout the Stolwijk & Hardy validation,
+# matching examples/calc_jos3.py exactly: 0.3 clo over back, pelvis, thighs and
+# legs, otherwise nude (order follows JOS3.body_names).
 LOCAL_CLO = np.array(
     [0, 0, 0, 0.3, 0.3, 0, 0, 0, 0, 0, 0, 0.3, 0.3, 0, 0.3, 0.3, 0],
 )
@@ -148,7 +148,10 @@ def simulate_condition(condition: TransientCondition) -> pd.DataFrame:
     per_subject_results = []
     for subject in condition.subjects:
         model = JOS3(height=subject.height, weight=subject.weight, age=subject.age)
-        model.icl = LOCAL_CLO
+        # NOTE: JOS3 exposes clothing insulation as .clo (backed by _clo).
+        # Assigning .icl silently creates an unused attribute, leaving the
+        # model nude (Default.clothing_insulation = 0).
+        model.clo = LOCAL_CLO
         model.par = 1.2
         model.posture = "sitting"
 
