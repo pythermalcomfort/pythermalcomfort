@@ -4,7 +4,7 @@ import numpy as np
 
 from pythermalcomfort.classes_input import HumidexInputs, HumidexModels, NumericInput
 from pythermalcomfort.classes_return import Humidex
-from pythermalcomfort.utilities import dew_point_tmp
+from pythermalcomfort.psychrometrics import dew_point_tmp
 
 
 def humidex(

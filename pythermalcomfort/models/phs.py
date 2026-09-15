@@ -5,15 +5,11 @@ import math
 import numpy as np
 from numba import jit, prange
 
+from pythermalcomfort._internal.validation import _valid_range
 from pythermalcomfort.classes_input import NumericInput, PHSInputs
 from pythermalcomfort.classes_return import PHS
-from pythermalcomfort.shared_functions import valid_range
-from pythermalcomfort.utilities import (
-    Models,
-    Postures,
-    met_to_w_m2,
-    p_sat,
-)
+from pythermalcomfort.psychrometrics import p_sat
+from pythermalcomfort.utilities import Models, Postures, met_to_w_m2
 
 
 def phs(
@@ -432,12 +428,12 @@ def phs(
         # not on tr alone.
         p_a_lower = 0.5 if model == Models.iso_7933_2023.value else 0
         met_range = (56, 250) if model == Models.iso_7933_2023.value else (100, 450)
-        tdb_valid = valid_range(tdb, (15.0, 50.0))
-        tr_valid = valid_range(tr - tdb, (0.0, 60.0), param_name="tr - tdb")
-        v_valid = valid_range(v, (0.0, 3.0))
-        p_a_valid = valid_range(p_a, (p_a_lower, 4.5))
-        met_valid = valid_range(met, met_range)
-        clo_valid = valid_range(clo, (0.1, 1.0))
+        tdb_valid = _valid_range(tdb, (15.0, 50.0))
+        tr_valid = _valid_range(tr - tdb, (0.0, 60.0), param_name="tr - tdb")
+        v_valid = _valid_range(v, (0.0, 3.0))
+        p_a_valid = _valid_range(p_a, (p_a_lower, 4.5))
+        met_valid = _valid_range(met, met_range)
+        clo_valid = _valid_range(clo, (0.1, 1.0))
         all_valid = ~(
             np.isnan(tdb_valid)
             | np.isnan(tr_valid)

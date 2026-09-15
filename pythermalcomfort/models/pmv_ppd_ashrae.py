@@ -2,17 +2,13 @@ from __future__ import annotations
 
 import numpy as np
 
+from pythermalcomfort._internal.ashrae55 import _check_ashrae55_compliance
+from pythermalcomfort._internal.validation import _finalize_scalar_or_array, _mapping
 from pythermalcomfort.classes_input import NumericInput, PMVPPDInputs
 from pythermalcomfort.classes_return import PMVPPDAshrae
 from pythermalcomfort.models._pmv_ppd_optimized import _pmv_ppd_optimized
 from pythermalcomfort.models.cooling_effect import cooling_effect
-from pythermalcomfort.shared_functions import _finalize_scalar_or_array, mapping
-from pythermalcomfort.utilities import (
-    Models,
-    Units,
-    _check_ashrae55_compliance,
-    units_converter,
-)
+from pythermalcomfort.utilities import Models, Units, units_converter
 
 
 def pmv_ppd_ashrae(
@@ -52,7 +48,7 @@ def pmv_ppd_ashrae(
             average air speed measured by the sensor plus the activity-generated air speed
             (Vag). Where Vag is the activity-generated air speed caused by motion of
             individual body parts. vr can be calculated using the function
-            :py:meth:`pythermalcomfort.utilities.v_relative`.
+            :py:meth:`pythermalcomfort.environment.v_relative`.
 
     rh : float or list of floats
         Relative humidity, [%].
@@ -67,7 +63,7 @@ def pmv_ppd_ashrae(
             surface to the outer clothing surface, including enclosed air layers, under actual
             environmental conditions. This value is not the total insulation (`I`:sub:`T,r`).
             The dynamic clothing insulation, clo, can be calculated using the function
-            :py:meth:`pythermalcomfort.utilities.clo_dynamic_ashrae`.
+            :py:meth:`pythermalcomfort.clothing.clo_dynamic_ashrae`.
 
     wme : float or list of floats, optional
         External work, [met]. Defaults to 0.
@@ -110,7 +106,8 @@ def pmv_ppd_ashrae(
     .. code-block:: python
 
         from pythermalcomfort.models import pmv_ppd_ashrae
-        from pythermalcomfort.utilities import v_relative, clo_dynamic_ashrae
+        from pythermalcomfort.clothing import clo_dynamic_ashrae
+        from pythermalcomfort.environment import v_relative
 
         tdb = 25
         tr = 25
@@ -240,6 +237,6 @@ def pmv_ppd_ashrae(
     return PMVPPDAshrae(
         pmv=pmv_array,
         ppd=ppd_array,
-        tsv=mapping(pmv_array, thermal_sensation),
+        tsv=_mapping(pmv_array, thermal_sensation),
         compliance=compliance_array,
     )

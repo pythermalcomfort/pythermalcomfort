@@ -8,7 +8,7 @@ from matplotlib.collections import PolyCollection
 
 from pythermalcomfort.models import pmv_ppd_iso
 from pythermalcomfort.plots.matplotlib import PsychrometricPlot, ThresholdPlotResult
-from pythermalcomfort.utilities import hr_to_rh, psy_ta_rh
+from pythermalcomfort.psychrometrics import hr_to_rh, psy_ta_rh
 
 
 def _new_plot() -> PsychrometricPlot:

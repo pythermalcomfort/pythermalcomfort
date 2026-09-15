@@ -4,10 +4,10 @@ from dataclasses import asdict
 
 import numpy as np
 
+from pythermalcomfort._internal.validation import _valid_range
 from pythermalcomfort.classes_input import NumericInput, UseFansHeatwavesInputs
 from pythermalcomfort.classes_return import UseFansHeatwaves
 from pythermalcomfort.models.two_nodes_gagge import two_nodes_gagge
-from pythermalcomfort.shared_functions import valid_range
 from pythermalcomfort.utilities import Postures
 
 
@@ -177,14 +177,14 @@ def use_fans_heatwaves(
 
     if limit_inputs:
         # fan_heatwaves applicability limits (extended from ASHRAE 55 baseline).
-        tdb_valid = valid_range(tdb, (20.0, 50.0))
-        tr_valid = valid_range(tr, (20.0, 50.0))
-        v_valid = valid_range(v, (0.1, 4.5))
+        tdb_valid = _valid_range(tdb, (20.0, 50.0))
+        tr_valid = _valid_range(tr, (20.0, 50.0))
+        v_valid = _valid_range(v, (0.1, 4.5))
         # rh is range-checked for its side-effect warning but is not included
         # in all_valid (matches the function's prior behaviour).
-        valid_range(rh, (0, 100))
-        met_valid = valid_range(met, (0.7, 2.0))
-        clo_valid = valid_range(clo, (0.0, 1.0))
+        _valid_range(rh, (0, 100))
+        met_valid = _valid_range(met, (0.7, 2.0))
+        clo_valid = _valid_range(clo, (0.0, 1.0))
         all_valid = ~(
             np.isnan(tdb_valid)
             | np.isnan(tr_valid)

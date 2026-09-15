@@ -153,7 +153,8 @@ Notes on this shape:
   the values inline as comments.
 - The citation key (`[Author2001]_`) must exactly match the key added in step 7.
 - If the model has applicability limits, take `limit_inputs: bool = True` and use
-  `valid_range()` from `shared_functions.py` to set out-of-range entries to NaN.
+  `_valid_range()` from `pythermalcomfort/_internal/validation.py` to set
+  out-of-range entries to NaN.
 - If it supports imperial units, take `units: str = Units.SI.value` and convert via
   `units_converter()`.
 

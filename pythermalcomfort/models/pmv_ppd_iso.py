@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import numpy as np
 
+from pythermalcomfort._internal.validation import _mapping, _valid_range
 from pythermalcomfort.classes_input import NumericInput, PMVPPDInputs
 from pythermalcomfort.classes_return import PMVPPD
 from pythermalcomfort.models._pmv_ppd_optimized import _pmv_ppd_optimized
-from pythermalcomfort.shared_functions import mapping, valid_range
 from pythermalcomfort.utilities import (
     Models,
     Units,
@@ -46,7 +46,7 @@ def pmv_ppd_iso(
             average air speed measured by the sensor plus the activity-generated air speed
             (Vag). Where Vag is the activity-generated air speed caused by motion of
             individual body parts. vr can be calculated using the function
-            :py:meth:`pythermalcomfort.utilities.v_relative`.
+            :py:meth:`pythermalcomfort.environment.v_relative`.
 
     rh : float or list of floats
         Relative humidity, [%].
@@ -61,7 +61,7 @@ def pmv_ppd_iso(
             surface to the outer clothing surface, including enclosed air layers, under actual
             environmental conditions. This value is not the total insulation (`I`:sub:`T,r`).
             The dynamic clothing insulation, clo, can be calculated using the function
-            :py:meth:`pythermalcomfort.utilities.clo_dynamic_iso`.
+            :py:meth:`pythermalcomfort.clothing.clo_dynamic_iso`.
 
     wme : float or list of floats, optional
         External work, [met]. Defaults to 0.
@@ -71,7 +71,8 @@ def pmv_ppd_iso(
         editions currently use identical PMV/PPD equations and applicability
         limits, so this parameter does not affect the numerical result. It is
         retained to record the intended edition, reject unsupported edition
-        values, and allow future differentiation if the editions diverge.
+        values, and allow future differentiation if the editions diverge. The
+        selected edition is not stored on the returned ``PMVPPD`` object.
         Defaults to "7730-2025", the current edition of the standard.
     units : str, optional
         Select the SI (International System of Units) or the IP (Imperial Units) system.
@@ -104,7 +105,7 @@ def pmv_ppd_iso(
     .. code-block:: python
 
         from pythermalcomfort.models import pmv_ppd_iso
-        from pythermalcomfort.utilities import v_relative
+        from pythermalcomfort.environment import v_relative
 
         tdb = 25
         tr = 25
@@ -181,13 +182,13 @@ def pmv_ppd_iso(
         # ISO 7730 Clause 4 applicability limits
         pa = rh * 10.0 * np.exp(16.6536 - 4030.183 / (tdb + 235.0))
 
-        tdb_valid = valid_range(tdb, (10.0, 30.0))
-        tr_valid = valid_range(tr, (10.0, 40.0))
-        v_valid = valid_range(vr, (0.0, 1.0))
-        met_valid = valid_range(met, (0.8, 4.0))
-        clo_valid = valid_range(clo, (0.0, 2.0))
-        pa_valid = valid_range(pa, (0.0, 2700.0))
-        pmv_valid = valid_range(pmv, (-2, 2))
+        tdb_valid = _valid_range(tdb, (10.0, 30.0))
+        tr_valid = _valid_range(tr, (10.0, 40.0))
+        v_valid = _valid_range(vr, (0.0, 1.0))
+        met_valid = _valid_range(met, (0.8, 4.0))
+        clo_valid = _valid_range(clo, (0.0, 2.0))
+        pa_valid = _valid_range(pa, (0.0, 2700.0))
+        pmv_valid = _valid_range(pmv, (-2, 2))
 
         all_valid = ~(
             np.isnan(tdb_valid)
@@ -218,5 +219,5 @@ def pmv_ppd_iso(
     return PMVPPD(
         pmv=pmv,
         ppd=ppd_array,
-        tsv=mapping(pmv, thermal_sensation, right=False),
+        tsv=_mapping(pmv, thermal_sensation, right=False),
     )

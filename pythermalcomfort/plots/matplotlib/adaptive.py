@@ -22,6 +22,7 @@ from matplotlib.legend import Legend
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
+from pythermalcomfort._internal.adaptive_cooling_effect import adaptive_cooling_effect
 from pythermalcomfort.models.adaptive_ashrae import INTERCEPT as _ASHRAE_INTERCEPT
 from pythermalcomfort.models.adaptive_ashrae import SLOPE as _ASHRAE_SLOPE
 from pythermalcomfort.models.adaptive_en import INTERCEPT as _EN_INTERCEPT
@@ -32,7 +33,6 @@ from pythermalcomfort.plots.matplotlib._shared import (
     BasePlotResult,
     _PlotDefaults,
 )
-from pythermalcomfort.utilities import adaptive_cooling_effect
 
 # ── band specification ─────────────────────────────────────────────────────
 

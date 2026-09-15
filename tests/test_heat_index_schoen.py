@@ -3,7 +3,7 @@ import pytest
 
 from pythermalcomfort.classes_return import HI
 from pythermalcomfort.models.heat_index_schoen import heat_index_schoen
-from pythermalcomfort.utilities import psy_ta_rh
+from pythermalcomfort.psychrometrics import psy_ta_rh
 from tests.conftest import is_equal
 
 

@@ -43,7 +43,7 @@ def pmv_e(
             average air speed measured by the sensor plus the activity-generated air speed
             (Vag). Where Vag is the activity-generated air speed caused by motion of
             individual body parts. vr can be calculated using the function
-            :py:meth:`pythermalcomfort.utilities.v_relative`.
+            :py:meth:`pythermalcomfort.environment.v_relative`.
 
     rh : float or list of floats
         Relative humidity, [%].
@@ -58,7 +58,7 @@ def pmv_e(
             surface to the outer clothing surface, including enclosed air layers, under actual
             environmental conditions. This value is not the total insulation (`I`:sub:`T,r`).
             The dynamic clothing insulation, clo, can be calculated using the function
-            :py:meth:`pythermalcomfort.utilities.clo_dynamic_iso`.
+            :py:meth:`pythermalcomfort.clothing.clo_dynamic_iso`.
 
     e_coefficient : float or list of floats
         Expectancy factor.
@@ -87,7 +87,8 @@ def pmv_e(
     .. code-block:: python
 
         from pythermalcomfort.models import pmv_e
-        from pythermalcomfort.utilities import v_relative, clo_dynamic_iso
+        from pythermalcomfort.clothing import clo_dynamic_iso
+        from pythermalcomfort.environment import v_relative
 
         tdb = 28
         tr = 28

@@ -14,7 +14,7 @@ These variables are crucial for assessing thermal stress and comfort in differen
 
     *   **Total Insulation** (I\ :sub:`T`): This is the **thermal insulation from the body surface to the environment**, encompassing all clothing layers, enclosed air layers, and the boundary air layer, under static reference conditions.
     *   **Basic Insulation** (I\ :sub:`cl`): Also known as intrinsic insulation, this is the **thermal insulation from the skin surface to the outer clothing surface**, including enclosed air layers, under static reference conditions. **This is the value used as input for example in the PMV model**.
-    *   **Air Insulation** (I\ :sub:`a`): This is the **thermal insulation of the boundary air layer** around the outer clothing or, when nude, around the skin surface. This can be influenced by air and body movement, and also can be expressed as a combination of convective and radiative heat transfer coefficients. It can be calculated using :py:meth:`pythermalcomfort.utilities.clo_insulation_air_layer`
+    *   **Air Insulation** (I\ :sub:`a`): This is the **thermal insulation of the boundary air layer** around the outer clothing or, when nude, around the skin surface. This can be influenced by air and body movement, and also can be expressed as a combination of convective and radiative heat transfer coefficients. It can be calculated using :py:meth:`pythermalcomfort.clothing.clo_insulation_air_layer`
     *   **Resultant Total Insulation** (I\ :sub:`T,r`): This is the **actual thermal insulation from the body surface to the environment**, considering all clothing, enclosed air layers, and boundary air layers under given environmental conditions and activities. It accounts for the effects of movements and wind.
     *   **Effective Thermal Insulation** (I\ :sub:`clu`): This term is used for individual garments. It's determined on a manikin wearing only a single garment.
 
@@ -27,7 +27,7 @@ These variables are crucial for assessing thermal stress and comfort in differen
 **Clothing Area Factor** (f\ :sub:`cl`)
     This factor accounts for the increase in surface area due to clothing.
     It is used in calculations of the heat transfer between the body and the environment and is related to the thermal insulation of the clothing.
-    It can be calculated by using :py:meth:`pythermalcomfort.utilities.clo_area_factor`
+    It can be calculated by using :py:meth:`pythermalcomfort.clothing.clo_area_factor`
 
 **Permeability Index** (i\ :sub:`m`)
     This index is related to the permeability of fabric layers and is used in estimating water vapour resistance. It is not directly related to insulation, but to the fabric's ability to allow vapour to pass through. For an air layer, im is around 0.5. For many types of permeable clothing, it may be set to 0.38.
@@ -58,7 +58,7 @@ Using Tables of Complete Ensembles:
 Summation of Individual Garment Insulations:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  *   When a complete ensemble isn't available, you can estimate the ensemble insulation (I\ :sub:`cl`) by summing the effective thermal insulation (I\ :sub:`clu`) of each garment by using :py:meth:`pythermalcomfort.utilities.clo_intrinsic_insulation_ensemble`
+  *   When a complete ensemble isn't available, you can estimate the ensemble insulation (I\ :sub:`cl`) by summing the effective thermal insulation (I\ :sub:`clu`) of each garment by using :py:meth:`pythermalcomfort.clothing.clo_intrinsic_insulation_ensemble`
   *   This method assumes **uniform insulation distribution** and may be inaccurate for unevenly layered clothing. **Using full ensembles from the tables is preferable**.
 
 The standard also provides other methods which are not listed here.
@@ -75,7 +75,7 @@ Correction of clothing insulation for body movement
 To correct static clothing insulation values for the effects of air and body movement, the ISO 9920 provides correction equations based on the total static insulation value, (I\ :sub:`T`), to obtain the resultant total clothing insulation, (I\ :sub:`T,r`).
 These equations take into account **air velocity relative to the person** (v\ :sub:`r`, from 0.15 to 3.5 m/s) and **walking speed** (v\ :sub:`w`, from 0 to 1.2 m/s).
 
-The correction equations are comprised within this function :py:meth:`pythermalcomfort.utilities.clo_total_insulation`
+The correction equations are comprised within this function :py:meth:`pythermalcomfort.clothing.clo_total_insulation`
 
 Other Factors Influencing Clothing Insulation
 ---------------------------------------------
@@ -127,36 +127,36 @@ Functions
 Air insulation layer (I\ :sub:`a`)
 ----------------------------------
 
-.. autofunction:: pythermalcomfort.utilities.clo_insulation_air_layer
+.. autofunction:: pythermalcomfort.clothing.clo_insulation_air_layer
 
 Correction factor for (I\ :sub:`T`)
 -----------------------------------
 
-.. autofunction:: pythermalcomfort.utilities.clo_correction_factor_environment
+.. autofunction:: pythermalcomfort.clothing.clo_correction_factor_environment
 
 Clothing area factor (f\ :sub:`cl`)
 -----------------------------------
 
-.. autofunction:: pythermalcomfort.utilities.clo_area_factor
+.. autofunction:: pythermalcomfort.clothing.clo_area_factor
 
 Dynamic clothing
 ----------------
 
 Below are the two functions to calculate the dynamic clothing in accordance with ISO and ASHRAE.
 
-.. autofunction:: pythermalcomfort.utilities.clo_dynamic_iso
+.. autofunction:: pythermalcomfort.clothing.clo_dynamic_iso
 
-.. autofunction:: pythermalcomfort.utilities.clo_dynamic_ashrae
+.. autofunction:: pythermalcomfort.clothing.clo_dynamic_ashrae
 
 Intrinsic clothing insulation ensemble (I\ :sub:`cl`)
 -----------------------------------------------------
 
-.. autofunction:: pythermalcomfort.utilities.clo_intrinsic_insulation_ensemble
+.. autofunction:: pythermalcomfort.clothing.clo_intrinsic_insulation_ensemble
 
 Total insulation of the clothing ensemble (I\ :sub:`T`)
 -------------------------------------------------------
 
-.. autofunction:: pythermalcomfort.utilities.clo_total_insulation
+.. autofunction:: pythermalcomfort.clothing.clo_total_insulation
 
 Clothing insulation of typical ensembles, [clo]
 -----------------------------------------------

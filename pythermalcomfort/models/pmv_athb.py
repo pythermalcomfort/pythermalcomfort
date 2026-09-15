@@ -40,7 +40,7 @@ def pmv_athb(
             average air speed measured by the sensor plus the activity-generated air speed
             (Vag). Where Vag is the activity-generated air speed caused by motion of
             individual body parts. vr can be calculated using the function
-            :py:meth:`pythermalcomfort.utilities.v_relative`.
+            :py:meth:`pythermalcomfort.environment.v_relative`.
 
     rh : float or list of floats
         Relative humidity, [%].
@@ -54,7 +54,7 @@ def pmv_athb(
 
         .. note::
             The running mean temperature can be calculated using the function
-            :py:meth:`pythermalcomfort.utilities.running_mean_outdoor_temperature`.
+            :py:meth:`pythermalcomfort.environment.running_mean_outdoor_temperature`.
 
     Returns
     -------

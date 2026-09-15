@@ -5,10 +5,11 @@ import math
 import numpy as np
 from numba import njit, prange
 
+from pythermalcomfort._internal.validation import _valid_range
 from pythermalcomfort.classes_input import NumericInput, SolarGainInputs
 from pythermalcomfort.classes_return import SolarGain
-from pythermalcomfort.shared_functions import valid_range
-from pythermalcomfort.utilities import Postures, transpose_sharp_altitude
+from pythermalcomfort.environment import transpose_sharp_altitude
+from pythermalcomfort.utilities import Postures
 
 # integer codes for posture, since numba nopython mode can't dispatch on
 # Python string/enum comparisons the way the rest of this module's helpers do
@@ -112,7 +113,7 @@ def solar_gain(
     f_svv : float or list of floats
         Fraction of sky-vault view fraction exposed to body, ranges from 0 to 1.
         It can be calculated using the function
-        :py:meth:`pythermalcomfort.utilities.f_svv`.
+        :py:meth:`pythermalcomfort.environment.f_svv`.
     f_bes : float or list of floats
         Fraction of the possible body surface exposed to sun, ranges from 0 to 1.
         See Table C2-2 and equation C-7 ASHRAE 55 2020 [55ASHRAE2023]_.
@@ -194,8 +195,8 @@ def solar_gain(
     # the fp lookup table only covers 0-90/0-180; outside that, _find_span
     # can't return a valid span at all, so clip to NaN (with a warning) here
     # rather than let the numba kernel silently wrap a -1 index
-    sol_altitude = valid_range(sol_altitude, (0.0, 90.0))
-    sharp = valid_range(sharp, (0.0, 180.0))
+    sol_altitude = _valid_range(sol_altitude, (0.0, 90.0))
+    sharp = _valid_range(sharp, (0.0, 180.0))
     sol_radiation_dir = np.asarray(sol_radiation_dir)
     sol_transmittance = np.asarray(sol_transmittance)
     f_svv = np.asarray(f_svv)
@@ -302,7 +303,7 @@ def _solar_gain_scalar(
     az_i = _find_span(_AZ_RANGE, sharp)
     if alt_i == -1 or az_i == -1:
         # sol_altitude/sharp out of the table's domain (0-90/0-180), or NaN
-        # (e.g. from valid_range clipping upstream): -1 would otherwise wrap
+        # (e.g. from _valid_range clipping upstream): -1 would otherwise wrap
         # around to the last row/column instead of failing, so bail out
         # explicitly rather than returning a plausible-looking wrong value.
         return np.nan, np.nan

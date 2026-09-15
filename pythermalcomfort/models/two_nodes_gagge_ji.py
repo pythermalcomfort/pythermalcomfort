@@ -43,7 +43,7 @@ def two_nodes_gagge_ji(
         .. note::
             Vapor pressure can be calculated using the relative humidity and the saturation
             vapor pressure, which can be computed using the function
-            :py:meth:`pythermalcomfort.utilities.p_sat_torr`.
+            :py:meth:`pythermalcomfort.psychrometrics.p_sat_torr`.
 
     wme : float or list of floats
         External work, [met]. Defaults to 0.
@@ -86,7 +86,7 @@ def two_nodes_gagge_ji(
 
         from pythermalcomfort.models import two_nodes_gagge_ji
         from pythermalcomfort.utilities import body_surface_area
-        from pythermalcomfort.utilities import p_sat_torr
+        from pythermalcomfort.psychrometrics import p_sat_torr
 
         rh = 20
         vapor_pressure = rh * p_sat_torr(tdb=36.5) / 100

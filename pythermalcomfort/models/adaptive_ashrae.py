@@ -2,16 +2,13 @@ from typing import Literal
 
 import numpy as np
 
+from pythermalcomfort._internal.adaptive_cooling_effect import adaptive_cooling_effect
+from pythermalcomfort._internal.ashrae55 import _check_ashrae55_compliance
+from pythermalcomfort._internal.validation import _valid_range
 from pythermalcomfort.classes_input import ASHRAEInputs, NumericInput
 from pythermalcomfort.classes_return import AdaptiveASHRAE
-from pythermalcomfort.shared_functions import valid_range
-from pythermalcomfort.utilities import (
-    Units,
-    _check_ashrae55_compliance,
-    adaptive_cooling_effect,
-    operative_tmp,
-    units_converter,
-)
+from pythermalcomfort.environment import operative_tmp
+from pythermalcomfort.utilities import Units, units_converter
 
 SLOPE: float = 0.31
 INTERCEPT: float = 17.8
@@ -49,7 +46,7 @@ def adaptive_ashrae(
         Running mean temperature, default in [°C] or [°F] if `units` = 'IP'.
 
         .. note::
-            The running mean temperature can be calculated using the function :py:meth:`pythermalcomfort.utilities.running_mean_outdoor_temperature`.
+            The running mean temperature can be calculated using the function :py:meth:`pythermalcomfort.environment.running_mean_outdoor_temperature`.
 
     v : float or list of floats
         Air speed, default in [m/s] or [fps] if `units` = 'IP'.
@@ -138,7 +135,7 @@ def adaptive_ashrae(
             tr=tr,
             v=v,
         )
-        trm_valid = valid_range(t_running_mean, (10.0, 33.5))
+        trm_valid = _valid_range(t_running_mean, (10.0, 33.5))
         all_valid = ~(
             np.isnan(tdb_valid)
             | np.isnan(tr_valid)

@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import numpy as np
 
+from pythermalcomfort._internal.validation import _valid_range
 from pythermalcomfort.classes_input import NumericInput, RidgeRegressionInputs
 from pythermalcomfort.classes_return import PredictedBodyTemperatures
-from pythermalcomfort.shared_functions import valid_range
 from pythermalcomfort.utilities import Sex
 
 # --- Model Constants ---
@@ -182,11 +182,11 @@ def _check_ridge_regression_compliance(
         Five arrays with valid values preserved and out-of-range values set to NaN:
         (age_valid, height_valid, weight_valid, temp_valid, rh_valid).
     """
-    age_valid = valid_range(age, (60, 100))
-    height_valid = valid_range(height, (130, 230))
-    weight_valid = valid_range(weight, (40, 140))
-    temp_valid = valid_range(tdb, (0, 60))
-    rh_valid = valid_range(rh, (0, 100))
+    age_valid = _valid_range(age, (60, 100))
+    height_valid = _valid_range(height, (130, 230))
+    weight_valid = _valid_range(weight, (40, 140))
+    temp_valid = _valid_range(tdb, (0, 60))
+    rh_valid = _valid_range(rh, (0, 100))
     return age_valid, height_valid, weight_valid, temp_valid, rh_valid
 
 

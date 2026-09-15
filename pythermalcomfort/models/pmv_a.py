@@ -39,7 +39,7 @@ def pmv_a(
 
         .. note::
             vr is the sum of the average air speed measured by the sensor and the activity-generated air speed (Vag).
-            Calculate vr using :py:meth:`pythermalcomfort.utilities.v_relative`.
+            Calculate vr using :py:meth:`pythermalcomfort.environment.v_relative`.
 
     rh : float or list of floats
         Relative humidity, [%].
@@ -49,7 +49,7 @@ def pmv_a(
         Clothing insulation, [clo].
 
         .. note::
-            Correct for body movement effects using :py:meth:`pythermalcomfort.utilities.clo_dynamic_iso`.
+            Correct for body movement effects using :py:meth:`pythermalcomfort.clothing.clo_dynamic_iso`.
 
     a_coefficient : float
         Adaptive coefficient.
@@ -78,7 +78,8 @@ def pmv_a(
         :emphasize-lines: 9,12,14
 
         from pythermalcomfort.models import pmv_a
-        from pythermalcomfort.utilities import v_relative, clo_dynamic_iso
+        from pythermalcomfort.clothing import clo_dynamic_iso
+        from pythermalcomfort.environment import v_relative
 
         v = 0.1
         met = 1.4

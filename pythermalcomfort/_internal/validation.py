@@ -7,7 +7,7 @@ from typing import Any
 import numpy as np
 
 
-def valid_range(
+def _valid_range(
     x,
     valid: tuple[float, float],
     param_name: str | None = None,
@@ -60,7 +60,7 @@ def valid_range(
 def _format_violation_detail(x_arr: np.ndarray, mask: np.ndarray) -> str:
     """Format the detail portion of a UserWarning describing out-of-range values.
 
-    Shared by :func:`valid_range` and by the ASHRAE 55 ``airspeed_control``
+    Shared by :func:`_valid_range` and by the ASHRAE 55 ``airspeed_control``
     checks so warning bodies stay consistent.
 
     Output formats
@@ -84,7 +84,7 @@ def _format_violation_detail(x_arr: np.ndarray, mask: np.ndarray) -> str:
 
 
 def _extract_caller_argname() -> str | None:
-    """Return the name of the first positional argument of the caller's ``valid_range``
+    """Return the name of the first positional argument of the caller's ``_valid_range``
     call, or ``None`` if it cannot be recovered.
 
     The caller's source is inspected via :mod:`inspect` and parsed with :mod:`ast`.
@@ -126,7 +126,7 @@ def _extract_caller_argname() -> str | None:
                 if (
                     isinstance(node, ast.Call)
                     and isinstance(node.func, ast.Name)
-                    and node.func.id == "valid_range"
+                    and node.func.id == "_valid_range"
                     and node.args
                     and isinstance(node.args[0], ast.Name)
                 ):
@@ -177,7 +177,7 @@ HEAT_INDEX_STRESS_CATEGORIES = {
 }
 
 
-def mapping(
+def _mapping(
     value: float | np.ndarray, map_dictionary: Mapping[float, Any], right: bool = True
 ) -> np.ndarray:
     """Map a temperature array to stress categories.
@@ -203,7 +203,7 @@ def mapping(
 
     Examples
     --------
-    >>> mapping([20, 25, 30], {15: "low", 25: "medium", 35: "high"})
+    >>> _mapping([20, 25, 30], {15: "low", 25: "medium", 35: "high"})
     array(['low', 'medium', 'high'], dtype=object)
     """
     if not isinstance(map_dictionary, dict):
@@ -215,3 +215,19 @@ def mapping(
     categories = np.append(categories, np.nan)
     idx = np.digitize(value_arr, bins, right=right)
     return categories[idx]
+
+
+def validate_type(
+    value: Any,
+    name: str,
+    allowed_types: tuple[type, ...],
+) -> Any:
+    """Validate a value and return it with NumPy scalars normalized."""
+    if isinstance(value, np.generic):
+        value = value.item()
+    if not isinstance(value, allowed_types):
+        invalid_type_msg = (
+            f"{name} must be one of the following types: {allowed_types}."
+        )
+        raise TypeError(invalid_type_msg)
+    return value

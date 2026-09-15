@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import numpy as np
 
+from pythermalcomfort._internal.ashrae55 import _check_ashrae55_compliance
 from pythermalcomfort.classes_input import NumericInput, VerticalTGradPPDInputs
 from pythermalcomfort.classes_return import VerticalTGradPPD
 from pythermalcomfort.models import pmv_ppd_ashrae
-from pythermalcomfort.utilities import Models, _check_ashrae55_compliance
+from pythermalcomfort.utilities import Models
 
 
 def vertical_tmp_grad_ppd(
@@ -44,7 +45,7 @@ def vertical_tmp_grad_ppd(
             average air speed measured by the sensor plus the activity-generated air speed
             (Vag). Where Vag is the activity-generated air speed caused by motion of
             individual body parts. vr can be calculated using the function
-            :py:meth:`pythermalcomfort.utilities.v_relative`.
+            :py:meth:`pythermalcomfort.environment.v_relative`.
 
     rh : float or list of floats
         Relative humidity, [%].
@@ -59,7 +60,7 @@ def vertical_tmp_grad_ppd(
             surface to the outer clothing surface, including enclosed air layers, under actual
             environmental conditions. This value is not the total insulation (`I`:sub:`T,r`).
             The dynamic clothing insulation, clo, can be calculated using the function
-            :py:meth:`pythermalcomfort.utilities.clo_dynamic_ashrae`.
+            :py:meth:`pythermalcomfort.clothing.clo_dynamic_ashrae`.
 
     vertical_tmp_grad : float or list of floats
         Vertical temperature gradient between the feet and the head, [°C/m].

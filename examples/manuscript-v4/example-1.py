@@ -14,7 +14,7 @@ from pythermalcomfort.plots.matplotlib import (
     SummaryPlot,
     ThresholdPlot,
 )
-from pythermalcomfort.utilities import psy_ta_rh
+from pythermalcomfort.psychrometrics import psy_ta_rh
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTDIR = os.path.join(SCRIPT_DIR, "output")

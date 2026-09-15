@@ -26,7 +26,11 @@ Step-by-step guide
 ---------------------------
 
 * Domain model → ``pythermalcomfort/models/<module_name>.py``
-* Generic utility → ``pythermalcomfort/utilities.py``
+* Environmental calculation → ``pythermalcomfort/environment/<module_name>.py``
+* Psychrometric calculation → ``pythermalcomfort/psychrometrics/<module_name>.py``
+* Clothing calculation → ``pythermalcomfort/clothing/<module_name>.py``
+* Private implementation helper → ``pythermalcomfort/_internal/<module_name>.py``
+* Truly generic helper, enum, or unit conversion → ``pythermalcomfort/utilities.py``
 
 2. Implement the function
 -------------------------
@@ -120,8 +124,12 @@ dict-style access.
 5. Export the function
 -----------------------
 
-Add the function to ``pythermalcomfort/models/__init__.py`` so it is
-accessible as ``from pythermalcomfort.models import my_model``.
+Export each public calculation from the ``__init__.py`` of its selected package
+(``models``, ``environment``, ``psychrometrics``, or ``clothing``). For example,
+add a model to ``pythermalcomfort/models/__init__.py`` so it is accessible as
+``from pythermalcomfort.models import my_model``. Truly generic utilities remain
+in ``pythermalcomfort/utilities.py`` and do not need a package export. Private
+helpers under ``pythermalcomfort/_internal`` must not be publicly exported.
 
 6. Write tests
 ---------------
@@ -203,5 +211,8 @@ Use these existing files as style references:
   dataclasses, limit_inputs, unit conversion.
 * ``pythermalcomfort/models/adaptive_ashrae.py`` — model that exposes
   module-level constants (``SLOPE``, ``INTERCEPT``) for use by other modules.
-* ``pythermalcomfort/utilities.py`` — shared helpers; add utility functions here
-  when they are needed by more than one model.
+* ``pythermalcomfort/environment/``, ``pythermalcomfort/psychrometrics/``, and
+  ``pythermalcomfort/clothing/`` — focused public calculation packages.
+* ``pythermalcomfort/_internal/`` — private implementation helpers.
+* ``pythermalcomfort/utilities.py`` — stable generic helpers, enums, and unit
+  conversions only.

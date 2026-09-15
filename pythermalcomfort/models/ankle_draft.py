@@ -2,15 +2,11 @@ from __future__ import annotations
 
 import numpy as np
 
+from pythermalcomfort._internal.ashrae55 import _check_ashrae55_compliance
 from pythermalcomfort.classes_input import AnkleDraftInputs, NumericInput
 from pythermalcomfort.classes_return import AnkleDraft
 from pythermalcomfort.models.pmv_ppd_ashrae import pmv_ppd_ashrae
-from pythermalcomfort.utilities import (
-    Models,
-    Units,
-    _check_ashrae55_compliance,
-    units_converter,
-)
+from pythermalcomfort.utilities import Models, Units, units_converter
 
 
 def ankle_draft(
@@ -48,7 +44,7 @@ def ankle_draft(
             `vr` is the relative air speed caused by body movement and not the air speed measured by the air speed sensor.
             The relative air speed is the sum of the average air speed measured by the sensor plus the activity-generated air speed (Vag).
             Vag is the activity-generated air speed caused by motion of individual body parts.
-            `vr` can be calculated using the function :py:meth:`pythermalcomfort.utilities.v_relative`.
+            `vr` can be calculated using the function :py:meth:`pythermalcomfort.environment.v_relative`.
 
     rh : float or list of floats
         Relative humidity, [%].
@@ -65,7 +61,7 @@ def ankle_draft(
             surface to the outer clothing surface, including enclosed air layers, under actual
             environmental conditions. This value is not the total insulation (`I`:sub:`T,r`).
             The dynamic clothing insulation, clo, can be calculated using the function
-            :py:meth:`pythermalcomfort.utilities.clo_dynamic_ashrae`.
+            :py:meth:`pythermalcomfort.clothing.clo_dynamic_ashrae`.
 
     v_ankle : float or list of floats
         Air speed at 0.1 m (4 in.) above the floor, default in [m/s] or [fps] if `units` = 'IP'.

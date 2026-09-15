@@ -23,12 +23,12 @@ from pythermalcomfort.plots.matplotlib.threshold import (
     ThresholdPlot,
     ThresholdPlotResult,
 )
-from pythermalcomfort.utilities import hr_to_rh, psy_ta_rh
+from pythermalcomfort.psychrometrics import hr_to_rh, psy_ta_rh
 
 #: Grams of water per kilogram of dry air, used to convert between the
 #: chart's display units (g/kg dry air) and the kg/kg dry air that
-#: :func:`~pythermalcomfort.utilities.psy_ta_rh` and
-#: :func:`~pythermalcomfort.utilities.hr_to_rh` work in.
+#: :func:`~pythermalcomfort.psychrometrics.psy_ta_rh` and
+#: :func:`~pythermalcomfort.psychrometrics.hr_to_rh` work in.
 _G_PER_KG = 1000.0
 
 #: A y-axis upper bound below this is *usually* kg/kg dry air left over from

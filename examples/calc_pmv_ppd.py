@@ -4,13 +4,10 @@ import time
 import numpy as np
 import pandas as pd
 
+from pythermalcomfort.clothing import clo_dynamic_ashrae
+from pythermalcomfort.environment import v_relative
 from pythermalcomfort.models import pmv_ppd_ashrae, pmv_ppd_iso
-from pythermalcomfort.utilities import (
-    clo_dynamic_ashrae,
-    clo_individual_garments,
-    met_typical_tasks,
-    v_relative,
-)
+from pythermalcomfort.utilities import clo_individual_garments, met_typical_tasks
 
 # input variables
 tdb = 27  # dry bulb air temperature, [$^{\circ}$C]

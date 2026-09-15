@@ -3,7 +3,7 @@ import pytest
 
 from pythermalcomfort.models import utci
 from pythermalcomfort.models.utci import _utci_optimized
-from pythermalcomfort.utilities import p_sat
+from pythermalcomfort.psychrometrics import p_sat
 from tests.conftest import Urls, retrieve_reference_table, validate_result
 
 

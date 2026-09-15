@@ -1,7 +1,7 @@
 from pprint import pprint
 
+from pythermalcomfort.environment import running_mean_outdoor_temperature
 from pythermalcomfort.models import adaptive_en
-from pythermalcomfort.utilities import running_mean_outdoor_temperature
 
 result = adaptive_en(tdb=25, tr=25, t_running_mean=24, v=0.1)
 

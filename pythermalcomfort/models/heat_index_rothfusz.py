@@ -7,13 +7,13 @@ import numpy as np
 from numba import float64, vectorize
 from numpy.typing import NDArray
 
+from pythermalcomfort._internal.validation import (
+    HEAT_INDEX_STRESS_CATEGORIES,
+    _mapping,
+    _valid_range,
+)
 from pythermalcomfort.classes_input import HIInputs, NumericInput
 from pythermalcomfort.classes_return import HI
-from pythermalcomfort.shared_functions import (
-    HEAT_INDEX_STRESS_CATEGORIES,
-    mapping,
-    valid_range,
-)
 
 
 def heat_index_rothfusz(
@@ -74,7 +74,7 @@ def heat_index_rothfusz(
 
     # heat index should only be calculated for temperatures above 27 °C
     if limit_inputs:
-        tdb_valid = valid_range(tdb, (27.0, np.inf))
+        tdb_valid = _valid_range(tdb, (27.0, np.inf))
         hi_valid = np.where(~np.isnan(tdb_valid), hi, np.nan)
     else:
         hi_valid = hi
@@ -84,7 +84,7 @@ def heat_index_rothfusz(
     if round_output:
         hi_valid = np.around(hi_valid, 1)
 
-    return HI(hi=hi_valid, stress_category=mapping(hi_valid, heat_index_categories))
+    return HI(hi=hi_valid, stress_category=_mapping(hi_valid, heat_index_categories))
 
 
 @cast(

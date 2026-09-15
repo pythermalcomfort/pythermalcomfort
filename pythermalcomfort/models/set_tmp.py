@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import numpy as np
 
+from pythermalcomfort._internal.ashrae55 import _check_ashrae55_compliance
 from pythermalcomfort.classes_input import NumericInput, SETInputs
 from pythermalcomfort.classes_return import SET
 from pythermalcomfort.models.two_nodes_gagge import two_nodes_gagge
-from pythermalcomfort.utilities import (
-    Postures,
-    _check_ashrae55_compliance,
-)
+from pythermalcomfort.utilities import Postures
 
 
 def set_tmp(

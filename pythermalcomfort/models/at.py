@@ -4,7 +4,7 @@ import numpy as np
 
 from pythermalcomfort.classes_input import ATInputs, NumericInput
 from pythermalcomfort.classes_return import AT
-from pythermalcomfort.utilities import psy_ta_rh
+from pythermalcomfort.psychrometrics import psy_ta_rh
 
 
 def at(

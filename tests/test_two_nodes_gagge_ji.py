@@ -1,7 +1,8 @@
 import pytest
 
 from pythermalcomfort.models import two_nodes_gagge_ji
-from pythermalcomfort.utilities import body_surface_area, p_sat_torr
+from pythermalcomfort.psychrometrics import p_sat_torr
+from pythermalcomfort.utilities import body_surface_area
 
 
 # Scenarios based on Table 4 from the paper by Ji et al. (2022)

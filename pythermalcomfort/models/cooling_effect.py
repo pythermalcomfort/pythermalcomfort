@@ -60,7 +60,7 @@ def cooling_effect(
             average air speed measured by the sensor plus the activity-generated air speed
             (Vag). Where Vag is the activity-generated air speed caused by motion of
             individual body parts. vr can be calculated using the function
-            :py:meth:`pythermalcomfort.utilities.v_relative`.
+            :py:meth:`pythermalcomfort.environment.v_relative`.
 
     rh : float or list of floats
         Relative humidity, [%].
@@ -75,7 +75,7 @@ def cooling_effect(
             surface to the outer clothing surface, including enclosed air layers, under actual
             environmental conditions. This value is not the total insulation (`I`:sub:`T,r`).
             The dynamic clothing insulation, clo, can be calculated using the function
-            :py:meth:`pythermalcomfort.utilities.clo_dynamic_ashrae`.
+            :py:meth:`pythermalcomfort.clothing.clo_dynamic_ashrae`.
 
     wme : float or list of floats, optional
         External work, [met]. Defaults to 0.

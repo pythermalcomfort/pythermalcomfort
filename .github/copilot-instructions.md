@@ -22,7 +22,7 @@ Quick repo conventions (summary)
 
 How to add a function (concise, actionable)
 - Quick checklist (must complete before PR):
-  - [ ] Implementation added under appropriate module (models/ or utilities.py).
+  - [ ] Implementation added under the appropriate focused package.
   - [ ] Input dataclass created/updated with validation in __post_init__.
   - [ ] NumPy-style docstring with units, applicability limits, and example(s).
   - [ ] Tests added (scalars, arrays, broadcasting, invalid inputs).
@@ -33,7 +33,11 @@ How to add a function (concise, actionable)
 - Step-by-step guide:
   1. Choose location
      - Domain model → pythermalcomfort/models/<name>.py
-     - Generic helper → pythermalcomfort/utilities.py
+     - Ambient or physical-environment calculation → pythermalcomfort/environment/<name>.py
+     - Moist-air property calculation → pythermalcomfort/psychrometrics/<name>.py
+     - Clothing-insulation calculation → pythermalcomfort/clothing/<name>.py
+     - Private implementation helper → pythermalcomfort/_internal/<name>.py
+     - Truly generic helper, enum, or unit conversion → pythermalcomfort/utilities.py
 
   2. Implement the function
      - Keep it small and single-purpose.
@@ -84,7 +88,7 @@ How to add a function (concise, actionable)
      - Keep tests deterministic and small.
 
   5. Documentation & autodoc
-     - Add an ``.. autofunction:: pythermalcomfort.models.<module>.<func>`` entry in the docs
+     - Add an ``.. autofunction:: pythermalcomfort.<package>.<function>`` entry in the docs
        (docs/reference or the file that gathers API docs).
      - Ensure docstring examples are minimal and runnable.
 

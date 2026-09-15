@@ -7,9 +7,9 @@ import numpy as np
 from numba import float64, vectorize
 from numpy.typing import NDArray
 
+from pythermalcomfort._internal.validation import _mapping, _valid_range
 from pythermalcomfort.classes_input import NumericInput, UTCIInputs
 from pythermalcomfort.classes_return import UTCI
-from pythermalcomfort.shared_functions import mapping, valid_range
 from pythermalcomfort.utilities import Units, units_converter
 
 
@@ -118,9 +118,9 @@ def utci(
 
     # Checks that inputs are within the bounds accepted by the model if not return nan
     if limit_inputs:
-        tdb_valid = valid_range(tdb, (-50.0, 50.0))
-        diff_valid = valid_range(tr - tdb, (-30.0, 70.0), param_name="tr - tdb")
-        v_valid = valid_range(v, (0.5, 17.0))
+        tdb_valid = _valid_range(tdb, (-50.0, 50.0))
+        diff_valid = _valid_range(tr - tdb, (-30.0, 70.0), param_name="tr - tdb")
+        v_valid = _valid_range(v, (0.5, 17.0))
         all_valid = ~(np.isnan(tdb_valid) | np.isnan(diff_valid) | np.isnan(v_valid))
         utci_approx = np.where(all_valid, utci_approx, np.nan)
 
@@ -152,7 +152,7 @@ def utci(
 
     return UTCI(
         utci=utci_approx,
-        stress_category=mapping(utci_si, stress_categories),
+        stress_category=_mapping(utci_si, stress_categories),
     )
 
 

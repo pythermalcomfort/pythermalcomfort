@@ -28,7 +28,8 @@ from pythermalcomfort.jos3_functions.matrix import (
 )
 from pythermalcomfort.jos3_functions.parameters import ALL_OUT_PARAMS, Default
 from pythermalcomfort.models.pmv_ppd_iso import pmv_ppd_iso
-from pythermalcomfort.utilities import Models, Postures, antoine, met_to_w_m2
+from pythermalcomfort.psychrometrics import antoine
+from pythermalcomfort.utilities import Models, Postures, met_to_w_m2
 
 
 class JOS3:

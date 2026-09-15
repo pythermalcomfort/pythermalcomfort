@@ -2,15 +2,12 @@ from typing import Literal
 
 import numpy as np
 
+from pythermalcomfort._internal.adaptive_cooling_effect import adaptive_cooling_effect
+from pythermalcomfort._internal.validation import _valid_range
 from pythermalcomfort.classes_input import ENInputs, NumericInput
 from pythermalcomfort.classes_return import AdaptiveEN
-from pythermalcomfort.shared_functions import valid_range
-from pythermalcomfort.utilities import (
-    Units,
-    adaptive_cooling_effect,
-    operative_tmp,
-    units_converter,
-)
+from pythermalcomfort.environment import operative_tmp
+from pythermalcomfort.utilities import Units, units_converter
 
 SLOPE: float = 0.33
 INTERCEPT: float = 18.8
@@ -37,7 +34,7 @@ def adaptive_en(
         Running mean temperature, default in [°C] or [°F] if `units` = 'IP'.
 
         .. note::
-            The running mean temperature can be calculated using the function :py:meth:`pythermalcomfort.utilities.running_mean_outdoor_temperature`.
+            The running mean temperature can be calculated using the function :py:meth:`pythermalcomfort.environment.running_mean_outdoor_temperature`.
 
     v : float or list of floats
         Air speed, default in [m/s] or [fps] if `units` = 'IP'.
@@ -122,7 +119,7 @@ def adaptive_en(
     t_cmf = SLOPE * t_running_mean + INTERCEPT
 
     if limit_inputs:
-        trm_valid = valid_range(t_running_mean, (10.0, 33.5))
+        trm_valid = _valid_range(t_running_mean, (10.0, 33.5))
         all_valid = ~(np.isnan(trm_valid))
         t_cmf = np.where(all_valid, t_cmf, np.nan)
 

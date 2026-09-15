@@ -6,10 +6,10 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.optimize import brentq
 
+from pythermalcomfort._internal.validation import validate_type
 from pythermalcomfort.classes_input import NumericInput, SportsHeatStressInputs
 from pythermalcomfort.classes_return import SportsHeatStressRisk
 from pythermalcomfort.models import phs
-from pythermalcomfort.utilities import validate_type
 
 
 @dataclass

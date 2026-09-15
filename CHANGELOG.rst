@@ -4,6 +4,71 @@ Changelog
 Unreleased
 ----------
 
+* Deprecated the following legacy public import paths. They continue to work for two
+  minor releases and emit ``DeprecationWarning`` pointing to their new locations;
+  this is not an immediate breaking change.
+
+  * Environment calculations:
+
+    * ``pythermalcomfort.utilities.mean_radiant_tmp`` →
+      ``pythermalcomfort.environment.mean_radiant_tmp``
+    * ``pythermalcomfort.utilities.operative_tmp`` →
+      ``pythermalcomfort.environment.operative_tmp``
+    * ``pythermalcomfort.utilities.running_mean_outdoor_temperature`` →
+      ``pythermalcomfort.environment.running_mean_outdoor_temperature``
+    * ``pythermalcomfort.utilities.transpose_sharp_altitude`` →
+      ``pythermalcomfort.environment.transpose_sharp_altitude``
+    * ``pythermalcomfort.utilities.f_svv`` →
+      ``pythermalcomfort.environment.f_svv``
+    * ``pythermalcomfort.utilities.v_relative`` →
+      ``pythermalcomfort.environment.v_relative``
+    * ``pythermalcomfort.utils.scale_wind_speed_log`` →
+      ``pythermalcomfort.environment.scale_wind_speed_log``
+
+  * Psychrometric calculations:
+
+    * ``pythermalcomfort.utilities.p_sat`` →
+      ``pythermalcomfort.psychrometrics.p_sat``
+    * ``pythermalcomfort.utilities.p_sat_torr`` →
+      ``pythermalcomfort.psychrometrics.p_sat_torr``
+    * ``pythermalcomfort.utilities.antoine`` →
+      ``pythermalcomfort.psychrometrics.antoine``
+    * ``pythermalcomfort.utilities.psy_ta_rh`` →
+      ``pythermalcomfort.psychrometrics.psy_ta_rh``
+    * ``pythermalcomfort.utilities.hr_to_rh`` →
+      ``pythermalcomfort.psychrometrics.hr_to_rh``
+    * ``pythermalcomfort.utilities.wet_bulb_tmp`` →
+      ``pythermalcomfort.psychrometrics.wet_bulb_tmp``
+    * ``pythermalcomfort.utilities.dew_point_tmp`` →
+      ``pythermalcomfort.psychrometrics.dew_point_tmp``
+    * ``pythermalcomfort.utilities.enthalpy_air`` →
+      ``pythermalcomfort.psychrometrics.enthalpy_air``
+
+  * Clothing calculations:
+
+    * ``pythermalcomfort.utilities.clo_dynamic_ashrae`` →
+      ``pythermalcomfort.clothing.clo_dynamic_ashrae``
+    * ``pythermalcomfort.utilities.clo_dynamic_iso`` →
+      ``pythermalcomfort.clothing.clo_dynamic_iso``
+    * ``pythermalcomfort.utilities.clo_intrinsic_insulation_ensemble`` →
+      ``pythermalcomfort.clothing.clo_intrinsic_insulation_ensemble``
+    * ``pythermalcomfort.utilities.clo_area_factor`` →
+      ``pythermalcomfort.clothing.clo_area_factor``
+    * ``pythermalcomfort.utilities.clo_insulation_air_layer`` →
+      ``pythermalcomfort.clothing.clo_insulation_air_layer``
+    * ``pythermalcomfort.utilities.clo_total_insulation`` →
+      ``pythermalcomfort.clothing.clo_total_insulation``
+    * ``pythermalcomfort.utilities.clo_correction_factor_environment`` →
+      ``pythermalcomfort.clothing.clo_correction_factor_environment``
+
+* Moved internal-only ``valid_range`` and ``mapping`` from
+  ``pythermalcomfort.shared_functions`` to
+  ``pythermalcomfort._internal.validation`` as ``_valid_range`` and ``_mapping``.
+  These private helpers were never public API, so no compatibility aliases are
+  provided.
+* Fixed ``validate_type`` so NumPy scalar inputs are returned as native Python
+  scalars, and updated input dataclasses to store those normalized values.
+
 4.5.0 (2026-09-15)
 ------------------
 

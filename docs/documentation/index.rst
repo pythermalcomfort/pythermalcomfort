@@ -11,6 +11,8 @@ and background material. Use the links below to navigate by topic.
     models
     plots
     utilities_functions
+    environment
+    psychrometrics
     clothing
     met
     surveys
