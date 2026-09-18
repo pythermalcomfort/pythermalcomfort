@@ -4,6 +4,15 @@ Changelog
 Unreleased
 ----------
 
+* Added ``wbgt_liljegren`` to estimate outdoor WBGT and component temperatures
+  from meteorological inputs using the optional ``pythermalcomfort[lwbgt]``
+  extra. Supports NumPy broadcasting, missing data and native solver diagnostics.
+  Logs assumed input defaults, including the default pressure of 1013.25 hPa,
+  and active wind-height adjustments at INFO level, once per call. Defaults the
+  vertical temperature difference to -0.052°C for wind measurements outside 2 m.
+  Returns calculation failures through nonzero status and NaN outputs without
+  emitting Python warnings or failure logs.
+
 4.6.0 (2026-09-17)
 ------------------
 

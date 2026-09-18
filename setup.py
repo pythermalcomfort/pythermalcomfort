@@ -115,6 +115,7 @@ setup(
             "pandas",
             "seaborn>=0.13",
         ],
+        "lwbgt": ["lwbgt>=0.3.0,<0.4"],
         "plots": ["matplotlib>=3.8", "pandas", "seaborn>=0.13"],
     },
     entry_points={

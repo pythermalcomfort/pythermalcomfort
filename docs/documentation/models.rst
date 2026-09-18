@@ -370,6 +370,14 @@ Wet Bulb Globe Temperature Index (WBGT)
 .. autoclass:: pythermalcomfort.classes_return.WBGT
     :members:
 
+Liljegren outdoor Wet Bulb Globe Temperature (WBGT)
+------------------------------------------------------------
+
+.. autofunction:: pythermalcomfort.models.wbgt_liljegren.wbgt_liljegren
+
+.. autoclass:: pythermalcomfort.classes_return.WBGTLiljegren
+    :members:
+
 Wind chill index
 ----------------
 
