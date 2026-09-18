@@ -36,19 +36,27 @@ class BaseInputs:
     age: NumericInput = numeric_field()
     airspeed_control: bool = field(default=True, metadata={"is_bool": True})
     asw: NumericInput = numeric_field()
+    averaging_minutes: NumericInput = numeric_field()
     body_surface_area: NumericInput = numeric_field(1.8258)
     clo: NumericInput = numeric_field()
     d: NumericInput = numeric_field(0)
+    day: NumericInput = numeric_field()
     duration: int = field(default=None, metadata={"types": (int, np.ndarray)})
     e_coefficient: float | int = field(default=None, metadata={"types": (float, int)})
     f_bes: NumericInput = numeric_field()
     f_svv: NumericInput = numeric_field()
     floor_reflectance: NumericInput = numeric_field()
+    gmt_offset_hours: NumericInput = numeric_field()
     height: NumericInput = numeric_field()
+    hour: NumericInput = numeric_field()
+    latitude: NumericInput = numeric_field()
     limit_inputs: bool = field(default=True, metadata={"is_bool": True})
+    longitude: NumericInput = numeric_field()
     max_skin_blood_flow: NumericInput = numeric_field(80)
     max_sweating: NumericInput = numeric_field(500)
     met: NumericInput = numeric_field()
+    minute: NumericInput = numeric_field()
+    month: NumericInput = numeric_field()
     p_atm: NumericInput = numeric_field(101325)
     position: str | np.ndarray | list = field(
         default=None,
@@ -91,19 +99,23 @@ class BaseInputs:
     tr: NumericInput = numeric_field()
     twb: NumericInput = numeric_field()
     units: str = field(default=Units.SI.value)
+    urban: NumericInput = numeric_field()
     v: NumericInput = numeric_field()
     v_ankle: NumericInput = numeric_field()
     v_z1: NumericInput = numeric_field()
     vapor_pressure: NumericInput = numeric_field()
+    vertical_temperature_difference: NumericInput = numeric_field()
     vertical_tmp_grad: NumericInput = numeric_field()
     vr: NumericInput = numeric_field()
     w_max: NumericInput = numeric_field()
     wbgt: NumericInput = numeric_field()
     weight: NumericInput = numeric_field()
+    wind_height: NumericInput = numeric_field()
     with_solar_load: bool = field(default=False, metadata={"is_bool": True})
     work_intensity: str | Enum = field(
         default=None, metadata={"allowed": [i.value for i in WorkIntensity]}
     )
+    year: NumericInput = numeric_field()
     z0: NumericInput = numeric_field()
     z1: NumericInput = numeric_field()
     z2: NumericInput = numeric_field()
@@ -1007,6 +1019,176 @@ class WBGTInputs(BaseInputs):
             with_solar_load=with_solar_load,
             round_output=round_output,
         )
+
+
+@dataclass
+class WBGTLiljegrenInputs(BaseInputs):
+    """Validate inputs before passing weather records to the native Liljegren solver."""
+
+    _numeric_fields = (
+        "tdb",
+        "rh",
+        "v",
+        "sol_radiation_global",
+        "latitude",
+        "longitude",
+        "year",
+        "month",
+        "day",
+        "hour",
+        "minute",
+        "p_atm",
+        "gmt_offset_hours",
+        "averaging_minutes",
+        "wind_height",
+        "urban",
+        "vertical_temperature_difference",
+    )
+    _integer_fields = (
+        "year",
+        "month",
+        "day",
+        "hour",
+        "minute",
+        "gmt_offset_hours",
+        "averaging_minutes",
+        "urban",
+    )
+
+    def __init__(
+        self,
+        tdb,
+        rh,
+        v,
+        sol_radiation_global,
+        *,
+        latitude,
+        longitude,
+        year,
+        month,
+        day,
+        hour,
+        minute=0,
+        p_atm=101325,
+        gmt_offset_hours=0,
+        averaging_minutes=0,
+        wind_height=2,
+        urban=None,
+        vertical_temperature_difference=None,
+        round_output=True,
+    ):
+        super().__init__(
+            tdb=tdb,
+            rh=rh,
+            v=v,
+            sol_radiation_global=sol_radiation_global,
+            latitude=latitude,
+            longitude=longitude,
+            year=year,
+            month=month,
+            day=day,
+            hour=hour,
+            minute=minute,
+            p_atm=p_atm,
+            gmt_offset_hours=gmt_offset_hours,
+            averaging_minutes=averaging_minutes,
+            wind_height=wind_height,
+            urban=urban,
+            vertical_temperature_difference=vertical_temperature_difference,
+            round_output=round_output,
+        )
+
+    def __post_init__(self):
+        super().__post_init__()
+        arrays = {}
+        optional = ("urban", "vertical_temperature_difference")
+        for name in self._numeric_fields:
+            value = getattr(self, name)
+            if value is None and name in optional:
+                continue
+            array = np.asarray(value)
+            # BaseInputs validates containers; the FFI also needs real numeric elements.
+            if array.dtype.kind not in ("biuf" if name == "urban" else "iuf"):
+                msg = f"{name} must contain real numbers."
+                raise TypeError(msg)
+            if np.any(np.isinf(array)) or np.any(
+                np.abs(array) > np.finfo(np.float32).max
+            ):
+                msg = f"{name} must contain finite float32-representable values or NaN."
+                raise ValueError(msg)
+            array = array.astype(float)
+            if name in self._integer_fields and np.any(
+                np.isfinite(array) & (array != np.floor(array))
+            ):
+                msg = f"{name} must contain whole numbers or NaN."
+                raise ValueError(msg)
+            arrays[name] = array
+
+        convert_wind = np.any(
+            np.isfinite(arrays["wind_height"]) & (arrays["wind_height"] != 2)
+        )
+        if "urban" not in arrays:
+            if convert_wind:
+                raise ValueError("urban is required when wind_height differs from 2 m.")
+            arrays["urban"] = np.asarray(0.0)
+        if "vertical_temperature_difference" not in arrays:
+            arrays["vertical_temperature_difference"] = np.where(
+                arrays["wind_height"] == 2, 0.0, -0.052
+            )
+
+        bounds = {
+            "rh": (0, 100),
+            "v": (0, np.inf),
+            "sol_radiation_global": (0, np.inf),
+            "latitude": (-90, 90),
+            "longitude": (-180, 180),
+            "year": (1950, 2049),
+            "month": (1, 12),
+            "day": (1, 31),
+            "hour": (0, 23),
+            "minute": (0, 59),
+            "gmt_offset_hours": (-12, 14),
+            "averaging_minutes": (0, 1440),
+            "urban": (0, 1),
+        }
+        for name, (lower, upper) in bounds.items():
+            if np.any((arrays[name] < lower) | (arrays[name] > upper)):
+                msg = f"{name} must be between {lower} and {upper}."
+                raise ValueError(msg)
+        for name, lower in (("tdb", -273.15), ("p_atm", 0), ("wind_height", 0)):
+            if np.any(arrays[name] <= lower):
+                msg = f"{name} must be greater than {lower}."
+                raise ValueError(msg)
+
+        # Share normalized, broadcast arrays with the adapter; never mutate caller data.
+        self._arrays = dict(
+            zip(arrays, np.broadcast_arrays(*arrays.values()), strict=True)
+        )
+        year, month, day = (self._arrays[name] for name in ("year", "month", "day"))
+        dates = np.isfinite(year) & np.isfinite(month) & np.isfinite(day)
+        y, m, d = (array[dates].astype(int) for array in (year, month, day))
+        month_days = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])[m - 1]
+        leap_year = (y % 4 == 0) & ((y % 100 != 0) | (y % 400 == 0))
+        if np.any(d > month_days + ((m == 2) & leap_year)):
+            raise ValueError("year, month and day must form a valid calendar date.")
+
+        # The native solar routine accepts shifted calendar days only within [0, 33].
+        # Its error status is not propagated by calc_wbgt, so check before entering C.
+        midpoint = (
+            day
+            + (
+                self._arrays["hour"]
+                - self._arrays["gmt_offset_hours"]
+                + (self._arrays["minute"] - 0.5 * self._arrays["averaging_minutes"])
+                / 60
+            )
+            / 24
+        )
+        if np.any((midpoint < 0) | (midpoint > 33)):
+            raise ValueError(
+                "The UTC averaging midpoint falls outside the native calendar window; "
+                "supply the timestamp in UTC or shorten averaging_minutes."
+            )
 
 
 @dataclass

@@ -32,6 +32,7 @@ from .use_fans_heatwaves import use_fans_heatwaves
 from .utci import utci
 from .vertical_tmp_grad_ppd import vertical_tmp_grad_ppd
 from .wbgt import wbgt
+from .wbgt_liljegren import wbgt_liljegren
 from .wci import wci
 from .wind_chill_temperature import wind_chill_temperature
 from .work_capacity_dunne import work_capacity_dunne
@@ -75,6 +76,7 @@ __all__ = [
     "utci",
     "vertical_tmp_grad_ppd",
     "wbgt",
+    "wbgt_liljegren",
     "wci",
     "wind_chill_temperature",
     "work_capacity_dunne",
