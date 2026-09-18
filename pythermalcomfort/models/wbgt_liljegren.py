@@ -156,17 +156,35 @@ def wbgt_liljegren(
             year=2024,
             month=4,
             day=15,
-            hour=14,
             minute=30,
             gmt_offset_hours=8,
             averaging_minutes=60,
-            p_atm=100840,
+            wind_height=10,
+            urban=1,
         )
-        result = wbgt_liljegren(32.1, 68, 2.8, 742, **site)
-        print(result.wbgt)  # 32.1
+        result = wbgt_liljegren(
+            32.1,
+            68,
+            2.8,
+            742,
+            hour=14,
+            p_atm=100840,
+            vertical_temperature_difference=-0.4,
+            **site,
+        )
+        print(result.wbgt)  # 32.5
 
-        result = wbgt_liljegren([32.1, 30], [68, 50], 2.8, 742, **site)
-        print(result.wbgt)  # [32.1 28.1]
+        result = wbgt_liljegren(
+            [32.1, 27],
+            [68, 88],
+            [2.8, 1.1],
+            [742, 0],
+            hour=[14, 2],
+            p_atm=[100840, 100970],
+            vertical_temperature_difference=[-0.4, 0.2],
+            **site,
+        )
+        print(result.wbgt)  # [32.5 25.7]
     """
     optional = {
         "minute": (minute, 0, "min"),

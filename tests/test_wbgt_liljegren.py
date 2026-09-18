@@ -124,6 +124,46 @@ def test_reference_list_day_and_night(backend):
     assert is_equal(result.status, [0, 0], 0)
 
 
+def test_documented_examples(backend):
+    site = {
+        name: SINGAPORE[name]
+        for name in (
+            "latitude",
+            "longitude",
+            "year",
+            "month",
+            "day",
+            "minute",
+            "gmt_offset_hours",
+            "averaging_minutes",
+            "wind_height",
+            "urban",
+        )
+    }
+    scalar = wbgt_liljegren(
+        32.1,
+        68,
+        2.8,
+        742,
+        hour=14,
+        p_atm=100840,
+        vertical_temperature_difference=-0.4,
+        **site,
+    )
+    array = wbgt_liljegren(
+        [32.1, 27],
+        [68, 88],
+        [2.8, 1.1],
+        [742, 0],
+        hour=[14, 2],
+        p_atm=[100840, 100970],
+        vertical_temperature_difference=[-0.4, 0.2],
+        **site,
+    )
+    assert is_equal(scalar.wbgt, 32.5, 0)
+    assert is_equal(array.wbgt, [32.5, 25.7], 0)
+
+
 @pytest.mark.filterwarnings("error")
 def test_native_failure_preserves_valid_partial_results(backend, caplog):
     with caplog.at_level(logging.INFO, logger="pythermalcomfort.models.wbgt_liljegren"):
