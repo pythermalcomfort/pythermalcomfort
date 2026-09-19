@@ -552,6 +552,8 @@ class AdaptivePlot(BasePlot):
                     upper = upper_base + adaptive_cooling_effect(self._v, upper_base)
 
                 fill = ax.fill_between(x, lower, upper, color=band.color, **fill_opts)
+                if "label" not in fill_opts:
+                    fill.set_label(band.label)
                 fills.append(fill)
 
             center_line_artist: Line2D | None = None
@@ -559,6 +561,7 @@ class AdaptivePlot(BasePlot):
                 cl_opts = dict(_PlotDefaults.Adaptive.center_line_defaults)
                 if center_line_kws:
                     cl_opts.update(center_line_kws)
+                cl_opts.setdefault("label", _PlotDefaults.Adaptive.center_line_label)
                 t_lo, t_hi = self._t_rm_range
                 x = [t_lo, t_hi]
                 y = [slope * t_lo + intercept, slope * t_hi + intercept]
