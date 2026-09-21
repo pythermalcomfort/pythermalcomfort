@@ -86,6 +86,56 @@ Development extras (used by maintainers and contributors):
 
 If you installed via ``pip install -e .[dev]`` these will be installed for you.
 
+Liljegren WBGT estimation requires the optional ``lwbgt`` extra:
+
+.. code-block:: bash
+
+    pip install 'pythermalcomfort[lwbgt]'
+
+This installs ``lwbgt>=0.3.0,<0.4`` for
+:func:`~pythermalcomfort.models.wbgt_liljegren.wbgt_liljegren`. The existing
+:func:`~pythermalcomfort.models.wbgt.wbgt` function does not require this extra.
+The backend supports Python 3.10 and later. Version 0.3.0 provides wheels for
+Linux glibc x86-64/AArch64, macOS x86-64/ARM64, and Windows x86-64. Other platforms
+may require a native source build; consult the
+`backend installation instructions <https://github.com/zyf0717/lwbgt/tree/v0.3.0>`_.
+
+The backend is distributed separately with its own
+`licensing terms <https://github.com/zyf0717/lwbgt/blob/v0.3.0/LICENSING.md>`_
+and `Argonne/Department of Energy acknowledgement
+<https://github.com/zyf0717/lwbgt/blob/v0.3.0/NOTICE>`_. Redistributions containing
+that backend must retain its applicable licences and notices.
+
+To run the native integration tests from a checkout:
+
+.. code-block:: bash
+
+    pip install -e '.[dev,lwbgt]'
+    pytest tests/test_wbgt_liljegren.py
+
+The model requires measured weather inputs, coordinates and the observation date
+and hour. Optional inputs default to 101325 Pa (1013.25 hPa) pressure, 2 m wind
+measurement height, UTC, minute 0 and an instantaneous averaging interval.
+The pressure default is a near-sea-level approximation; supply local station
+pressure at elevated sites, not a weather report's sea-level-corrected pressure.
+Each call with evaluated records logs omitted input defaults at INFO level,
+including minute and averaging interval. Explicit values are not reported as
+defaults. At 2 m, ``urban`` and ``vertical_temperature_difference`` are unused
+and unlogged. Other wind heights require explicit ``urban`` and default
+``vertical_temperature_difference`` to -0.052°C when omitted. This is a total
+temperature difference, not a gradient per metre. Wind-height adjustment
+generates an INFO message, including the temperature difference when defaulted; the
+backend uses that difference for nighttime stability. All notices are combined
+into one message per call. Enable INFO messages in your application with
+``logging.basicConfig(level=logging.INFO)``.
+
+Calculation failures are returned without Python warnings or failure logs.
+Check ``result.status``: 0 means success, native nonzero failure codes are
+preserved (normally -1), and -2 means the backend returned an invalid component
+despite reporting success, or an invalid status. Failed outputs become NaN;
+valid partial results remain available. Records skipped due to missing inputs
+have NaN status and outputs.
+
 Some docstring examples and notebooks also use ``pandas`` and
 ``matplotlib``. These are not required to use the package and are not
 installed by ``pip install pythermalcomfort``; install them only if you
@@ -131,7 +181,7 @@ Further resources
 =================
 
 * Full documentation and examples: `Full documentation <https://pythermalcomfort.readthedocs.io/en/latest>`_
-* Contribution guidelines: see `Contributing Instructions <https://pythermalcomfort.readthedocs.io/en/latest/contributing.html>`_ in the project root
+* Contribution guidelines: see `Contributing Instructions <https://pythermalcomfort.readthedocs.io/en/latest/contributing/index.html>`_
 
 .. _using-from-r:
 

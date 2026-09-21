@@ -123,7 +123,7 @@ Contributions
 =============
 
 We welcome all contributions. Please read the
-`contributing guide <https://pythermalcomfort.readthedocs.io/en/latest/contributing.html>`_
+`contributing guide <https://pythermalcomfort.readthedocs.io/en/latest/contributing/index.html>`_
 before you start.
 
 Quick checklist
@@ -236,7 +236,7 @@ Getting Help
   `issue tracker <https://github.com/pythermalcomfort/pythermalcomfort/issues>`_.
 * Ask questions in PR comments for implementation guidance.
 * Review the
-  `contribution guidelines <https://pythermalcomfort.readthedocs.io/en/latest/contributing.html>`_
+  `contribution guidelines <https://pythermalcomfort.readthedocs.io/en/latest/contributing/index.html>`_
   for testing, documentation, and changelog expectations.
 * Consult the API reference and examples at
   https://pythermalcomfort.readthedocs.io/en/latest/

@@ -733,6 +733,38 @@ class WBGT(AutoStrMixin):
 
 
 @dataclass(frozen=True, repr=False)
+class WBGTLiljegren(AutoStrMixin):
+    """Dataclass containing the Liljegren outdoor WBGT estimate.
+
+    Attributes
+    ----------
+    wbgt : float or numpy.ndarray
+        Outdoor wet bulb globe temperature, [°C].
+    tg : float or numpy.ndarray
+        Estimated temperature of the model's 50.8 mm globe, [°C].
+    twb : float or numpy.ndarray
+        Estimated natural wet bulb temperature, [°C].
+    tpsy : float or numpy.ndarray
+        Estimated psychrometric wet bulb temperature, [°C].
+    v_2m : float or numpy.ndarray
+        Supplied or estimated wind speed at 2 m, [m/s], without output rounding.
+    status : float or numpy.ndarray
+        Per-record status: 0 for success; native nonzero failure codes (normally
+        -1) are retained; -2 indicates an invalid component despite native
+        success, or an invalid native status. NaN marks records skipped because
+        an input was NaN. Failed components are NaN; valid partial results are
+        retained. Status is stored as float to accommodate NaN.
+    """
+
+    wbgt: NumericInput
+    tg: NumericInput
+    twb: NumericInput
+    tpsy: NumericInput
+    v_2m: NumericInput
+    status: NumericInput
+
+
+@dataclass(frozen=True, repr=False)
 class WCI(AutoStrMixin):
     """Dataclass to represent the Wind Chill Index (WCI).
 

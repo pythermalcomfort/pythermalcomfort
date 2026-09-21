@@ -15,6 +15,8 @@ References
 .. [Blazejczyk2013] Błażejczyk, K., Jendritzky, G., Bröde, P., Fiala, D., Havenith, G., Epstein, Y., Psikuta, A. and Kampmann, B., 2013. An introduction to the universal thermal climate index (UTCI). Geographia Polonica, 86(1), pp.5-10.
 .. [Gagge1986] Gagge, A.P., Fobelets, A.P., and Berglund, L.G., 1986. A standard predictive Index of human reponse to thermal enviroment. Am. Soc. Heating, Refrig. Air-Conditioning Eng. 709–731.
 .. [7243ISO2017] ISO, 2017. ISO 7243 - Ergonomics of the thermal environment — Assessment of heat stress using the WBGT (wet bulb globe temperature) index.
+.. [Liljegren2008] Liljegren, J.C., Carhart, R.A., Lawday, P., Tschopp, S. and Sharp, R., 2008. Modeling the Wet Bulb Globe Temperature Using Standard Meteorological Measurements. Journal of Occupational and Environmental Hygiene, 5(10), 645–655. DOI: doi.org/10.1080/15459620802310770
+.. [Zheng2026LWBGT] Zheng, Y., 2026. lwbgt, version 0.3.0. Reference-compatible Liljegren outdoor WBGT kernel. https://github.com/zyf0717/lwbgt/tree/v0.3.0
 .. [Rothfusz1990] Rothfusz LP (1990) The heat index equation. NWS Southern Region Technical Attachment, SR/SSD 90–23, Fort Worth, Texas
 .. [Steadman1979] Steadman RG (1979) The assessment of sultriness. Part I: A temperature-humidity index based on human physiology and clothing science. J Appl Meteorol 18:861–873
 .. [Masterson1979] Masterton JM, Richardson FA. Humidex, a method of quantifying human discomfort due to excessive heat and humidity. Downsview, Ontario: CLI 1-79, Environment Canada, Atmospheric Environment Service, 1979
