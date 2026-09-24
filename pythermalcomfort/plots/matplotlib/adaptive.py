@@ -35,6 +35,8 @@ from pythermalcomfort.plots.matplotlib._shared import (
     _PlotDefaults,
 )
 
+_DEFAULT_XLABEL: Any = object()
+
 # ── band specification ─────────────────────────────────────────────────────
 
 
@@ -51,6 +53,7 @@ class _BandSpec:
 
 _STANDARD_CONFIGS: dict[str, dict[str, Any]] = {
     "ashrae": {
+        "xlabel": "Prevailing Mean Outdoor Air Temperature [°C]",
         "slope": _ASHRAE_SLOPE,
         "intercept": _ASHRAE_INTERCEPT,
         "t_rm_range": (10.0, 33.5),
@@ -60,6 +63,7 @@ _STANDARD_CONFIGS: dict[str, dict[str, Any]] = {
         ],
     },
     "en": {
+        "xlabel": "Running Mean Outdoor Temperature [°C]",
         "slope": _EN_SLOPE,
         "intercept": _EN_INTERCEPT,
         "t_rm_range": (10.0, 33.5),
@@ -468,7 +472,7 @@ class AdaptivePlot(BasePlot):
         *,
         ax: Axes | None = None,
         title: str | None = None,
-        xlabel: str | None = "Prevailing Mean Outdoor Temperature [°C]",
+        xlabel: str | None = _DEFAULT_XLABEL,
         ylabel: str | None = "Operative Temperature [°C]",
         legend: bool = True,
         grid: bool = True,
@@ -486,8 +490,9 @@ class AdaptivePlot(BasePlot):
             default size of ``(7, 4)`` inches.
         title : str, optional
             Optional chart title.
-        xlabel : str or None
-            X-axis label.  ``None`` to omit.
+        xlabel : str or None, optional
+            X-axis label. If omitted, terminology appropriate to the selected
+            standard is used. ``None`` omits the label.
         ylabel : str or None
             Y-axis label.  ``None`` to omit.
         legend : bool
@@ -627,6 +632,8 @@ class AdaptivePlot(BasePlot):
             if grid:
                 ax.grid(True)
 
+            if xlabel is _DEFAULT_XLABEL:
+                xlabel = self._cfg["xlabel"]
             if xlabel is not None:
                 ax.set_xlabel(xlabel)
             if ylabel is not None:

@@ -388,6 +388,11 @@ def test_ashrae_plot_legend_kws() -> None:
     assert result.legend is not None
 
 
+def test_ashrae_plot_default_xlabel() -> None:
+    result = AdaptivePlot(adaptive_ashrae).plot()
+    assert result.ax.get_xlabel() == "Prevailing Mean Outdoor Air Temperature [°C]"
+
+
 def test_ashrae_plot_xlabel_ylabel() -> None:
     result = AdaptivePlot(adaptive_ashrae).plot(xlabel="X", ylabel="Y")
     assert result.ax.get_xlabel() == "X"
@@ -442,6 +447,16 @@ def test_en_plot_default_legend_labels() -> None:
     assert "Category I" in labels
     assert "Category II" in labels
     assert "Category III" in labels
+
+
+def test_en_plot_default_xlabel() -> None:
+    result = AdaptivePlot(adaptive_en).plot()
+    assert result.ax.get_xlabel() == "Running Mean Outdoor Temperature [°C]"
+
+
+def test_en_plot_custom_xlabel() -> None:
+    result = AdaptivePlot(adaptive_en).plot(xlabel="Custom label")
+    assert result.ax.get_xlabel() == "Custom label"
 
 
 def test_en_plot_show_cat_i_only() -> None:
