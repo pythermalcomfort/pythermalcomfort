@@ -24,7 +24,7 @@ def test_pmv_ppd(get_test_url, retrieve_data) -> None:
         # TODO change the validation table code and removed the following
         if "standard" not in inputs:
             inputs["standard"] = "iso"
-        if inputs["standard"] == "iso":
+        if inputs["standard"].lower() == "iso":
             inputs["model"] = Models.iso_7730_2005.value
             del inputs["standard"]
             result = pmv_ppd_iso(**inputs)

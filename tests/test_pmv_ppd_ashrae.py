@@ -22,7 +22,7 @@ def test_pmv_ppd(get_test_url, retrieve_data) -> None:
         # TODO change the validation table code and removed the following
         if "standard" not in inputs:
             inputs["standard"] = "iso"
-        if inputs["standard"] == "ashrae":
+        if inputs["standard"].lower() == "ashrae":
             inputs["model"] = Models.ashrae_55_2023.value
             del inputs["standard"]
             result = pmv_ppd_ashrae(**inputs)
