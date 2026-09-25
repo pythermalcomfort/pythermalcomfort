@@ -189,6 +189,30 @@ def test_rh_curves_and_saturation_mask_render_in_g_per_kg() -> None:
     plt.close(result.fig)
 
 
+def test_rh_curves_and_labels_use_25_percent_intervals() -> None:
+    """RH curves and labels are limited to 25, 50, 75, and 100 percent."""
+    plot = _new_plot()
+    plot.set_x_axis("tdb", 10.0, 40.0, resolution=1.0)
+    plot.set_y_axis("hr", 0.0, 30.0, resolution=2.0)
+
+    result = plot.plot()
+
+    dotted_lines = [
+        line for line in result.ax.lines if line.get_linestyle() in (":", "dotted")
+    ]
+    rh_labels = {
+        text.get_text() for text in result.ax.texts if text.get_text().endswith("%")
+    }
+
+    assert len(dotted_lines) == 4
+    assert rh_labels == {"25%", "50%", "75%", "100%"}
+    assert all(
+        text.get_fontsize() == plt.rcParams["font.size"] for text in result.ax.texts
+    )
+
+    plt.close(result.fig)
+
+
 def test_rh_labels_are_placed_on_the_visible_part_of_each_curve() -> None:
     """An elevated y window must not size the label gap off hidden samples.
 
