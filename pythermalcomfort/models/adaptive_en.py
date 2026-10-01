@@ -51,6 +51,7 @@ def adaptive_en(
         Select the SI (International System of Units) or the IP (Imperial Units) system.
     limit_inputs : bool, default True
         If True, returns NaN for inputs outside the standard applicability limits.
+        The applicability limits are 10 <= t_running_mean [°C] <= 30.
 
     round_output : bool, default True
         If True, rounds the returned comfort temperature and category bounds to one decimal
@@ -119,7 +120,7 @@ def adaptive_en(
     t_cmf = SLOPE * t_running_mean + INTERCEPT
 
     if limit_inputs:
-        trm_valid = _valid_range(t_running_mean, (10.0, 33.5))
+        trm_valid = _valid_range(t_running_mean, (10.0, 30.0))
         all_valid = ~(np.isnan(trm_valid))
         t_cmf = np.where(all_valid, t_cmf, np.nan)
 

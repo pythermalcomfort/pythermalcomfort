@@ -54,6 +54,11 @@ def test_constructor_sets_default_x_range() -> None:
     assert plot._t_rm_range == (10.0, 33.5)
 
 
+def test_constructor_sets_default_x_range_en() -> None:
+    plot = AdaptivePlot(adaptive_en)
+    assert plot._t_rm_range == (10.0, 30.0)
+
+
 def test_constructor_sets_no_y_range_by_default() -> None:
     plot = AdaptivePlot(adaptive_ashrae)
     assert plot._y_range is None

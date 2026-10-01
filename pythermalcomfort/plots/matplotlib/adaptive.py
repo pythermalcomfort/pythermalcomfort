@@ -74,7 +74,7 @@ _STANDARD_CONFIGS: dict[str, dict[str, Any]] = {
         "xlabel": "Running Mean Outdoor Temperature [°C]",
         "slope": _EN_SLOPE,
         "intercept": _EN_INTERCEPT,
-        "t_rm_range": (10.0, 33.5),
+        "t_rm_range": (10.0, 30.0),
         "bands": [
             _BandSpec("cat_iii", -5.0, 4.0, "Category III", "#C5E0B4"),
             _BandSpec("cat_ii", -4.0, 3.0, "Category II", "#A9D18E"),

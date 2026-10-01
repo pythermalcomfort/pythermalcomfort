@@ -31,6 +31,10 @@ Unreleased
   The ``brentq`` threshold solvers now call the PHS scalar kernel directly instead of
   the public ``phs()``, skipping its input validation and the ``numba`` parallel array
   dispatch on every solver iteration. Results are unchanged.
+* Fixed the applicability limit of ``adaptive_en``: with ``limit_inputs=True`` it
+  now returns NaN for running mean outdoor temperatures above 30 °C (EN 16798-1),
+  as its docstring already stated, instead of the ASHRAE 55 limit of 33.5 °C. The
+  default x-axis range of ``AdaptivePlot`` for ``adaptive_en`` is now 10-30 °C.
 
 4.6.1 (2026-10-06)
 ------------------
