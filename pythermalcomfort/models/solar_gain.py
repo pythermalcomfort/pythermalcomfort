@@ -296,11 +296,15 @@ def _solar_gain_scalar(
     else:
         fp_table = _FP_TABLE_STANDING
 
+    # for a supine person the fp table is read with body-relative angles; the
+    # floor-reflected term below keeps the true solar altitude
+    fp_sharp = sharp
+    fp_altitude = sol_altitude
     if posture_code == _POSTURE_SUPINE:
-        sharp, sol_altitude = transpose_sharp_altitude(sharp, sol_altitude)
+        fp_sharp, fp_altitude = transpose_sharp_altitude(sharp, sol_altitude)
 
-    alt_i = _find_span(_ALT_RANGE, sol_altitude)
-    az_i = _find_span(_AZ_RANGE, sharp)
+    alt_i = _find_span(_ALT_RANGE, fp_altitude)
+    az_i = _find_span(_AZ_RANGE, fp_sharp)
     if alt_i == -1 or az_i == -1:
         # sol_altitude/sharp out of the table's domain (0-90/0-180), or NaN
         # (e.g. from _valid_range clipping upstream): -1 would otherwise wrap
@@ -315,10 +319,10 @@ def _solar_gain_scalar(
     az2 = _AZ_RANGE[az_i + 1]
     alt1 = _ALT_RANGE[alt_i]
     alt2 = _ALT_RANGE[alt_i + 1]
-    fp = fp11 * (az2 - sharp) * (alt2 - sol_altitude)
-    fp += fp21 * (sharp - az1) * (alt2 - sol_altitude)
-    fp += fp12 * (az2 - sharp) * (sol_altitude - alt1)
-    fp += fp22 * (sharp - az1) * (sol_altitude - alt1)
+    fp = fp11 * (az2 - fp_sharp) * (alt2 - fp_altitude)
+    fp += fp21 * (fp_sharp - az1) * (alt2 - fp_altitude)
+    fp += fp12 * (az2 - fp_sharp) * (fp_altitude - alt1)
+    fp += fp22 * (fp_sharp - az1) * (fp_altitude - alt1)
     fp /= (az2 - az1) * (alt2 - alt1)
 
     f_eff = 0.725  # fraction of the body surface exposed to environmental radiation
