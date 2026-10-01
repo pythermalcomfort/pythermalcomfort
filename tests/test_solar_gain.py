@@ -29,12 +29,13 @@ def test_solar_gain_regression_values() -> None:
     kernel was rewritten for numba (posture strings -> integer codes, table
     lists -> np.array, plain-Python loop -> njit/prange). Confirmed to match
     bit-for-bit across a wide random sweep (all 3 postures) plus exact grid
-    boundary points.
+    boundary points. The supine value was updated when the floor-reflected
+    term was changed to use the true solar altitude.
     """
     cases = [
         (0, 120, 800, 0.5, 0.5, 0.5, "sitting", 43.2839, 10.3649),
         (30, 60, 600, 0.6, 0.4, 0.6, "standing", 52.8099, 12.1402),
-        (45, 90, 500, 0.7, 0.3, 0.7, "supine", 49.548, 11.3904),
+        (45, 90, 500, 0.7, 0.3, 0.7, "supine", 61.447, 14.1257),
         (90, 0, 1000, 1.0, 1.0, 1.0, "sitting", 326.6804, 78.2281),
         (15, 165, 250, 0.2, 0.1, 0.9, "standing", 8.9043, 2.047),
     ]
@@ -51,6 +52,36 @@ def test_solar_gain_regression_values() -> None:
         )
         assert np.isclose(result.erf, exp_erf, atol=1e-3)
         assert np.isclose(result.delta_mrt, exp_d_mrt, atol=1e-3)
+
+
+def test_solar_gain_supine_reflected_uses_solar_altitude() -> None:
+    """Supine: the transposed angles are used only for the fp lookup.
+
+    The floor-reflected term depends on the irradiance on the horizontal floor,
+    I_dir * sin(sol_altitude) + I_diff, so it must use the true solar altitude
+    and not the body-relative altitude used to read the fp table. Reference
+    values are the supine cases of the CBE Thermal Comfort Tool ERF tests.
+    """
+    cases = [
+        # sol_altitude, sharp, sol_radiation_dir, sol_transmittance, f_svv, f_bes,
+        # expected erf, expected delta_mrt
+        (45, 0, 700, 0.8, 0.2, 0.5, 60.9, 14.0),
+        (45, 45, 700, 0.8, 0.2, 0.5, 65.8, 15.1),
+        (45, 45, 800, 0.5, 0.5, 0.5, 70.9, 16.3),
+    ]
+    for alt, sharp, rad, trans, svv, bes, exp_erf, exp_d_mrt in cases:
+        result = solar_gain(
+            sol_altitude=alt,
+            sharp=sharp,
+            sol_radiation_dir=rad,
+            sol_transmittance=trans,
+            f_svv=svv,
+            f_bes=bes,
+            asw=0.7,
+            posture="supine",
+        )
+        assert result.erf == pytest.approx(exp_erf)
+        assert result.delta_mrt == pytest.approx(exp_d_mrt)
 
 
 def test_solar_gain_out_of_range_returns_nan() -> None:

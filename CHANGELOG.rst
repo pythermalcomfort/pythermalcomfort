@@ -4,6 +4,10 @@ Changelog
 Unreleased
 ----------
 
+* Fixed ``solar_gain`` for ``posture="supine"``: the floor-reflected term used the
+  transposed (body-relative) altitude instead of the solar altitude. The transposed
+  angles are now used only for the projected area factor lookup, which matches the
+  CBE Thermal Comfort Tool. Supine ``erf`` and ``delta_mrt`` values change.
 * Fixed ``AdaptivePlot`` losing or mislabeling legend entries for comfort bands and
   the center line when the legend is rebuilt after adding measured data (#415).
 
