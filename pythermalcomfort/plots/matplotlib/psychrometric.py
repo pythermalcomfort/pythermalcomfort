@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 import numpy as np
@@ -136,6 +136,41 @@ class PsychrometricPlot(ThresholdPlot):
             .plot(title="PMV — Psychrometric Chart")
         )
     """
+
+    def set_regions(
+        self,
+        *,
+        output: str,
+        thresholds: Sequence[float],
+        labels: Sequence[str] | None = None,
+        colors: Sequence[str] | None = None,
+    ) -> PsychrometricPlot:
+        """Configure output regions, using green for the default PMV comfort area.
+
+        Custom labels and colors are passed through unchanged. For the default
+        PMV comfort thresholds, the neutral region uses the dark green familiar
+        from the CBE comfort tool and its displayed label includes both boundary
+        values.
+        """
+        super().set_regions(
+            output=output,
+            thresholds=thresholds,
+            labels=labels,
+            colors=colors,
+        )
+        config = self._region_config
+        is_default_pmv = config.output_name.lower() == "pmv" and config.thresholds == [
+            -0.5,
+            0.5,
+        ]
+        if is_default_pmv:
+            # This is the conventional display notation requested for the
+            # comfort band; the underlying threshold solver is unchanged.
+            if labels is None:
+                config.labels = ["PMV < -0.5", "-0.5 ≤ PMV ≤ 0.5", "PMV > 0.5"]
+            if colors is None:
+                config.colors[1] = _PlotDefaults.Psychrometric.comfort_color
+        return self
 
     def set_x_axis(
         self,
@@ -352,7 +387,7 @@ class PsychrometricPlot(ThresholdPlot):
         line_kws: Mapping[str, Any] | None = None,
         fill_kws: Mapping[str, Any] | None = None,
         legend_kws: Mapping[str, Any] | None = None,
-        invalid_color: str = _PlotDefaults.color_out_of_model,
+        invalid_color: str = _PlotDefaults.Psychrometric.color_out_of_model,
     ) -> ThresholdPlotResult:
         """Render the psychrometric chart with threshold regions and RH curves.
 
@@ -492,6 +527,13 @@ class PsychrometricPlot(ThresholdPlot):
         # units.  Give the chart a correct default instead; callers who want
         # something else can still override it via result.ax.set_ylabel().
         ax.set_ylabel(_HR_AXIS_LABEL)
+        # Psychrometric charts conventionally place the humidity-ratio axis
+        # on the right. The shared axes style hides that spine by default, so
+        # restore it here without changing the appearance of other plot types.
+        ax.yaxis.tick_right()
+        ax.yaxis.set_label_position("right")
+        ax.spines["left"].set_visible(False)
+        ax.spines["right"].set_visible(True)
 
         # ThresholdPlot.plot() already clamped these back from whatever the
         # region fills autoscaled to, which is why the RH labels above compute
