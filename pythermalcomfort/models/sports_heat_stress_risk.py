@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import warnings
 from dataclasses import dataclass
 
@@ -9,7 +10,67 @@ from scipy.optimize import brentq
 from pythermalcomfort._internal.validation import validate_type
 from pythermalcomfort.classes_input import NumericInput, SportsHeatStressInputs
 from pythermalcomfort.classes_return import SportsHeatStressRisk
-from pythermalcomfort.models import phs
+from pythermalcomfort.models.phs import _MODEL_2023, _phs_optimized_scalar
+from pythermalcomfort.utilities import met_to_w_m2
+
+# Fixed PHS inputs used by the threshold solvers. These mirror the values that
+# ``phs()`` would use when called with ``posture="standing"``, ``acclimatized=100``,
+# ``i_mst=0.4`` and the default ISO 7933:2023 model, so the private scalar kernel can be
+# called directly without the validation and parallel array dispatch overhead of
+# ``phs()``. ``test_phs_scalar_matches_public_phs`` guards against drift.
+_PHS_POSTURE_CODE = 0  # standing, see phs._posture_to_code
+_PHS_FIXED_INPUTS = {
+    "drink": 1,
+    "acclimatized": 100,
+    "weight": 75,
+    "i_mst": 0.4,
+    "a_p": 0.54,
+    "height": 1.8,
+    "walk_sp": 0,
+    "theta": 0,
+    "f_r": 0.42,
+    "t_sk": 34.1,
+    "t_cr": 36.8,
+    "t_re": 36.8,
+    "t_cr_eq": 36.8,
+    "t_sk_t_cr_wg": 0.3,
+    "evap_load_wm2_min": 0.0,
+    "sweat_rate_watt": 0.0,
+    "model_code": _MODEL_2023,
+}
+_PHS_IDX_T_CR = 2
+_PHS_IDX_SWEAT_LOSS_G = 7
+
+
+def _phs_scalar(
+    tdb: float, tr: float, vr: float, rh: float, sport: _SportsValues
+) -> tuple:
+    """Run the PHS scalar kernel for a single condition.
+
+    Equivalent to ``phs(..., posture="standing", acclimatized=100, i_mst=0.4,
+    limit_inputs=False, round_output=False)`` but skips input validation and the
+    parallel array wrapper, which dominate the runtime for a single condition. Used
+    by the ``brentq`` objectives in ``_calc_risk_single_value``, which call PHS many
+    times per condition.
+
+    Returns
+    -------
+    tuple
+        The raw tuple returned by ``_phs_optimized_scalar``.
+    """
+    p_a = 0.6105 * math.exp(17.27 * tdb / (tdb + 237.3)) * rh / 100
+    return _phs_optimized_scalar(
+        tdb=tdb,
+        tr=tr,
+        v=vr,
+        p_a=p_a,
+        met=sport.met * met_to_w_m2,
+        clo=sport.clo,
+        posture_code=_PHS_POSTURE_CODE,
+        wme=0.0,
+        duration=sport.duration,
+        **_PHS_FIXED_INPUTS,
+    )
 
 
 @dataclass
@@ -265,24 +326,8 @@ def _calc_risk_single_value(
         )
 
     def calculate_threshold_water_loss(x):
-        sl = phs(
-            tdb=x,
-            tr=tr,
-            v=vr,
-            rh=rh,
-            met=sport.met,
-            clo=sport.clo,
-            posture="standing",
-            duration=sport.duration,
-            round_output=False,
-            limit_inputs=False,
-            acclimatized=100,
-            i_mst=0.4,
-        ).sweat_loss_g
-
-        # Ensure a scalar float is returned for the root solver
-        sl_scalar = float(np.asarray(sl))
-        return float(sl_scalar / float(sport.duration) * 45.0 - float(sweat_loss_g))
+        sl = _phs_scalar(x, tr, vr, rh, sport)[_PHS_IDX_SWEAT_LOSS_G]
+        return float(sl / float(sport.duration) * 45.0 - float(sweat_loss_g))
 
     for min_t, max_t in [(0, 36), (20, 50)]:
         try:
@@ -299,22 +344,8 @@ def _calc_risk_single_value(
         t_medium = max_t_low
 
     def calculate_threshold_core(x):
-        tcr = phs(
-            tdb=x,
-            tr=tr,
-            v=vr,
-            rh=rh,
-            met=sport.met,
-            clo=sport.clo,
-            posture="standing",
-            duration=sport.duration,
-            round_output=False,
-            limit_inputs=False,
-            acclimatized=100,
-            i_mst=0.4,
-        ).t_cr
-
-        return float(float(np.asarray(tcr)) - float(t_cr_extreme))
+        tcr = _phs_scalar(x, tr, vr, rh, sport)[_PHS_IDX_T_CR]
+        return float(tcr - float(t_cr_extreme))
 
     for min_t, max_t in [(0, 36), (20, 50)]:
         try:
