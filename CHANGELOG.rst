@@ -4,6 +4,11 @@ Changelog
 Unreleased
 ----------
 
+* Sped up ``sports_heat_stress_risk`` by roughly 3-9x (depending on the sport's
+  duration) (`#396 <https://github.com/pythermalcomfort/pythermalcomfort/issues/396>`_).
+  The ``brentq`` threshold solvers now call the PHS scalar kernel directly instead of
+  the public ``phs()``, skipping its input validation and the ``numba`` parallel array
+  dispatch on every solver iteration. Results are unchanged.
 * Fixed ``vertical_tmp_grad_ppd`` returning negative ``ppd_vg`` values for small
   gradients or warm thermal sensation; the result is now set to 0 when the
   logistic model is below the 34.5 % baseline (Liu et al. 2020, eq. 3).

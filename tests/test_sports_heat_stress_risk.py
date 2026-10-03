@@ -1,9 +1,17 @@
+import warnings
+
 import numpy as np
 import pytest
+from scipy.optimize import brentq
 
 from pythermalcomfort.classes_return import SportsHeatStressRisk
+from pythermalcomfort.models import phs
 from pythermalcomfort.models.sports_heat_stress_risk import (
+    _PHS_IDX_SWEAT_LOSS_G,
+    _PHS_IDX_T_CR,
     Sports,
+    _calc_risk_single_value,
+    _phs_scalar,
     sports_heat_stress_risk,
 )
 
@@ -828,3 +836,86 @@ def test_sports_heat_stress_risk_stress_gradient():
         assert risks[i] >= risks[i - 1], (
             f"Risk decreased from {risks[i - 1]} to {risks[i]} when temperature increased from {temps[i - 1]} to {temps[i]}"
         )
+
+
+def _public_phs(tdb, tr, vr, rh, sport):
+    """Call public phs() exactly as the solvers did before the scalar shortcut."""
+    return phs(
+        tdb=tdb,
+        tr=tr,
+        v=vr,
+        rh=rh,
+        met=sport.met,
+        clo=sport.clo,
+        posture="standing",
+        duration=sport.duration,
+        round_output=False,
+        limit_inputs=False,
+        acclimatized=100,
+        i_mst=0.4,
+    )
+
+
+_REGRESSION_SPORTS = [
+    Sports.RUNNING,
+    Sports.MTB,
+    Sports.SOCCER,
+    Sports.GOLF,
+    Sports.SAILING,
+    Sports.FISHING,
+]
+_REGRESSION_CONDITIONS = [
+    # (tdb, tr, rh, vr)
+    (24, 24, 20, 0.5),
+    (28, 35, 60, 1.0),
+    (32, 50, 40, 2.0),
+    (36, 36, 80, 0.3),
+    (40, 60, 15, 3.0),
+    (45, 45, 50, 1.5),
+]
+
+
+@pytest.mark.parametrize("sport", _REGRESSION_SPORTS)
+@pytest.mark.parametrize(("tdb", "tr", "rh", "vr"), _REGRESSION_CONDITIONS)
+def test_phs_scalar_matches_public_phs(tdb, tr, rh, vr, sport):
+    """The scalar kernel shortcut must reproduce the public phs() outputs."""
+    expected = _public_phs(tdb, tr, vr, rh, sport)
+    result = _phs_scalar(tdb, tr, vr, rh, sport)
+
+    np.testing.assert_allclose(
+        result[_PHS_IDX_SWEAT_LOSS_G], expected.sweat_loss_g, rtol=1e-9
+    )
+    np.testing.assert_allclose(result[_PHS_IDX_T_CR], expected.t_cr, rtol=1e-9)
+
+
+@pytest.mark.parametrize("sport", _REGRESSION_SPORTS)
+@pytest.mark.parametrize(("tdb", "tr", "rh", "vr"), _REGRESSION_CONDITIONS)
+def test_risk_thresholds_match_public_phs_solver(tdb, tr, rh, vr, sport):
+    """Thresholds found with the scalar kernel match those found via phs()."""
+
+    def water_loss(x):
+        sl = float(_public_phs(x, tr, vr, rh, sport).sweat_loss_g)
+        return sl / sport.duration * 45.0 - 850
+
+    def core(x):
+        return float(_public_phs(x, tr, vr, rh, sport).t_cr) - 40
+
+    def solve(func, fallback):
+        for lo, hi in [(0, 36), (20, 50)]:
+            try:
+                return brentq(func, lo, hi)
+            except ValueError:
+                continue
+        return fallback
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        _, t_medium, _, t_extreme, _ = _calc_risk_single_value(
+            tdb=tdb, tr=tr, rh=rh, vr=vr, sport=sport
+        )
+
+    expected_medium = min(max(solve(water_loss, 34.5), 23), 34.5)
+    expected_extreme = min(max(solve(core, 43.5), 26), 43.5)
+
+    assert t_medium == pytest.approx(round(expected_medium, 1), abs=1e-9)
+    assert t_extreme == pytest.approx(round(expected_extreme, 1), abs=1e-9)
