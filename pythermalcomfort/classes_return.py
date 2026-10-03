@@ -816,7 +816,7 @@ class JOS3BodyParts(AutoStrMixin):
     right_leg : float
         Index of the right leg.
     right_foot : float
-        Index of the right hand.
+        Index of the right foot.
     """
 
     head: float | None = None
