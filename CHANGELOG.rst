@@ -4,6 +4,10 @@ Changelog
 Unreleased
 ----------
 
+* Raised dependency minimums for Snyk-flagged packages in project/install docs:
+  ``setuptools>=78.1.1`` and docs-related requirements
+  (``mistune>=3.3.3``, ``soupsieve>=2.9.2``, ``tornado>=6.5.2``).
+
 4.6.0 (2026-09-17)
 ------------------
 

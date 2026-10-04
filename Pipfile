@@ -7,7 +7,7 @@ name = "pypi"
 scipy = "*"
 numba = "*"
 numpy = "*"
-setuptools = "*"
+setuptools = ">=78.1.1"  # CVE-2025-47273: fixed in 78.1.1+
 tox = "*"
 
 [dev-packages]

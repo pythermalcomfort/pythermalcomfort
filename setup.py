@@ -103,7 +103,7 @@ setup(
         "scipy",
         "numba",
         "numpy>=1.21,<2.3",
-        "setuptools",
+        "setuptools>=78.1.1",
     ],
     extras_require={
         "dev": [

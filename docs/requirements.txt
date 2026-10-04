@@ -5,10 +5,10 @@ urllib3>=2.6.3
 pillow>=10.3.0
 requests>=2.32.4
 setuptools>=78.1.1
-mistune>=3.3.0
+mistune>=3.3.3
 nbconvert>=7.17.1
-soupsieve>=2.8.4
-tornado>=6.4.2
+soupsieve>=2.9.2
+tornado>=6.5.2
 fonttools>=4.62.0
 zipp>=3.19.1
 pydata-sphinx-theme
