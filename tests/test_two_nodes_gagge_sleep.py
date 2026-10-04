@@ -221,6 +221,22 @@ def test_unexpected_kwargs_raises_type_error() -> None:
     assert "Unexpected keyword arguments" in str(exc.value)
 
 
+def test_temp_core_neutral_kwarg_raises_type_error() -> None:
+    """Passing the removed temp_core_neutral kwarg must raise TypeError."""
+    with pytest.raises(TypeError) as exc:
+        two_nodes_gagge_sleep(
+            18,
+            18,
+            0.05,
+            50,
+            1.4,
+            1.76,
+            temp_core_neutral=36.8,
+        )
+    assert "Unexpected keyword arguments" in str(exc.value)
+    assert "temp_core_neutral" in str(exc.value)
+
+
 def test_invalid_kwarg_type_raises_type_error() -> None:
     """Test that a non-numeric type for tdb raises TypeError."""
     with pytest.raises(TypeError) as exc:

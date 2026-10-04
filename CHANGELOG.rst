@@ -4,6 +4,10 @@ Changelog
 Unreleased
 ----------
 
+* **Breaking:** Removed the no-op ``temp_core_neutral`` keyword argument from
+  ``two_nodes_gagge_sleep``. Passing it now raises ``TypeError`` instead of being
+  silently ignored (`#387 <https://github.com/pythermalcomfort/pythermalcomfort/issues/387>`_).
+
 4.6.0 (2026-09-17)
 ------------------
 
