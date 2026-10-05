@@ -43,8 +43,8 @@ def clo_dynamic_ashrae(
     model = model.lower()
     if model not in [Models.ashrae_55_2023.value]:
         invalid_model_msg = (
-            f"PMV calculations can only be performed in compliance "
-            f"with ASHRAE {Models.ashrae_55_2023.value}"
+            "Dynamic clothing insulation calculations can only be "
+            f"performed in compliance with ASHRAE {Models.ashrae_55_2023.value}"
         )
         raise ValueError(invalid_model_msg)
 

@@ -57,8 +57,8 @@ def clo_dynamic_iso(
     model = model.lower()
     if model not in [Models.iso_9920_2007.value]:
         invalid_model_msg = (
-            f"PMV calculations can only be performed in "
-            f"compliance with ISO {Models.iso_9920_2007.value}"
+            "Dynamic clothing insulation calculations can only be "
+            f"performed in compliance with ISO {Models.iso_9920_2007.value}"
         )
         raise ValueError(invalid_model_msg)
 
