@@ -4,6 +4,9 @@ Changelog
 Unreleased
 ----------
 
+4.6.1 (2026-10-06)
+------------------
+
 * Fixed ``AdaptivePlot.plot()``'s default x-axis label to use the terminology of
   the active standard: ``Prevailing Mean Outdoor Air Temperature [°C]`` for
   ASHRAE 55 (previously missing "Air") and ``Running Mean Outdoor Temperature
