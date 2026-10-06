@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 from matplotlib.collections import PolyCollection
-from matplotlib.colors import to_rgb
+from matplotlib.colors import to_rgb, to_rgba
 
 from pythermalcomfort.models import pmv_ppd_iso
 from pythermalcomfort.plots.matplotlib import PsychrometricPlot, ThresholdPlotResult
@@ -96,7 +96,7 @@ def test_basic_plot_renders_and_preserves_limits() -> None:
 
 
 def test_default_colors_highlight_comfort_and_deemphasize_invalid_area() -> None:
-    """Psychrometric defaults use tool green and a very light invalid-area gray."""
+    """Defaults highlight only comfort and keep invalid areas distinct."""
     plot = _new_plot()
     plot.set_x_axis("tdb", 10.0, 40.0, resolution=1.0)
     plot.set_y_axis("hr", 0.0, 30.0, resolution=2.0)
@@ -106,19 +106,21 @@ def test_default_colors_highlight_comfort_and_deemphasize_invalid_area() -> None
     assert result.legend is not None
     patches = result.legend.get_patches()
     labels = [text.get_text() for text in result.legend.get_texts()]
-    assert patches[1].get_facecolor()[:3] == pytest.approx(to_rgb("#007D00"), abs=1e-3)
+    assert patches[0].get_facecolor() == pytest.approx(to_rgba("#86AEC8"), abs=1e-3)
+    assert patches[1].get_facecolor() == pytest.approx(to_rgba("#4CB15E"), abs=1e-3)
+    assert patches[2].get_facecolor() == pytest.approx(to_rgba("#D88B7B"), abs=1e-3)
     invalid_patch = patches[labels.index("Out of model limits")]
     assert invalid_patch.get_facecolor()[:3] == pytest.approx(
-        to_rgb("#FAFAFA"), abs=1e-3
+        to_rgb("#DADCDD"), abs=1e-3
     )
 
-    rendered_colors = [fill.get_facecolor()[0][:3] for fill in result.fills]
+    rendered_colors = [fill.get_facecolor()[0] for fill in result.fills]
     assert any(
-        np.allclose(color, to_rgb("#007D00"), atol=1e-3) for color in rendered_colors
+        np.allclose(color, to_rgba("#4CB15E"), atol=1e-3) for color in rendered_colors
     )
     assert (
         sum(
-            np.allclose(color, to_rgb("#FAFAFA"), atol=1e-3)
+            np.allclose(color, to_rgba("#DADCDD"), atol=1e-3)
             for color in rendered_colors
         )
         == 2

@@ -146,8 +146,8 @@ class _PlotDefaults:
 
         p_atm: float = 101325.0
         n_tdb_points: int = 500
-        comfort_color: str = "#007D00"
-        color_out_of_model: str = "#FAFAFA"
+        comfort_color: str = "#4CB15E"
+        color_out_of_model: str = "#DADCDD"
         rh_line_color: str = "#a0a0a0"
         rh_line_linewidth: float = 0.8
         #: Labels are darker than their curves: the line can be faint because

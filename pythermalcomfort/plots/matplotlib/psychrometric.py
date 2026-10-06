@@ -145,12 +145,12 @@ class PsychrometricPlot(ThresholdPlot):
         labels: Sequence[str] | None = None,
         colors: Sequence[str] | None = None,
     ) -> PsychrometricPlot:
-        """Configure output regions, using green for the default PMV comfort area.
+        """Configure output regions, highlighting the default PMV comfort area.
 
         Custom labels and colors are passed through unchanged. For the default
-        PMV comfort thresholds, the neutral region uses the dark green familiar
-        from the CBE comfort tool and its displayed label includes both boundary
-        values.
+        PMV comfort thresholds, the neutral region uses a light green from the
+        suggested CBE color palette, and its displayed label includes both
+        boundary values.
         """
         super().set_regions(
             output=output,
