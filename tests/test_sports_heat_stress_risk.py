@@ -880,7 +880,7 @@ _REGRESSION_CONDITIONS = [
 def test_phs_scalar_matches_public_phs(tdb, tr, rh, vr, sport):
     """The scalar kernel shortcut must reproduce the public phs() outputs."""
     expected = _public_phs(tdb, tr, vr, rh, sport)
-    result = _phs_scalar(tdb, tr, vr, rh, sport)
+    result = _phs_scalar(tdb=tdb, tr=tr, rh=rh, vr=vr, sport=sport)
 
     np.testing.assert_allclose(
         result[_PHS_IDX_SWEAT_LOSS_G], expected.sweat_loss_g, rtol=1e-9

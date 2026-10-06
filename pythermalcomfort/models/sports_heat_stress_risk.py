@@ -10,7 +10,11 @@ from scipy.optimize import brentq
 from pythermalcomfort._internal.validation import validate_type
 from pythermalcomfort.classes_input import NumericInput, SportsHeatStressInputs
 from pythermalcomfort.classes_return import SportsHeatStressRisk
-from pythermalcomfort.models.phs import _MODEL_2023, _phs_optimized_scalar
+from pythermalcomfort.models.phs import (
+    _MODEL_2023,
+    _POSTURE_STANDING,
+    _phs_optimized_scalar,
+)
 from pythermalcomfort.utilities import met_to_w_m2
 
 # Fixed PHS inputs used by the threshold solvers. These mirror the values that
@@ -18,7 +22,6 @@ from pythermalcomfort.utilities import met_to_w_m2
 # ``i_mst=0.4`` and the default ISO 7933:2023 model, so the private scalar kernel can be
 # called directly without the validation and parallel array dispatch overhead of
 # ``phs()``. ``test_phs_scalar_matches_public_phs`` guards against drift.
-_PHS_POSTURE_CODE = 0  # standing, see phs._posture_to_code
 _PHS_FIXED_INPUTS = {
     "drink": 1,
     "acclimatized": 100,
@@ -43,8 +46,8 @@ _PHS_IDX_SWEAT_LOSS_G = 7
 
 
 def _phs_scalar(
-    tdb: float, tr: float, vr: float, rh: float, sport: _SportsValues
-) -> tuple:
+    tdb: float, tr: float, rh: float, vr: float, sport: _SportsValues
+) -> tuple[float, ...]:
     """Run the PHS scalar kernel for a single condition.
 
     Equivalent to ``phs(..., posture="standing", acclimatized=100, i_mst=0.4,
@@ -53,10 +56,24 @@ def _phs_scalar(
     by the ``brentq`` objectives in ``_calc_risk_single_value``, which call PHS many
     times per condition.
 
+    Parameters
+    ----------
+    tdb : float
+        Dry bulb air temperature, [°C].
+    tr : float
+        Mean radiant temperature, [°C].
+    rh : float
+        Relative humidity, [%].
+    vr : float
+        Relative air speed, [m/s].
+    sport : _SportsValues
+        Sport-specific parameters; ``met``, ``clo`` and ``duration`` are used.
+
     Returns
     -------
-    tuple
-        The raw tuple returned by ``_phs_optimized_scalar``.
+    tuple of float
+        The raw 11-element tuple returned by ``_phs_optimized_scalar``. Index with
+        ``_PHS_IDX_T_CR`` / ``_PHS_IDX_SWEAT_LOSS_G``.
     """
     p_a = 0.6105 * math.exp(17.27 * tdb / (tdb + 237.3)) * rh / 100
     return _phs_optimized_scalar(
@@ -66,7 +83,7 @@ def _phs_scalar(
         p_a=p_a,
         met=sport.met * met_to_w_m2,
         clo=sport.clo,
-        posture_code=_PHS_POSTURE_CODE,
+        posture_code=_POSTURE_STANDING,
         wme=0.0,
         duration=sport.duration,
         **_PHS_FIXED_INPUTS,
@@ -326,8 +343,8 @@ def _calc_risk_single_value(
         )
 
     def calculate_threshold_water_loss(x):
-        sl = _phs_scalar(x, tr, vr, rh, sport)[_PHS_IDX_SWEAT_LOSS_G]
-        return float(sl / float(sport.duration) * 45.0 - float(sweat_loss_g))
+        sl = _phs_scalar(tdb=x, tr=tr, rh=rh, vr=vr, sport=sport)[_PHS_IDX_SWEAT_LOSS_G]
+        return sl / sport.duration * 45.0 - sweat_loss_g
 
     for min_t, max_t in [(0, 36), (20, 50)]:
         try:
@@ -344,8 +361,8 @@ def _calc_risk_single_value(
         t_medium = max_t_low
 
     def calculate_threshold_core(x):
-        tcr = _phs_scalar(x, tr, vr, rh, sport)[_PHS_IDX_T_CR]
-        return float(tcr - float(t_cr_extreme))
+        tcr = _phs_scalar(tdb=x, tr=tr, rh=rh, vr=vr, sport=sport)[_PHS_IDX_T_CR]
+        return tcr - t_cr_extreme
 
     for min_t, max_t in [(0, 36), (20, 50)]:
         try:
