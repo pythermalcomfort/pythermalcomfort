@@ -4,6 +4,13 @@ Changelog
 Unreleased
 ----------
 
+4.6.1 (2026-10-06)
+------------------
+
+* Fixed ``AdaptivePlot.plot()``'s default x-axis label to use the terminology of
+  the active standard: ``Prevailing Mean Outdoor Air Temperature [°C]`` for
+  ASHRAE 55 (previously missing "Air") and ``Running Mean Outdoor Temperature
+  [°C]`` for EN 16798 (previously used the ASHRAE wording) (#418).
 * Fixed ``vertical_tmp_grad_ppd`` returning negative ``ppd_vg`` values for small
   gradients or warm thermal sensation; the result is now set to 0 when the
   logistic model is below the 34.5 % baseline (Liu et al. 2020, eq. 3).

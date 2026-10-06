@@ -8,9 +8,10 @@ truth for every numeric constant.
 
 from __future__ import annotations
 
+import enum
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -35,6 +36,15 @@ from pythermalcomfort.plots.matplotlib._shared import (
     _PlotDefaults,
 )
 
+
+class _Default(enum.Enum):
+    """Sentinel marking a parameter as omitted, distinct from an explicit ``None``."""
+
+    XLABEL = "standard default"
+
+
+_DEFAULT_XLABEL = _Default.XLABEL
+
 # ── band specification ─────────────────────────────────────────────────────
 
 
@@ -51,6 +61,7 @@ class _BandSpec:
 
 _STANDARD_CONFIGS: dict[str, dict[str, Any]] = {
     "ashrae": {
+        "xlabel": "Prevailing Mean Outdoor Air Temperature [°C]",
         "slope": _ASHRAE_SLOPE,
         "intercept": _ASHRAE_INTERCEPT,
         "t_rm_range": (10.0, 33.5),
@@ -60,6 +71,7 @@ _STANDARD_CONFIGS: dict[str, dict[str, Any]] = {
         ],
     },
     "en": {
+        "xlabel": "Running Mean Outdoor Temperature [°C]",
         "slope": _EN_SLOPE,
         "intercept": _EN_INTERCEPT,
         "t_rm_range": (10.0, 33.5),
@@ -206,8 +218,9 @@ class AdaptivePlot(BasePlot):
     """Adaptive comfort chart for ASHRAE 55 or EN 16798.
 
     The chart displays comfort bands as filled regions on a plot of
-    operative temperature (y-axis) versus prevailing mean outdoor
-    temperature (x-axis).  Band boundaries are smooth lines computed
+    operative temperature (y-axis) versus the outdoor reference temperature
+    (x-axis; prevailing mean for ASHRAE 55, running mean for EN 16798).
+    Band boundaries are smooth lines computed
     directly from the standard equations; all numeric constants are
     imported from the underlying model modules.
 
@@ -275,14 +288,16 @@ class AdaptivePlot(BasePlot):
         self._y_range: tuple[float, float] | None = None
 
     def set_x_axis(self, min_val: float, max_val: float) -> AdaptivePlot:
-        """Set the x-axis (prevailing mean outdoor temperature) display range.
+        """Set the x-axis (outdoor reference temperature) display range.
 
         Parameters
         ----------
         min_val : float
-            Minimum prevailing mean outdoor temperature [°C].
+            Minimum outdoor reference temperature [°C] (prevailing mean for
+            ASHRAE 55, running mean for EN 16798).
         max_val : float
-            Maximum prevailing mean outdoor temperature [°C].
+            Maximum outdoor reference temperature [°C] (prevailing mean for
+            ASHRAE 55, running mean for EN 16798).
 
         Returns
         -------
@@ -468,7 +483,7 @@ class AdaptivePlot(BasePlot):
         *,
         ax: Axes | None = None,
         title: str | None = None,
-        xlabel: str | None = "Prevailing Mean Outdoor Temperature [°C]",
+        xlabel: str | None | Literal[_Default.XLABEL] = _DEFAULT_XLABEL,
         ylabel: str | None = "Operative Temperature [°C]",
         legend: bool = True,
         grid: bool = True,
@@ -486,8 +501,9 @@ class AdaptivePlot(BasePlot):
             default size of ``(7, 4)`` inches.
         title : str, optional
             Optional chart title.
-        xlabel : str or None
-            X-axis label.  ``None`` to omit.
+        xlabel : str or None, optional
+            X-axis label. If omitted, terminology appropriate to the selected
+            standard is used. ``None`` omits the label.
         ylabel : str or None
             Y-axis label.  ``None`` to omit.
         legend : bool
@@ -627,6 +643,8 @@ class AdaptivePlot(BasePlot):
             if grid:
                 ax.grid(True)
 
+            if xlabel is _DEFAULT_XLABEL:
+                xlabel = self._cfg["xlabel"]
             if xlabel is not None:
                 ax.set_xlabel(xlabel)
             if ylabel is not None:
