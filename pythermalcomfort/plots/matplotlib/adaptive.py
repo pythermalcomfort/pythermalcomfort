@@ -8,9 +8,10 @@ truth for every numeric constant.
 
 from __future__ import annotations
 
+import enum
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -35,7 +36,14 @@ from pythermalcomfort.plots.matplotlib._shared import (
     _PlotDefaults,
 )
 
-_DEFAULT_XLABEL: Any = object()
+
+class _Default(enum.Enum):
+    """Sentinel marking a parameter as omitted, distinct from an explicit ``None``."""
+
+    XLABEL = "standard default"
+
+
+_DEFAULT_XLABEL = _Default.XLABEL
 
 # ── band specification ─────────────────────────────────────────────────────
 
@@ -475,7 +483,7 @@ class AdaptivePlot(BasePlot):
         *,
         ax: Axes | None = None,
         title: str | None = None,
-        xlabel: str | None = _DEFAULT_XLABEL,
+        xlabel: str | None | Literal[_Default.XLABEL] = _DEFAULT_XLABEL,
         ylabel: str | None = "Operative Temperature [°C]",
         legend: bool = True,
         grid: bool = True,
