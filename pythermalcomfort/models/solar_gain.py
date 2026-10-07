@@ -161,8 +161,8 @@ def solar_gain(
             asw=0.7,
             posture="sitting",
         )
-        print(result.erf)  # 42.9
-        print(result.delta_mrt)  # 10.3
+        print(result.erf)  # 43.3
+        print(result.delta_mrt)  # 10.4
 
     Applicability
     -------------

@@ -4,6 +4,9 @@ Changelog
 Unreleased
 ----------
 
+* Fixed the ``solar_gain`` docstring example, which showed ``erf`` 42.9 and
+  ``delta_mrt`` 10.3 instead of the 43.3 and 10.4 the call returns
+  (`#449 <https://github.com/pythermalcomfort/pythermalcomfort/issues/449>`_).
 * Sped up ``sports_heat_stress_risk`` by roughly 3-9x (depending on the sport's
   duration) (`#396 <https://github.com/pythermalcomfort/pythermalcomfort/issues/396>`_).
   The ``brentq`` threshold solvers now call the PHS scalar kernel directly instead of

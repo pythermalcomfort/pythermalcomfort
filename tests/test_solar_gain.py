@@ -100,18 +100,20 @@ def test_solar_gain_out_of_range_returns_nan() -> None:
 
 
 def test_solar_gain_array() -> None:
-    """Test that the solar gain function works with arrays."""
-    np.allclose(
-        solar_gain(
-            sol_altitude=[0, 30],
-            sharp=[120, 60],
-            sol_radiation_dir=[800, 600],
-            sol_transmittance=[0.5, 0.6],
-            f_svv=[0.5, 0.4],
-            f_bes=[0.5, 0.6],
-            asw=0.7,
-            posture="sitting",
-        ).erf,
-        np.asarray([46.4, 52.8]),
-        atol=0.1,
+    """Test that the solar gain function works with arrays.
+
+    The inputs are the two sitting rows of test_solar_gain_regression_values, so
+    the array call must return the same values as those pinned scalar results.
+    """
+    result = solar_gain(
+        sol_altitude=[0, 90],
+        sharp=[120, 0],
+        sol_radiation_dir=[800, 1000],
+        sol_transmittance=[0.5, 1.0],
+        f_svv=[0.5, 1.0],
+        f_bes=[0.5, 1.0],
+        posture="sitting",
+        round_output=False,
     )
+    assert np.allclose(result.erf, [43.2839, 326.6804], atol=1e-3)
+    assert np.allclose(result.delta_mrt, [10.3649, 78.2281], atol=1e-3)
