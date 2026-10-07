@@ -4,6 +4,26 @@ Changelog
 Unreleased
 ----------
 
+4.6.1 (2026-10-06)
+------------------
+
+* Fixed ``AdaptivePlot.plot()``'s default x-axis label to use the terminology of
+  the active standard: ``Prevailing Mean Outdoor Air Temperature [°C]`` for
+  ASHRAE 55 (previously missing "Air") and ``Running Mean Outdoor Temperature
+  [°C]`` for EN 16798 (previously used the ASHRAE wording) (#418).
+* Fixed ``vertical_tmp_grad_ppd`` returning negative ``ppd_vg`` values for small
+  gradients or warm thermal sensation; the result is now set to 0 when the
+  logistic model is below the 34.5 % baseline (Liu et al. 2020, eq. 3).
+* Fixed ``AdaptivePlot`` losing or mislabeling legend entries for comfort bands and
+  the center line when the legend is rebuilt after adding measured data (#415).
+* ``PsychrometricPlot`` draws constant-RH background curves at 25 % intervals
+  instead of 10 %, and RH labels use Matplotlib's default font size instead of a
+  fixed 8 pt, for readability on charts of different sizes.
+* Fixed ``AdaptivePlot.plot()`` showing Matplotlib's internal auto-generated
+  label (e.g. ``_child0``) in the legend when ``fill_kws`` or
+  ``center_line_kws`` explicitly passed ``label=None``, instead of falling
+  back to the band's or center line's configured default label.
+
 4.6.0 (2026-09-17)
 ------------------
 

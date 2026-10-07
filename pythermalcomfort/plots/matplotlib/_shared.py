@@ -148,7 +148,6 @@ class _PlotDefaults:
         n_tdb_points: int = 500
         rh_line_color: str = "#a0a0a0"
         rh_line_linewidth: float = 0.8
-        rh_label_fontsize: int = 8
         #: Labels are darker than their curves: the line can be faint because
         #: it is background, but the text has to be read.
         rh_label_color: str = "#6b6b6b"
@@ -162,7 +161,7 @@ class _PlotDefaults:
         #: the curve's in-range span.  Just short of the end keeps the label
         #: inside the axes while staying out of the busy lower-left corner.
         rh_label_position: float = 0.93
-        rh_curve_step: int = 10
+        rh_curve_step: int = 25
         zorder_rh_mask: float = 1.6
         zorder_rh_lines: float = 2.0
 

@@ -332,6 +332,16 @@ def test_ashrae_plot_custom_labels() -> None:
     assert "Narrow" in labels
 
 
+def test_ashrae_plot_underscore_prefixed_label_kept() -> None:
+    result = (
+        AdaptivePlot(adaptive_ashrae)
+        .set_regions(show=["90"], labels=["_custom"])
+        .plot(show_center_line=False)
+    )
+    labels = [t.get_text() for t in result.legend.get_texts()]
+    assert "_custom" in labels
+
+
 def test_ashrae_plot_custom_colors() -> None:
     result = (
         AdaptivePlot(adaptive_ashrae).set_regions(colors=["#FF0000", "#00FF00"]).plot()
@@ -347,6 +357,27 @@ def test_ashrae_plot_center_line_kws() -> None:
     assert result.center_line.get_linewidth() == 3.0
 
 
+def test_ashrae_plot_center_line_kws_legend_swatch_matches() -> None:
+    result = AdaptivePlot(adaptive_ashrae).plot(
+        center_line_kws={"color": "red", "linewidth": 3.0}
+    )
+    center_line_handle = next(
+        h
+        for h, t in zip(
+            result.legend.legend_handles, result.legend.get_texts(), strict=True
+        )
+        if t.get_text() == "Comfort Temperature"
+    )
+    assert center_line_handle.get_color() == "red"
+    assert center_line_handle.get_linewidth() == 3.0
+
+
+def test_ashrae_plot_center_line_kws_axes_only_option_does_not_break_legend() -> None:
+    result = AdaptivePlot(adaptive_ashrae).plot(center_line_kws={"scalex": False})
+    labels = [t.get_text() for t in result.legend.get_texts()]
+    assert "Comfort Temperature" in labels
+
+
 def test_ashrae_plot_fill_kws() -> None:
     result = AdaptivePlot(adaptive_ashrae).plot(fill_kws={"alpha": 0.3})
     assert len(result.fills) > 0
@@ -355,6 +386,24 @@ def test_ashrae_plot_fill_kws() -> None:
 def test_ashrae_plot_legend_kws() -> None:
     result = AdaptivePlot(adaptive_ashrae).plot(legend_kws={"loc": "upper left"})
     assert result.legend is not None
+
+
+def test_ashrae_plot_explicit_none_label_falls_back_to_default() -> None:
+    """fill_kws/center_line_kws label=None must not leak Matplotlib's internal
+    auto-generated artist label (e.g. "_child0") into the legend."""
+    result = AdaptivePlot(adaptive_ashrae).plot(
+        fill_kws={"label": None}, center_line_kws={"label": None}
+    )
+    labels = [t.get_text() for t in result.legend.get_texts()]
+    assert "80% Acceptability" in labels
+    assert "90% Acceptability" in labels
+    assert "Comfort Temperature" in labels
+    assert not any(label.startswith("_child") for label in labels)
+
+
+def test_ashrae_plot_default_xlabel() -> None:
+    result = AdaptivePlot(adaptive_ashrae).plot()
+    assert result.ax.get_xlabel() == "Prevailing Mean Outdoor Air Temperature [°C]"
 
 
 def test_ashrae_plot_xlabel_ylabel() -> None:
@@ -413,6 +462,16 @@ def test_en_plot_default_legend_labels() -> None:
     assert "Category III" in labels
 
 
+def test_en_plot_default_xlabel() -> None:
+    result = AdaptivePlot(adaptive_en).plot()
+    assert result.ax.get_xlabel() == "Running Mean Outdoor Temperature [°C]"
+
+
+def test_en_plot_custom_xlabel() -> None:
+    result = AdaptivePlot(adaptive_en).plot(xlabel="Custom label")
+    assert result.ax.get_xlabel() == "Custom label"
+
+
 def test_en_plot_show_cat_i_only() -> None:
     result = AdaptivePlot(adaptive_en).set_regions(show=["cat_i"]).plot()
     assert len(result.fills) == 1
@@ -461,6 +520,54 @@ def test_regions_config_reuse_across_plots() -> None:
 
 
 # ── fluent chaining ────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize("model", [adaptive_ashrae, adaptive_en])
+@pytest.mark.parametrize("show_center_line", [True, False])
+def test_rebuilt_legend_preserves_comfort_entries(model, show_center_line) -> None:
+    result = AdaptivePlot(model).plot(show_center_line=show_center_line)
+    expected = [text.get_text() for text in result.legend.get_texts()]
+    result.ax.scatter([20], [25], label="Measured")
+    legend = result.ax.legend()
+    labels = [text.get_text() for text in legend.get_texts()]
+    assert len(labels) == len(expected) + 1
+    assert set(labels) == {*expected, "Measured"}
+
+
+def test_rebuilt_legend_preserves_custom_labels() -> None:
+    result = (
+        AdaptivePlot(adaptive_ashrae)
+        .set_regions(show=["90"], labels=["Custom zone"])
+        .plot(center_line_kws={"label": "Custom center"})
+    )
+    assert [text.get_text() for text in result.legend.get_texts()] == [
+        "Custom zone",
+        "Custom center",
+    ]
+    assert result.ax.get_legend_handles_labels()[1] == ["Custom zone", "Custom center"]
+
+
+def test_fill_label_override_is_preserved() -> None:
+    result = (
+        AdaptivePlot(adaptive_ashrae)
+        .set_regions(show=["90"])
+        .plot(fill_kws={"label": "Custom fill"}, show_center_line=False)
+    )
+    assert [text.get_text() for text in result.legend.get_texts()] == ["Custom fill"]
+    assert result.ax.get_legend_handles_labels()[1] == ["Custom fill"]
+
+
+def test_shared_fill_label_is_not_duplicated() -> None:
+    result = AdaptivePlot(adaptive_ashrae).plot(
+        fill_kws={"label": "Custom fill"},
+        show_center_line=False,
+    )
+    assert len(result.fills) == 2
+    assert [text.get_text() for text in result.legend.get_texts()] == ["Custom fill"]
+    assert result.ax.get_legend_handles_labels()[1] == ["Custom fill"]
+
+    legend = result.ax.legend()
+    assert [text.get_text() for text in legend.get_texts()] == ["Custom fill"]
 
 
 def test_full_chain_ashrae() -> None:

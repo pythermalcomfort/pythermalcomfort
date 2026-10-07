@@ -85,7 +85,6 @@ def _label_along_curve(ax: Axes, *, x: np.ndarray, y: np.ndarray, text: str) -> 
         y[index],
         text,
         color=_PlotDefaults.Psychrometric.rh_label_color,
-        fontsize=_PlotDefaults.Psychrometric.rh_label_fontsize,
         zorder=_PlotDefaults.Psychrometric.zorder_rh_lines,
         rotation=angle,
         rotation_mode="anchor",
@@ -362,7 +361,7 @@ class PsychrometricPlot(ThresholdPlot):
 
         - A white fill masking the physically impossible RH > 100 % area,
           starting exactly at the smooth saturation curve.
-        - Dotted constant-RH background curves at 10 % intervals.
+        - Dotted constant-RH background curves at 25 % intervals.
         - A y-axis label naming the humidity ratio and its units, replacing
           the bare parameter name the base class would otherwise use.  Call
           ``result.ax.set_ylabel(...)`` afterwards to override it.

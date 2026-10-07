@@ -128,31 +128,39 @@ for j, (label, color) in enumerate(zip(PMV_LABELS, PMV_COLORS, strict=True)):
 
 ax.set_ylim(0, 100)
 ax.set_ylabel("Observations (%)")
-ax.set_title(
-    "PMV categories (ISO 7730; assumed air speed 0.1 m/s)",
-    fontsize=10,
-    y=1.15,
-)
 ax.grid(False)
 legend_handles = [
     Patch(facecolor=c, label=lbl) for c, lbl in zip(PMV_COLORS, PMV_LABELS, strict=True)
 ]
-ax.legend(
+ax.set_xticks(x)
+ax.set_xticklabels(x_labels, fontsize=8)
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+
+# Title and legend are placed in figure (not axes) coordinates and reserved
+# their own margin above the axes, so they never overlap a full-height bar
+# regardless of the data (axes-fraction placement like `ax.legend(...,
+# bbox_to_anchor=(0.5, 1.10))` sits a fixed 10% of the *axes* height above
+# the top of the bars, which is smaller than the legend's own rendered
+# height and so overlaps it).
+fig.suptitle(
+    "PMV categories (ISO 7730; assumed air speed 0.1 m/s)",
+    fontsize=10,
+    y=0.94,
+)
+fig.legend(
     handles=legend_handles,
-    loc="center",
-    bbox_to_anchor=(0.5, 1.08),
+    loc="upper center",
+    bbox_to_anchor=(0.5, 0.90),
     fontsize=8,
     frameon=False,
     ncol=3,
 )
-ax.set_xticks(x)
-ax.set_xticklabels(x_labels, fontsize=8)
 
-fig.tight_layout()
+fig.tight_layout(rect=(0, 0, 1, 0.95))
 
 outdir = os.path.join(SCRIPT_DIR, "output")
 os.makedirs(outdir, exist_ok=True)
 out = os.path.join(outdir, "example_field_study.pdf")
-fig.savefig(out, bbox_inches="tight")
-plt.show()
+fig.savefig(out)
 print(f"\nFigure saved to {out}")

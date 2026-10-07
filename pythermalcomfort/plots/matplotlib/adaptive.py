@@ -8,9 +8,10 @@ truth for every numeric constant.
 
 from __future__ import annotations
 
+import enum
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -35,6 +36,15 @@ from pythermalcomfort.plots.matplotlib._shared import (
     _PlotDefaults,
 )
 
+
+class _Default(enum.Enum):
+    """Sentinel marking a parameter as omitted, distinct from an explicit ``None``."""
+
+    XLABEL = "standard default"
+
+
+_DEFAULT_XLABEL = _Default.XLABEL
+
 # ── band specification ─────────────────────────────────────────────────────
 
 
@@ -51,6 +61,7 @@ class _BandSpec:
 
 _STANDARD_CONFIGS: dict[str, dict[str, Any]] = {
     "ashrae": {
+        "xlabel": "Prevailing Mean Outdoor Air Temperature [°C]",
         "slope": _ASHRAE_SLOPE,
         "intercept": _ASHRAE_INTERCEPT,
         "t_rm_range": (10.0, 33.5),
@@ -60,6 +71,7 @@ _STANDARD_CONFIGS: dict[str, dict[str, Any]] = {
         ],
     },
     "en": {
+        "xlabel": "Running Mean Outdoor Temperature [°C]",
         "slope": _EN_SLOPE,
         "intercept": _EN_INTERCEPT,
         "t_rm_range": (10.0, 33.5),
@@ -206,8 +218,9 @@ class AdaptivePlot(BasePlot):
     """Adaptive comfort chart for ASHRAE 55 or EN 16798.
 
     The chart displays comfort bands as filled regions on a plot of
-    operative temperature (y-axis) versus prevailing mean outdoor
-    temperature (x-axis).  Band boundaries are smooth lines computed
+    operative temperature (y-axis) versus the outdoor reference temperature
+    (x-axis; prevailing mean for ASHRAE 55, running mean for EN 16798).
+    Band boundaries are smooth lines computed
     directly from the standard equations; all numeric constants are
     imported from the underlying model modules.
 
@@ -275,14 +288,16 @@ class AdaptivePlot(BasePlot):
         self._y_range: tuple[float, float] | None = None
 
     def set_x_axis(self, min_val: float, max_val: float) -> AdaptivePlot:
-        """Set the x-axis (prevailing mean outdoor temperature) display range.
+        """Set the x-axis (outdoor reference temperature) display range.
 
         Parameters
         ----------
         min_val : float
-            Minimum prevailing mean outdoor temperature [°C].
+            Minimum outdoor reference temperature [°C] (prevailing mean for
+            ASHRAE 55, running mean for EN 16798).
         max_val : float
-            Maximum prevailing mean outdoor temperature [°C].
+            Maximum outdoor reference temperature [°C] (prevailing mean for
+            ASHRAE 55, running mean for EN 16798).
 
         Returns
         -------
@@ -388,7 +403,12 @@ class AdaptivePlot(BasePlot):
 
         labels : sequence of str, optional
             Custom labels for the visible bands.  Must have the same length as
-            *show* (or the total band count if *show* is ``None``).
+            *show* (or the total band count if *show* is ``None``).  A label
+            starting with ``"_"`` still appears in the legend built by
+            :meth:`plot`, but Matplotlib's own convention hides any label
+            starting with ``"_"`` from a legend rebuilt via a bare
+            ``ax.legend()`` call (e.g. after adding measured data) — pass
+            explicit ``handles`` to that call to keep such a label visible.
         colors : sequence of str, optional
             Custom colors for the visible bands.  Same length rule as *labels*.
 
@@ -463,7 +483,7 @@ class AdaptivePlot(BasePlot):
         *,
         ax: Axes | None = None,
         title: str | None = None,
-        xlabel: str | None = "Prevailing Mean Outdoor Temperature [°C]",
+        xlabel: str | None | Literal[_Default.XLABEL] = _DEFAULT_XLABEL,
         ylabel: str | None = "Operative Temperature [°C]",
         legend: bool = True,
         grid: bool = True,
@@ -481,8 +501,9 @@ class AdaptivePlot(BasePlot):
             default size of ``(7, 4)`` inches.
         title : str, optional
             Optional chart title.
-        xlabel : str or None
-            X-axis label.  ``None`` to omit.
+        xlabel : str or None, optional
+            X-axis label. If omitted, terminology appropriate to the selected
+            standard is used. ``None`` omits the label.
         ylabel : str or None
             Y-axis label.  ``None`` to omit.
         legend : bool
@@ -513,6 +534,8 @@ class AdaptivePlot(BasePlot):
                 fig = ax.figure
 
             fill_opts = dict(fill_kws or {})
+            if fill_opts.get("label") is None:
+                fill_opts.pop("label", None)
             fill_opts.setdefault("alpha", _PlotDefaults.fill_alpha)
 
             slope: float = self._cfg["slope"]
@@ -522,6 +545,7 @@ class AdaptivePlot(BasePlot):
             ce = adaptive_cooling_effect(self._v, np.array([26.0]))[0]
 
             fills: list[PolyCollection] = []
+            hide_in_legend: list[bool] = []
             for band in bands:
                 t_rm_transition = (25.0 - intercept - band.spec.upper_offset) / slope
 
@@ -552,6 +576,14 @@ class AdaptivePlot(BasePlot):
                     upper = upper_base + adaptive_cooling_effect(self._v, upper_base)
 
                 fill = ax.fill_between(x, lower, upper, color=band.color, **fill_opts)
+                if "label" not in fill_opts:
+                    fill.set_label(band.label)
+                    hide_in_legend.append(False)
+                elif fills:
+                    fill.set_label("_nolegend_")
+                    hide_in_legend.append(True)
+                else:
+                    hide_in_legend.append(False)
                 fills.append(fill)
 
             center_line_artist: Line2D | None = None
@@ -559,6 +591,9 @@ class AdaptivePlot(BasePlot):
                 cl_opts = dict(_PlotDefaults.Adaptive.center_line_defaults)
                 if center_line_kws:
                     cl_opts.update(center_line_kws)
+                if cl_opts.get("label") is None:
+                    cl_opts.pop("label", None)
+                cl_opts.setdefault("label", _PlotDefaults.Adaptive.center_line_label)
                 t_lo, t_hi = self._t_rm_range
                 x = [t_lo, t_hi]
                 y = [slope * t_lo + intercept, slope * t_hi + intercept]
@@ -578,21 +613,33 @@ class AdaptivePlot(BasePlot):
                 lg_opts.setdefault("ncol", _PlotDefaults.Adaptive.legend_ncol)
 
                 handles: list[Any] = []
-                for band in reversed(bands):
+                for band, fill, hidden in zip(
+                    reversed(bands),
+                    reversed(fills),
+                    reversed(hide_in_legend),
+                    strict=True,
+                ):
+                    if hidden:
+                        continue
                     handles.append(
                         Patch(
                             facecolor=band.color,
                             alpha=fill_opts.get("alpha", _PlotDefaults.fill_alpha),
-                            label=band.label,
+                            label=fill.get_label(),
                         )
                     )
                 if center_line_artist is not None:
+                    cl_proxy_kws = {
+                        key: value
+                        for key, value in cl_opts.items()
+                        if key not in {"label", "data", "scalex", "scaley"}
+                    }
                     handles.append(
                         Line2D(
                             [0],
                             [0],
-                            label=_PlotDefaults.Adaptive.center_line_label,
-                            **dict(_PlotDefaults.Adaptive.center_line_defaults),
+                            label=center_line_artist.get_label(),
+                            **cl_proxy_kws,
                         )
                     )
                 legend_artist = ax.legend(handles=handles, **lg_opts)
@@ -600,6 +647,8 @@ class AdaptivePlot(BasePlot):
             if grid:
                 ax.grid(True)
 
+            if xlabel is _DEFAULT_XLABEL:
+                xlabel = self._cfg["xlabel"]
             if xlabel is not None:
                 ax.set_xlabel(xlabel)
             if ylabel is not None:

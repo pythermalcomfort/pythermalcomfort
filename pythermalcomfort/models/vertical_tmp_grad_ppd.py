@@ -22,7 +22,8 @@ def vertical_tmp_grad_ppd(
 ) -> VerticalTGradPPD:
     """Calculate the percentage of thermally dissatisfied people with a vertical
     temperature gradient between feet and head [55ASHRAE2023]_. This equation is only
-    applicable for vr < 0.2 m/s (40 fps).
+    applicable for vr < 0.2 m/s (40 fpm). The model subtracts a baseline of 34.5 % of
+    dissatisfied occupants; when the result would be negative, ppd_vg is 0.
 
     Parameters
     ----------
@@ -122,7 +123,8 @@ def vertical_tmp_grad_ppd(
         limit_inputs=False,
     ).pmv
     numerator = np.exp(0.13 * (tsv - 1.91) ** 2 + 0.15 * vertical_tmp_grad - 1.6)
-    ppd_val = (numerator / (1 + numerator) - 0.345) * 100
+    # 34.5 % baseline subtracted, negative values set to zero (Liu et al. 2020, eq. 3)
+    ppd_val = np.maximum((numerator / (1 + numerator) - 0.345) * 100, 0.0)
     acceptability = ppd_val <= 5
 
     if round_output:

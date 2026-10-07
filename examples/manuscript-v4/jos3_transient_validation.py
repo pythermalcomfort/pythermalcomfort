@@ -1,23 +1,21 @@
-"""JOS-3 transient thermophysiology: simulation vs. human-subject data.
+"""JOS-3 transient thermophysiology: illustrative step-change simulations.
 
 Manuscript reference: "pythermalcomfort: An Open-Source Python Package for
 Thermal Comfort, Heat Stress, and Cold Stress" (Building Simulation, Climate
 Change and Urban Overheating special issue). This script produces the figure
 for **Example 4**, which was promised in the response to Reviewer 2 Comment 6
 (the newly added JOS-3 dynamic model was under-represented in the original
-examples) and doubles as the external/observational comparison referenced in
-the response to Reviewer 3 Comment 2.
+examples).
 
 What it demonstrates
 ---------------------
 JOS-3 is a 17-segment, multi-node transient thermophysiology model, i.e. it
 predicts how core and skin temperature *evolve over time* as the thermal
-environment changes, not just a single steady-state comfort index. To show
-that capability against real data, this script reproduces two step-change
-exposures from the human-subject calorimetry experiments of Stolwijk and
-Hardy (1966): a warm/hot transient and a cool/cold transient, each following
-the same protocol used to validate JOS-3 in the package's own test suite
-(``examples/calc_jos3.py::validation_simulation``):
+environment changes, not just a single steady-state comfort index. This script
+reproduces two step-change exposures from the human-subject calorimetry
+experiments of Stolwijk and Hardy (1966): a warm/hot transient and a cool/cold
+transient, each following the same protocol used in the package's JOS-3 test
+suite (``examples/calc_jos3.py::validation_simulation``):
 
 1. A 100-min preconditioning period at 28 degC so every subject model starts
    from a comparable thermal state.
@@ -29,10 +27,9 @@ For each condition, three JOS-3 models are built with the anthropometry of
 the three human subjects reported in Stolwijk and Hardy (1966) and their
 predictions are averaged, mirroring how the experimental curves are
 themselves averages across subjects. Simulated rectal (core) and mean skin
-temperature are then plotted against the digitised experimental time series
-supplied with the package, and the root-mean-square error (RMSE) between the
-two is reported directly on the figure, so the plot functions as a
-quantitative external validation, not just a qualitative demonstration.
+temperature are plotted alongside the digitised experimental time series
+supplied with the package. The example demonstrates JOS-3 setup and transient
+outputs; it does not assess predictive accuracy.
 
 Data provenance
 ----------------
@@ -206,26 +203,10 @@ def load_reference_data(sheet_condition: str) -> pd.DataFrame:
     return reference
 
 
-def rmse(simulated: pd.Series, reference: pd.Series) -> float:
-    """Root-mean-square error between simulated and reference series."""
-    aligned_sim = simulated.reindex(reference.index)
-    return float(np.sqrt(np.mean((aligned_sim - reference) ** 2)))
-
-
 def plot_condition(ax: plt.Axes, condition: TransientCondition) -> None:
     """Plot simulated vs. reference core and skin temperature on one axis."""
     simulated = simulate_condition(condition)
     reference = load_reference_data(condition.sheet_condition)
-
-    core_rmse = rmse(simulated["t_core_pelvis"], reference["Tre"])
-    skin_rmse = rmse(simulated["t_skin_mean"], reference["Tsk"])
-
-    # Also report the errors on stdout, so the numbers quoted in the manuscript
-    # can be checked without reading them off the figure.
-    print(
-        f"{condition.label}: rectal RMSE {core_rmse:.2f} degC, "
-        f"skin RMSE {skin_rmse:.2f} degC, {len(reference)} reference points",
-    )
 
     ax.plot(
         reference.index,
@@ -280,22 +261,12 @@ def plot_condition(ax: plt.Axes, condition: TransientCondition) -> None:
     ax.set_xlim(0, sum(PHASE_MINUTES[1:]))
     ax.set_ylim(27, 41)
     ax.set_xlabel("Time [min]")
-    # Centred along the bottom, below the lowest data the y-limit leaves room
-    # for, so it never runs over the mean-skin trace.
-    ax.text(
-        0.5,
-        0.03,
-        f"RMSE (full {sum(PHASE_MINUTES[1:])}-min record): rectal {core_rmse:.2f}°C, "
-        f"skin {skin_rmse:.2f}°C",
-        transform=ax.transAxes,
-        fontsize=8,
-        ha="center",
-        va="bottom",
-    )
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
 
 
 def build_figure(conditions: tuple[TransientCondition, ...]) -> plt.Figure:
-    """Build the two-panel hot/cold transient validation figure."""
+    """Build the two-panel hot/cold transient example figure."""
     fig, axes = plt.subplots(1, len(conditions), figsize=(7, 4), sharey=True)
     for ax, condition in zip(axes, conditions, strict=True):
         plot_condition(ax, condition)
@@ -317,10 +288,10 @@ def build_figure(conditions: tuple[TransientCondition, ...]) -> plt.Figure:
 
 
 def main() -> None:
-    """Run the JOS-3 transient validation and save the manuscript figure."""
+    """Run the JOS-3 transient example and save the manuscript figure."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     fig = build_figure(CONDITIONS)
-    fig.savefig(OUTPUT_FIGURE, bbox_inches="tight")
+    fig.savefig(OUTPUT_FIGURE)
     print(f"Saved figure to {OUTPUT_FIGURE}")
 
 

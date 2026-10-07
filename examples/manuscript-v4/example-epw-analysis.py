@@ -136,8 +136,8 @@ def main():
     bounds = [-50] + UTCI_THRESHOLDS + [60]
     norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
-    fig = plt.figure(figsize=(7, 5), layout="constrained")
-    gs = fig.add_gridspec(2, 2, width_ratios=[7, 1])
+    fig = plt.figure(figsize=(7, 5.5))
+    gs = fig.add_gridspec(2, 2, width_ratios=[7, 1], hspace=0.55)
     ax_heat = fig.add_subplot(gs[0, 0])
     ax_sum = fig.add_subplot(gs[0, 1])
     ax_bar = fig.add_subplot(gs[1, :])
@@ -251,6 +251,12 @@ def main():
     ax_bar.set_title(r"Monthly UTCI (shade)", fontsize=11, fontweight="normal")
     ax_bar.grid(False)
 
+    for ax in (ax_heat, ax_sum, ax_bar):
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+
+    fig.subplots_adjust(left=0.10, right=0.97, bottom=0.10, top=0.80)
+
     # One legend for the whole figure, placed above all three panels, since
     # the heatmap, annual-distribution, and monthly panels all share the same
     # category-color mapping (UTCI_COLORS) -- a reader should not need to
@@ -260,8 +266,8 @@ def main():
         legend_handles,
         legend_labels_plot,
         loc="upper center",
-        bbox_to_anchor=(0.5, 1.14),
-        ncol=min(4, max(1, len(legend_labels_plot))),
+        bbox_to_anchor=(0.5, 0.98),
+        ncol=min(3, max(1, len(legend_labels_plot))),
         fontsize=9,
         frameon=False,
     )
@@ -269,9 +275,7 @@ def main():
     outdir = os.path.join(SCRIPT_DIR, "output")
     os.makedirs(outdir, exist_ok=True)
     out = os.path.join(outdir, "example2_epw_utci.pdf")
-    # tight bbox: the shared legend is anchored above the axes (y=1.08) and the
-    # default bounding box can crop it. Matches the other example scripts.
-    fig.savefig(out, bbox_inches="tight")
+    fig.savefig(out)
     plt.show()
     print(f"\nFigure saved to {out}")
 

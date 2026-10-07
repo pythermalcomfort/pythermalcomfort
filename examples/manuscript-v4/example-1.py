@@ -118,7 +118,7 @@ axes[2].set_title("Heat Index", y=Y_TITLE_OFFSET + 0.15)
 for ax in axes:
     ax.grid(False)
 
-fig.savefig(os.path.join(OUTDIR, "example_1.pdf"), bbox_inches="tight", dpi=300)
+fig.savefig(os.path.join(OUTDIR, "example_1.pdf"))
 plt.show()
 
 # Figure 2: PsychrometricPlot + SummaryPlot
@@ -176,6 +176,8 @@ ax_psy.set_xlabel(r"Dry-bulb temperature ($^\circ$C)")
 ax_psy.grid(False)
 ax_psy.spines["top"].set_visible(False)
 ax_psy.spines["right"].set_visible(False)
+ax_psy.yaxis.set_label_position("right")
+ax_psy.yaxis.tick_right()
 # The y-label is supplied by PsychrometricPlot itself and is already in g/kg.
 
 # Overlay scatter measurements. psy_ta_rh returns humidity ratio in kg/kg dry
@@ -202,7 +204,5 @@ ax_psy.scatter(
     .plot(ax=ax_sum, legend=False, vertical=True)
 )
 
-fig2.savefig(
-    os.path.join(OUTDIR, "pmv_psychrometric_comfort.pdf"), bbox_inches="tight", dpi=300
-)
+fig2.savefig(os.path.join(OUTDIR, "pmv_psychrometric_comfort.pdf"))
 plt.show()
