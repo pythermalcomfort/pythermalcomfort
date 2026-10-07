@@ -388,6 +388,19 @@ def test_ashrae_plot_legend_kws() -> None:
     assert result.legend is not None
 
 
+def test_ashrae_plot_explicit_none_label_falls_back_to_default() -> None:
+    """fill_kws/center_line_kws label=None must not leak Matplotlib's internal
+    auto-generated artist label (e.g. "_child0") into the legend."""
+    result = AdaptivePlot(adaptive_ashrae).plot(
+        fill_kws={"label": None}, center_line_kws={"label": None}
+    )
+    labels = [t.get_text() for t in result.legend.get_texts()]
+    assert "80% Acceptability" in labels
+    assert "90% Acceptability" in labels
+    assert "Comfort Temperature" in labels
+    assert not any(label.startswith("_child") for label in labels)
+
+
 def test_ashrae_plot_default_xlabel() -> None:
     result = AdaptivePlot(adaptive_ashrae).plot()
     assert result.ax.get_xlabel() == "Prevailing Mean Outdoor Air Temperature [°C]"

@@ -19,6 +19,10 @@ Unreleased
 * ``PsychrometricPlot`` draws constant-RH background curves at 25 % intervals
   instead of 10 %, and RH labels use Matplotlib's default font size instead of a
   fixed 8 pt, for readability on charts of different sizes.
+* Fixed ``AdaptivePlot.plot()`` showing Matplotlib's internal auto-generated
+  label (e.g. ``_child0``) in the legend when ``fill_kws`` or
+  ``center_line_kws`` explicitly passed ``label=None``, instead of falling
+  back to the band's or center line's configured default label.
 
 4.6.0 (2026-09-17)
 ------------------
