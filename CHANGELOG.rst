@@ -16,6 +16,9 @@ Unreleased
   logistic model is below the 34.5 % baseline (Liu et al. 2020, eq. 3).
 * Fixed ``AdaptivePlot`` losing or mislabeling legend entries for comfort bands and
   the center line when the legend is rebuilt after adding measured data (#415).
+* ``PsychrometricPlot`` draws constant-RH background curves at 25 % intervals
+  instead of 10 %, and RH labels use Matplotlib's default font size instead of a
+  fixed 8 pt, for readability on charts of different sizes.
 
 4.6.0 (2026-09-17)
 ------------------
