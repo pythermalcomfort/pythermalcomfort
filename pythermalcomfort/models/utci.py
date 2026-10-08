@@ -50,7 +50,9 @@ def utci(
         By default, if the inputs are outside the standard applicability limits the
         function returns nan. If False, returns UTCI values even if input values are
         outside the applicability limits of the model. The valid input ranges are
-        -50 < tdb [°C] < 50, tdb - 30 < tr [°C] < tdb + 70, and for 0.5 < v [m/s] < 17.0. Defaults to True.
+        -50 <= tdb [°C] <= 50, -30 <= tr - tdb [°C] <= 70,
+        0.5 <= v [m/s] <= 17.0, 0 <= rh [%] <= 100, and water vapour pressure
+        between 0 and 5 kPa (inclusive). Defaults to True.
     round_output : bool, optional
         If True, rounds output value. If False, it does not round it. Defaults to True.
 
@@ -61,6 +63,16 @@ def utci(
         See :py:class:`~pythermalcomfort.classes_return.UTCI` for more details. To access the
         `utci` and `stress_category` values, use the corresponding attributes of the
         returned `Utci` instance, e.g., `result.utci`.
+
+    Notes
+    -----
+    The humidity limits follow the input checks in the `official UTCI program
+    <https://utci.org/resources/UTCI%20Program%20Code.zip>`_ (version a 0.002).
+    High relative humidity can exceed the vapour-pressure limit even when air
+    temperature is within range. Setting ``limit_inputs=False`` permits polynomial
+    extrapolation, which can produce unrealistic temperatures and stress categories.
+    The original approximation can also have a non-monotonic wind-speed response;
+    this function does not alter the polynomial to enforce monotonicity.
 
     Examples
     --------
@@ -121,7 +133,15 @@ def utci(
         tdb_valid = _valid_range(tdb, (-50.0, 50.0))
         diff_valid = _valid_range(tr - tdb, (-30.0, 70.0), param_name="tr - tdb")
         v_valid = _valid_range(v, (0.5, 17.0))
-        all_valid = ~(np.isnan(tdb_valid) | np.isnan(diff_valid) | np.isnan(v_valid))
+        pa_valid = _valid_range(pa, (0.0, 5.0), param_name="pa (kPa)")
+        rh_valid = _valid_range(rh, (0.0, 100.0))
+        all_valid = ~(
+            np.isnan(tdb_valid)
+            | np.isnan(diff_valid)
+            | np.isnan(v_valid)
+            | np.isnan(pa_valid)
+            | np.isnan(rh_valid)
+        )
         utci_approx = np.where(all_valid, utci_approx, np.nan)
 
     # Stress-category thresholds are in °C; keep the SI value before IP conversion.

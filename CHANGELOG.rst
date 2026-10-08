@@ -4,6 +4,13 @@ Changelog
 Unreleased
 ----------
 
+* Fixed ``utci()`` missing humidity applicability checks (#410). With
+  ``limit_inputs=True`` (the default), relative humidity outside 0–100 % or
+  water vapour pressure outside 0–5 kPa now produces NaN values and stress
+  categories with a warning. This prevents misleading polynomial extrapolation
+  in extreme humid heat. ``limit_inputs=False`` retains the original
+  extrapolation behavior, which is not validated physical output.
+
 * Fixed the ``solar_gain`` docstring example, which showed ``erf`` 42.9 and
   ``delta_mrt`` 10.3 instead of the 43.3 and 10.4 the call returns
   (`#449 <https://github.com/pythermalcomfort/pythermalcomfort/issues/449>`_).
