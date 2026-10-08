@@ -33,8 +33,8 @@ class BasePlot(ABC):
     """Abstract base for all pythermalcomfort Matplotlib plot classes.
 
     Enforces the :meth:`set_regions` and :meth:`plot` contracts via
-    :func:`~abc.abstractmethod`. Each concrete subclass owns its own
-    :meth:`set_regions` signature, appropriate to its domain.
+    :func:`~abc.abstractmethod`. Each concrete subclass owns its own :meth:`set_regions`
+    signature, appropriate to its domain.
 
     Subclasses must implement :meth:`plot`.
     """

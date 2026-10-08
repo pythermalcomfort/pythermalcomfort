@@ -608,8 +608,10 @@ class JOS3:
 
     # TODO check the name of the function and the docstring
     def _reset_setpt(self) -> JOS3Output:
-        """Reset set-point temperatures under steady state conditions. For a nude person
-        in a reference environment, of 50% RH, 0.1 m/s air velocity, and par=1.25.
+        """Reset set-point temperatures under steady state conditions.
+
+        For a nude person in a reference environment, of 50% RH, 0.1 m/s air velocity,
+        and par=1.25.
 
         Set-point temperatures are hypothetical core or skin temperatures in a thermally neutral state
         when at rest, similar to room set-point temperatures for air conditioning. This function is
@@ -1403,9 +1405,10 @@ class JOS3:
 
     @property
     def tdb(self):
-        """Dry-bulb air temperature. The setter accepts int, float, dict, list, ndarray.
-        The inputs are used to create a 17-element array. dict should be passed with
-        BODY_NAMES as keys.
+        """Dry-bulb air temperature.
+
+        The setter accepts int, float, dict, list, ndarray. The inputs are used to create
+        a 17-element array. dict should be passed with BODY_NAMES as keys.
 
         Returns
         -------
@@ -1513,7 +1516,10 @@ class JOS3:
 
     @property
     def par(self):
-        """Par : float Physical activity ratio [-].This equals the ratio of metabolic rate to basal metabolic rate. par of sitting quietly is 1.2."""
+        """Physical activity ratio, [-].
+
+        The ratio of metabolic rate to basal metabolic rate. Sitting quietly is 1.2.
+        """
         return self._par
 
     @par.setter
@@ -1536,7 +1542,7 @@ class JOS3:
 
     @property
     def r_t(self):
-        """r_t : numpy.ndarray (17) Dry heat resistances between the skin and ambience areas by local body segments [(m2*K)/W]."""
+        """Dry heat resistances between skin and ambience, 17 segments, [(m2*K)/W]."""
         hc = threg.fixed_hc(
             threg.conv_coef(
                 self._posture,
@@ -1555,8 +1561,9 @@ class JOS3:
 
     @property
     def r_et(self):
-        """r_et : numpy.ndarray (17) w (Evaporative) heat resistances between the skin and
-        ambience areas by local body segments [(m2*kPa)/W].
+        """Evaporative heat resistances between skin and ambience, 17 segments.
+
+        Units: [(m2*kPa)/W].
         """
         hc = threg.fixed_hc(
             threg.conv_coef(
@@ -1602,7 +1609,7 @@ class JOS3:
     # TODO all the properties should be returning JOS3BodyParts
     @property
     def t_skin(self) -> np.ndarray[float]:
-        """t_skin : numpy.ndarray (17) Skin temperatures by the local body segments [°C]."""
+        """Skin temperatures of the 17 body segments, [°C]."""
         return self._t_body[INDEX["skin"]].copy()
 
     @t_skin.setter
@@ -1611,7 +1618,7 @@ class JOS3:
 
     @property
     def t_core(self) -> np.ndarray[float]:
-        """t_core : numpy.ndarray (17) Skin temperatures by the local body segments [°C]."""
+        """Core temperatures of the 17 body segments, [°C]."""
         return self._t_body[INDEX["core"]].copy()
 
     @property
@@ -1621,17 +1628,17 @@ class JOS3:
 
     @property
     def t_artery(self) -> np.ndarray[float]:
-        """t_artery : numpy.ndarray (17) Arterial temperatures by the local body segments [°C]."""
+        """Arterial temperatures of the 17 body segments, [°C]."""
         return self._t_body[INDEX["artery"]].copy()
 
     @property
     def t_vein(self) -> np.ndarray[float]:
-        """t_vein : numpy.ndarray (17) Vein temperatures by the local body segments [°C]."""
+        """Vein temperatures of the 17 body segments, [°C]."""
         return self._t_body[INDEX["vein"]].copy()
 
     @property
     def t_superficial_vein(self) -> np.ndarray[float]:
-        """t_superficial_vein : numpy.ndarray (12,) Superficial vein temperatures by the local body segments [°C]."""
+        """Superficial vein temperatures of the 12 limb segments, [°C]."""
         return self._t_body[INDEX["sfvein"]].copy()
 
     @property

@@ -1,9 +1,9 @@
 """Adaptive comfort chart plotting for ASHRAE 55 and EN 16798.
 
-Comfort band boundaries are computed as smooth lines directly from the
-standard equations.  The slope, intercept, and cooling-effect function are
-imported from the underlying model modules so there is one single source of
-truth for every numeric constant.
+Comfort band boundaries are computed as smooth lines directly from the standard
+equations.  The slope, intercept, and cooling-effect function are imported from the
+underlying model modules so there is one single source of truth for every numeric
+constant.
 """
 
 from __future__ import annotations
