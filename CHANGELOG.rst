@@ -4,6 +4,12 @@ Changelog
 Unreleased
 ----------
 
+* Fixed ``JOS3`` initialization for low metabolic rates by allowing its internal
+  neutral-temperature search outside ISO 7730's comfort applicability limits
+  (#435). This prevents discontinuous or NaN core and skin set points and
+  resulting NaN simulations. Previously affected set points change; the public
+  ``pmv_ppd_iso()`` applicability limits remain unchanged.
+
 * Fixed the ``solar_gain`` docstring example, which showed ``erf`` 42.9 and
   ``delta_mrt`` 10.3 instead of the 43.3 and 10.4 the call returns
   (`#449 <https://github.com/pythermalcomfort/pythermalcomfort/issues/449>`_).

@@ -535,6 +535,9 @@ class JOS3:
         """Calculate operative temperature [°C] when PMV=0 with NaN handling and retry
         logic.
 
+        The internal reference-state search is not restricted to ISO 7730's
+        comfort applicability limits, which can exclude low metabolic rates.
+
         Parameters
         ----------
         v : float, optional
@@ -571,6 +574,7 @@ class JOS3:
                 met,
                 clo,
                 model=Models.iso_7730_2025.value,
+                limit_inputs=False,
             ).pmv
 
             # Check for NaN and handle retries
@@ -586,6 +590,7 @@ class JOS3:
                         met,
                         clo,
                         model=Models.iso_7730_2025.value,
+                        limit_inputs=False,
                     ).pmv
 
                     if abs(pmv_value) < tolerance:
