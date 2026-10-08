@@ -32,6 +32,83 @@ def test_utci_optimized() -> None:
     )
 
 
+@pytest.mark.parametrize("tdb,rh", [(40, 80), (50, 100)])
+@pytest.mark.parametrize("units", ["SI", "IP"])
+def test_utci_rejects_excess_vapour_pressure(tdb, rh, units) -> None:
+    """Default limits must not classify a humid heat extrapolation as cold stress."""
+    temperature = tdb if units == "SI" else tdb * 1.8 + 32
+    wind = 1 if units == "SI" else 3.281
+    with pytest.warns(UserWarning, match="pa"):
+        result = utci(tdb=temperature, tr=temperature, v=wind, rh=rh, units=units)
+    assert np.isnan(result.utci)
+    assert np.isnan(result.stress_category)
+
+
+@pytest.mark.parametrize("rh", [-1, 101])
+def test_utci_rejects_relative_humidity_outside_physical_range(rh) -> None:
+    with pytest.warns(UserWarning) as records:
+        result = utci(tdb=25, tr=25, v=1, rh=rh)
+    assert any("'rh'" in str(record.message) for record in records)
+    assert np.isnan(result.utci)
+    assert np.isnan(result.stress_category)
+
+
+@pytest.mark.parametrize("rh", [0, 100])
+def test_utci_accepts_relative_humidity_endpoints(rh) -> None:
+    limited = utci(tdb=25, tr=25, v=1, rh=rh, round_output=False)
+    unlimited = utci(tdb=25, tr=25, v=1, rh=rh, limit_inputs=False, round_output=False)
+    assert np.isfinite(limited.utci)
+    assert limited.utci == unlimited.utci
+    assert limited.stress_category == unlimited.stress_category
+
+
+def test_utci_vapour_pressure_limit_is_inclusive() -> None:
+    # Hardy's equation at 40 C: this RH gives exactly 5.0 kPa in float64.
+    rh_at_limit = 67.70206528209202
+    rh = [rh_at_limit - 1e-10, rh_at_limit, rh_at_limit + 1e-10]
+    with pytest.warns(UserWarning, match="pa"):
+        limited = utci(tdb=40, tr=40, v=1, rh=rh, round_output=False)
+    unlimited = utci(tdb=40, tr=40, v=1, rh=rh, limit_inputs=False, round_output=False)
+    np.testing.assert_array_equal(np.isnan(limited.utci), [False, False, True])
+    np.testing.assert_array_equal(limited.utci[:2], unlimited.utci[:2])
+    np.testing.assert_array_equal(
+        limited.stress_category[:2], unlimited.stress_category[:2]
+    )
+    assert np.isnan(limited.stress_category[2])
+
+
+@pytest.mark.parametrize("units", ["SI", "IP"])
+def test_utci_humidity_guard_broadcasts_without_masking_valid_neighbors(units) -> None:
+    temperature = np.array([[25.0], [50.0]])
+    if units == "IP":
+        temperature = temperature * 1.8 + 32
+    wind = 1 if units == "SI" else 3.281
+    inputs = dict(tdb=temperature, tr=temperature, v=wind, rh=[0, 50, 101], units=units)
+    with pytest.warns(UserWarning):
+        limited = utci(**inputs)
+    unlimited = utci(**inputs, limit_inputs=False)
+    invalid = np.array([[False, False, True], [False, True, True]])
+    np.testing.assert_array_equal(np.isnan(limited.utci), invalid)
+    np.testing.assert_array_equal(limited.utci[~invalid], unlimited.utci[~invalid])
+    np.testing.assert_array_equal(
+        limited.stress_category[~invalid], unlimited.stress_category[~invalid]
+    )
+    assert all(np.isnan(category) for category in limited.stress_category[invalid])
+
+
+def test_utci_explicit_extrapolation_preserves_original_polynomial() -> None:
+    result = utci(tdb=50, tr=50, v=1, rh=100, limit_inputs=False, round_output=False)
+    assert result.utci == pytest.approx(-326.0792322091629)
+    assert result.stress_category == "extreme cold stress"
+
+
+def test_utci_nan_humidity_propagates_without_masking_valid_neighbors() -> None:
+    result = utci(tdb=25, tr=25, v=1, rh=[50, np.nan])
+    np.testing.assert_array_equal(result.utci, [24.6, np.nan])
+    assert result.stress_category[0] == "no thermal stress"
+    assert np.isnan(result.stress_category[1])
+
+
 def test_utci_ip_uses_si_thresholds_for_stress_category() -> None:
     """Test that IP stress categories use the underlying SI UTCI value."""
     result = utci(tdb=77, tr=77, v=3.28084, rh=50, units="IP")
@@ -118,5 +195,8 @@ def test_utci_saturation_vapour_pressure_matches_p_sat() -> None:
     rh = 80
     pa = p_sat(tdb) * (rh / 100) / 1000
     expected = _utci_optimized(tdb, v, tr - tdb, pa)
-    actual = utci(tdb=tdb, tr=tr, v=v, rh=rh, round_output=False).utci
+    # This pressure-formula regression intentionally evaluates beyond 5 kPa.
+    actual = utci(
+        tdb=tdb, tr=tr, v=v, rh=rh, limit_inputs=False, round_output=False
+    ).utci
     assert actual == pytest.approx(expected, abs=0.1)
