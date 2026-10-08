@@ -180,6 +180,32 @@ def test_custom_region_and_invalid_colors_are_preserved() -> None:
     plt.close(result.fig)
 
 
+def test_default_pmv_preset_preserves_independent_overrides() -> None:
+    """Custom labels and colors independently override their preset values."""
+    custom_labels = ["Cool", "Neutral", "Warm"]
+    custom_colors = ["#111111", "#222222", "#333333"]
+
+    labels_plot = PsychrometricPlot(pmv_ppd_iso).set_regions(
+        output="PMV",
+        thresholds=[0.5, -0.5],
+        labels=custom_labels,
+    )
+    colors_plot = PsychrometricPlot(pmv_ppd_iso).set_regions(
+        output="pmv",
+        thresholds=[-0.5, 0.5],
+        colors=custom_colors,
+    )
+
+    assert labels_plot._region_config.labels == custom_labels
+    assert labels_plot._region_config.colors == ["#86AEC8", "#4CB15E", "#D88B7B"]
+    assert colors_plot._region_config.labels == [
+        "PMV < -0.5",
+        "-0.5 ≤ PMV ≤ 0.5",
+        "PMV > 0.5",
+    ]
+    assert colors_plot._region_config.colors == custom_colors
+
+
 def test_y_axis_has_default_humidity_ratio_label() -> None:
     """The chart labels its own y-axis instead of falling back to the bare 'hr'."""
     plot = _new_plot()

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from typing import Any
 
 import numpy as np
@@ -11,6 +11,7 @@ from matplotlib.axes import Axes
 from matplotlib.path import Path as MplPath
 
 from pythermalcomfort.plots.matplotlib._shared import (
+    _PSYCHROMETRIC_REGION_PRESETS,
     _apply_default_links_to_kwargs,
     _AxisConfig,
     _extract_output_by_name,
@@ -137,40 +138,7 @@ class PsychrometricPlot(ThresholdPlot):
         )
     """
 
-    def set_regions(
-        self,
-        *,
-        output: str,
-        thresholds: Sequence[float],
-        labels: Sequence[str] | None = None,
-        colors: Sequence[str] | None = None,
-    ) -> PsychrometricPlot:
-        """Configure output regions, highlighting the default PMV comfort area.
-
-        Custom labels and colors are passed through unchanged. For the default
-        PMV comfort thresholds, the neutral region uses a light green from the
-        suggested CBE color palette, and its displayed label includes both
-        boundary values.
-        """
-        super().set_regions(
-            output=output,
-            thresholds=thresholds,
-            labels=labels,
-            colors=colors,
-        )
-        config = self._region_config
-        is_default_pmv = config.output_name.lower() == "pmv" and config.thresholds == [
-            -0.5,
-            0.5,
-        ]
-        if is_default_pmv:
-            # This is the conventional display notation requested for the
-            # comfort band; the underlying threshold solver is unchanged.
-            if labels is None:
-                config.labels = ["PMV < -0.5", "-0.5 ≤ PMV ≤ 0.5", "PMV > 0.5"]
-            if colors is None:
-                config.colors[1] = _PlotDefaults.Psychrometric.comfort_color
-        return self
+    _region_presets = _PSYCHROMETRIC_REGION_PRESETS
 
     def set_x_axis(
         self,
