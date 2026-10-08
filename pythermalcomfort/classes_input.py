@@ -144,7 +144,9 @@ class BaseInputs:
             # Type validation
             expected_types = meta.get("types")
             if expected_types:
-                value = validate_type(value, f.name, expected_types)
+                value = validate_type(
+                    value=value, name=f.name, allowed_types=expected_types
+                )
                 # Store the validated and possibly normalized value.
                 setattr(self, f.name, value)
                 continue
@@ -152,7 +154,7 @@ class BaseInputs:
             # Allowed string values validation (supports arrays/lists)
             allowed = meta.get("allowed")
             if allowed:
-                self._validate_str_values(f.name, value, allowed)
+                self._validate_str_values(name=f.name, value=value, allowed=allowed)
                 setattr(self, f.name, value)
                 continue
 

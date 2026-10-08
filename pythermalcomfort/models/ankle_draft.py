@@ -86,7 +86,9 @@ def ankle_draft(
 
         from pythermalcomfort.models import ankle_draft
 
-        results = ankle_draft(25, 25, 0.2, 50, 1.2, 0.5, 0.3, units="SI")
+        results = ankle_draft(
+            tdb=25, tr=25, vr=0.2, rh=50, met=1.2, clo=0.5, v_ankle=0.3, units="SI"
+        )
         print(results)
         # AnkleDraft(ppd_ad=18.5, acceptability=True)
     """
@@ -116,12 +118,12 @@ def ankle_draft(
         tdb, tr, vr, v_ankle = units_converter(tdb=tdb, tr=tr, vr=vr, vel=v_ankle)
 
     tsv = pmv_ppd_ashrae(
-        tdb,
-        tr,
-        vr,
-        rh,
-        met,
-        clo,
+        tdb=tdb,
+        tr=tr,
+        vr=vr,
+        rh=rh,
+        met=met,
+        clo=clo,
         model=Models.ashrae_55_2023.value,
         limit_inputs=False,
     ).pmv

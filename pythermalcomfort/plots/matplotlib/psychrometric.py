@@ -175,7 +175,9 @@ class PsychrometricPlot(ThresholdPlot):
             If ``name`` is not a valid model argument, or range/resolution
             are invalid.
         """
-        return super().set_x_axis(name, min_val, max_val, resolution=resolution)  # type: ignore[return-value]
+        return super().set_x_axis(
+            name=name, min_val=min_val, max_val=max_val, resolution=resolution
+        )  # type: ignore[return-value]
 
     def set_y_axis(
         self,
@@ -296,7 +298,7 @@ class PsychrometricPlot(ThresholdPlot):
             tdb_for_psat = x_flat
 
         p_atm = _PlotDefaults.Psychrometric.p_atm
-        rh_flat = hr_to_rh(y_flat, tdb_for_psat, p_atm)
+        rh_flat = hr_to_rh(hr=y_flat, tdb=tdb_for_psat, p_atm=p_atm)
 
         # Clamp RH to [0, 100] — super-saturated cells are evaluated at rh=100%
         # rather than being excluded.  This keeps the contourf gap-free; the

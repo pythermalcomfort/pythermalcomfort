@@ -214,7 +214,7 @@ def _solve_single_criterion(
     """
     ar_adu = 0.77
     air_insulation = 0.092 * math.exp(-0.15 * vr - 0.22 * walk_sp) - 0.0045
-    constant_part = _clothing_constant_part(p, vr, walk_sp)
+    constant_part = _clothing_constant_part(p=p, vr=vr, walk_sp=walk_sp)
 
     expired_air_temperature = 29.0 + 0.2 * tdb
     expired_air_vapor_pressure = 0.1333 * math.exp(
@@ -386,7 +386,17 @@ def _solve_ireq_criterion(
 ):
     """Vectorize the Numba-compiled single-criterion solver over array inputs."""
     return _solve_single_criterion(
-        tdb, tr, met, wme, vr, walk_sp, p, clo_m2c_w, rh, skin_temperature, wetness
+        tdb=tdb,
+        tr=tr,
+        met=met,
+        wme=wme,
+        vr=vr,
+        walk_sp=walk_sp,
+        p=p,
+        clo_m2c_w=clo_m2c_w,
+        rh=rh,
+        skin_temperature=skin_temperature,
+        wetness=wetness,
     )
 
 

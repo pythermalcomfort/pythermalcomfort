@@ -100,10 +100,10 @@ class _SportsValues:
     duration: int
 
     def __post_init__(self):
-        validate_type(self.clo, "clo", (int, float))
-        validate_type(self.met, "met", (int, float))
-        validate_type(self.vr, "vr", (int, float))
-        validate_type(self.duration, "duration", (int,))
+        validate_type(value=self.clo, name="clo", allowed_types=(int, float))
+        validate_type(value=self.met, name="met", allowed_types=(int, float))
+        validate_type(value=self.vr, name="vr", allowed_types=(int, float))
+        validate_type(value=self.duration, name="duration", allowed_types=(int,))
 
         if self.clo <= 0:
             msg = f"clo must be a positive number > 0, got {self.clo}"

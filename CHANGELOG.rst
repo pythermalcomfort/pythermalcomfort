@@ -4,6 +4,12 @@ Changelog
 Unreleased
 ----------
 
+* Internal calls between package functions now pass arguments by keyword, so two
+  same-typed arguments (e.g. ``tdb`` and ``tr``) cannot be swapped silently. A new test
+  checks every call in the package for this. The ``pmv_e`` and ``ankle_draft``
+  docstring examples now use keyword arguments. Public function signatures and results
+  are unchanged
+  (`#441 <https://github.com/pythermalcomfort/pythermalcomfort/issues/441>`_).
 * Fixed the ``solar_gain`` docstring example, which showed ``erf`` 42.9 and
   ``delta_mrt`` 10.3 instead of the 43.3 and 10.4 the call returns
   (`#449 <https://github.com/pythermalcomfort/pythermalcomfort/issues/449>`_).

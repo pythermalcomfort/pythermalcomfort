@@ -152,6 +152,15 @@ def model_name(
 ) -> OutputDataclass:                   # returns frozen dataclass
 ```
 
+**Calling convention** (#441): call functions with keyword arguments, e.g.
+`pmv_ppd_iso(tdb=25, tr=25, vr=0.1, rh=50, met=1.2, clo=0.5)`, in package code and in
+docstring examples. Swapped same-typed arguments (`tdb`/`tr`) run silently and return
+plausible numbers. `tests/test_call_site_arguments.py` fails on 3+ positional arguments
+to a package function and on arguments that look swapped. The exception is numba
+`@vectorize` / `np.vectorize` kernels (e.g. `_pmv_ppd_optimized`), which reject keyword
+arguments. Public signatures do not use `*`: that would break positional callers, so it
+is deferred to a major version.
+
 **Input validation flow**:
 1. Function receives raw inputs
 2. Instantiates input dataclass (e.g., `PMVPPDInputs(tdb=tdb, tr=tr, ...)`)

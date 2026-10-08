@@ -260,7 +260,7 @@ def bfb_rate(
     else:  # age >= 70
         ci *= 0.7
 
-    bsa_ratio = bsa_rate(height, weight, bsa_equation)
+    bsa_ratio = bsa_rate(height=height, weight=weight, bsa_equation=bsa_equation)
     bfb_all = ci * bsa_ratio * Default.local_bsa.sum()  # Total BFB in L/h
     return bfb_all / Default.blood_flow_rate  # Ratio to the standard body (290 L/h)
 
@@ -490,7 +490,7 @@ def conductance(
 
     # Changes values by body size based on the standard body.
     wr = weight_rate(weight)
-    bsar = bsa_rate(height, weight, bsa_equation)
+    bsar = bsa_rate(height=height, weight=weight, bsa_equation=bsa_equation)
     # head, neck (Sphere shape)
     # TODO we are multiplying zeros by a value
     cdt_cr_sk[:2] *= wr / bsar
@@ -738,7 +738,9 @@ def capacity(
     )
 
     # Adjust capacities based on body parameters
-    bfbr = bfb_rate(height, weight, bsa_equation, age, ci)
+    bfbr = bfb_rate(
+        height=height, weight=weight, bsa_equation=bsa_equation, age=age, ci=ci
+    )
     wr = weight_rate(weight)
     cap_art *= bfbr
     cap_vein *= bfbr
