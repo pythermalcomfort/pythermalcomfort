@@ -602,9 +602,9 @@ def evaporation(
         err_sk,
     )  # Thermoregulation signals
     bsar = cons.bsa_rate(
-        height,
-        weight,
-        bsa_equation,
+        height=height,
+        weight=weight,
+        bsa_equation=bsa_equation,
     )  # bsa rate
     bsa = Default.local_bsa * bsar  # bsa
     p_a = antoine(tdb) * rh / 100  # Saturated vapor pressure of ambient [kPa]
@@ -817,11 +817,11 @@ def skin_blood_flow(
     )
     # Basal blood flow rate to the standard body [-]
     bfb_rate = cons.bfb_rate(
-        height,
-        weight,
-        bsa_equation,
-        age,
-        ci,
+        height=height,
+        weight=weight,
+        bsa_equation=bsa_equation,
+        age=age,
+        ci=ci,
     )
     bf_skin *= bfb_rate
     return bf_skin
@@ -878,11 +878,11 @@ def ava_blood_flow(
 
     # Basal blood flow rate to the standard body [-]
     bfb_rate = cons.bfb_rate(
-        height,
-        weight,
-        bsa_equation,
-        age,
-        ci,
+        height=height,
+        weight=weight,
+        bsa_equation=bsa_equation,
+        age=age,
+        ci=ci,
     )
     # AVA blood flow rate [L/h]
     bf_ava_hand = 1.71 * bfb_rate * sig_ava_hand  # Hand
@@ -985,7 +985,9 @@ def local_mbase(
     mbase : array
         Local basal metabolic rate (Mbase) [W].
     """
-    mbase_all = basal_met(height, weight, age, sex, bmr_equation)
+    mbase_all = basal_met(
+        height=height, weight=weight, age=age, sex=sex, bmr_equation=bmr_equation
+    )
     # Distribution coefficient of basal metabolic rate
     mbf_cr = np.asarray(
         [
@@ -1248,7 +1250,7 @@ def shivering(
         sd_shiv = np.ones(Default.num_body_parts) * 0.82597
 
     # Ratio of body surface area to the standard body [-]
-    bsar = cons.bsa_rate(height, weight, bsa_equation)
+    bsar = cons.bsa_rate(height=height, weight=weight, bsa_equation=bsa_equation)
 
     # Local thermogenesis by shivering [W]
     q_shiv = shivf * bsar * sd_shiv * sig_shiv
@@ -1353,7 +1355,7 @@ def nonshivering(
     )
 
     # Ratio of body surface area to the standard body [-]
-    bsar = cons.bsa_rate(height, weight, bsa_equation)
+    bsar = cons.bsa_rate(height=height, weight=weight, bsa_equation=bsa_equation)
 
     # Local thermogenesis by non-shivering [W]
     q_nst = bsar * nstf * sig_nst
@@ -1501,7 +1503,9 @@ def cr_ms_fat_blood_flow(
         ],
     )
 
-    bfb_rate = cons.bfb_rate(height, weight, bsa_equation, age, ci)
+    bfb_rate = cons.bfb_rate(
+        height=height, weight=weight, bsa_equation=bsa_equation, age=age, ci=ci
+    )
     bf_core = bfb_core * bfb_rate
     bf_muscle = bfb_muscle * bfb_rate
     bf_fat = bfb_fat * bfb_rate

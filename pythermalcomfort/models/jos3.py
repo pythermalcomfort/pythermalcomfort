@@ -564,12 +564,12 @@ class JOS3:
         # Main loop for finding PMV=0
         for _i in range(max_iterations):
             pmv_value = pmv_ppd_iso(
-                to,
-                to,
-                v,
-                rh,
-                met,
-                clo,
+                tdb=to,
+                tr=to,
+                vr=v,
+                rh=rh,
+                met=met,
+                clo=clo,
                 model=Models.iso_7730_2025.value,
             ).pmv
 
@@ -579,12 +579,12 @@ class JOS3:
                     adjustment_factor = retry_adjustment_factor
                     to = initial_to  # Reset to initial temperature for retry
                     pmv_value = pmv_ppd_iso(
-                        to,
-                        to,
-                        v,
-                        rh,
-                        met,
-                        clo,
+                        tdb=to,
+                        tr=to,
+                        vr=v,
+                        rh=rh,
+                        met=met,
+                        clo=clo,
                         model=Models.iso_7730_2025.value,
                     ).pmv
 
@@ -769,15 +769,15 @@ class JOS3:
         # Compute operative temp. [°C], clothing heat and evaporative resistance [m2.K/W], [m2.kPa/W]
         # Operative temp. [°C]
         to = threg.operative_temp(
-            self._tdb,
-            self._tr,
-            hc,
-            hr,
+            tdb=self._tdb,
+            tr=self._tr,
+            hc=hc,
+            hr=hr,
         )
         # Clothing heat resistance [m2.K/W]
-        r_t = threg.dry_r(hc, hr, self._clo)
+        r_t = threg.dry_r(hc=hc, hr=hr, clo=self._clo)
         # Clothing evaporative resistance [m2.kPa/W]
-        r_et = threg.wet_r(hc, self._clo, self._iclo, lewis_rate=16.5)
+        r_et = threg.wet_r(hc=hc, clo=self._clo, i_clo=self._iclo, lewis_rate=16.5)
 
         # ------------------------------------------------------------------
         # Thermoregulation
@@ -807,39 +807,39 @@ class JOS3:
         # Skin wettedness [-], e_skin, e_max, e_sweat [W]
         # Calculate skin wettedness, sweating heat loss, maximum sweating rate, and total sweat rate
         wet, e_sk, e_max, e_sweat = threg.evaporation(
-            err_cr,
-            err_sk,
-            tsk,
-            self._tdb,
-            self._rh,
-            r_et,
-            self._height,
-            self._weight,
-            self._bsa_equation,
-            self._age,
+            err_cr=err_cr,
+            err_sk=err_sk,
+            t_skin=tsk,
+            tdb=self._tdb,
+            rh=self._rh,
+            ret=r_et,
+            height=self._height,
+            weight=self._weight,
+            bsa_equation=self._bsa_equation,
+            age=self._age,
         )
 
         # VASOCONSTRICTION, VASODILATION
         # Calculate skin blood flow and basal skin blood flow [L/h]
         bf_skin = threg.skin_blood_flow(
-            err_cr,
-            err_sk,
-            self._height,
-            self._weight,
-            self._bsa_equation,
-            self._age,
-            self._ci,
+            err_cr=err_cr,
+            err_sk=err_sk,
+            height=self._height,
+            weight=self._weight,
+            bsa_equation=self._bsa_equation,
+            age=self._age,
+            ci=self._ci,
         )
 
         # Calculate hands and feet's AVA blood flow [L/h]
         bf_ava_hand, bf_ava_foot = threg.ava_blood_flow(
-            err_cr,
-            err_sk,
-            self._height,
-            self._weight,
-            self._bsa_equation,
-            self._age,
-            self._ci,
+            err_cr=err_cr,
+            err_sk=err_sk,
+            height=self._height,
+            weight=self._weight,
+            bsa_equation=self._bsa_equation,
+            age=self._age,
+            ci=self._ci,
         )
         if self.options["ava_zero"] and passive:
             bf_ava_hand = 0
@@ -848,17 +848,17 @@ class JOS3:
         # SHIVERING AND NON-SHIVERING
         # Calculate shivering thermogenesis [W]
         q_shiv = threg.shivering(
-            err_cr,
-            err_sk,
-            tcr,
-            tsk,
-            self._height,
-            self._weight,
-            self._bsa_equation,
-            self._age,
-            self._sex,
-            dtime,
-            self.options,
+            err_cr=err_cr,
+            err_sk=err_sk,
+            t_core=tcr,
+            t_skin=tsk,
+            height=self._height,
+            weight=self._weight,
+            bsa_equation=self._bsa_equation,
+            age=self._age,
+            sex=self._sex,
+            dtime=dtime,
+            options=self.options,
         )
 
         # Calculate non-shivering thermogenesis (NST) [W]
@@ -881,11 +881,11 @@ class JOS3:
 
         # Calculate local basal metabolic rate (BMR) [W]
         q_bmr_local = threg.local_mbase(
-            self._height,
-            self._weight,
-            self._age,
-            self._sex,
-            self._bmr_equation,
+            height=self._height,
+            weight=self._weight,
+            age=self._age,
+            sex=self._sex,
+            bmr_equation=self._bmr_equation,
         )
         # Calculate overall basal metabolic rate (BMR) [W]
         q_bmr_total = sum([m.sum() for m in q_bmr_local])
@@ -900,10 +900,10 @@ class JOS3:
             q_thermogenesis_fat,
             q_thermogenesis_skin,
         ) = threg.sum_m(
-            q_bmr_local,
-            q_work,
-            q_shiv,
-            q_nst,
+            mbase=q_bmr_local,
+            q_work=q_work,
+            q_shiv=q_shiv,
+            q_nst=q_nst,
         )
         q_thermogenesis_total = (
             q_thermogenesis_core.sum()
@@ -917,28 +917,35 @@ class JOS3:
         # ------------------------------------------------------------------
         # Calculate blood flow in core, muscle, fat [L/h]
         bf_core, bf_muscle, bf_fat = threg.cr_ms_fat_blood_flow(
-            q_work,
-            q_shiv,
-            self._height,
-            self._weight,
-            self._bsa_equation,
-            self._age,
-            self._ci,
+            q_work=q_work,
+            q_shiv=q_shiv,
+            height=self._height,
+            weight=self._weight,
+            bsa_equation=self._bsa_equation,
+            age=self._age,
+            ci=self._ci,
         )
 
         # Calculate heat loss by respiratory
         p_a = antoine(self._tdb) * self._rh / 100
         res_sh, res_lh = threg.resp_heat_loss(
-            self._tdb[0],
-            p_a[0],
-            q_thermogenesis_total,
+            tdb=self._tdb[0],
+            p_a=p_a[0],
+            q_thermogenesis_total=q_thermogenesis_total,
         )
 
         # Calculate sensible heat loss [W]
         shl_sk = (tsk - to) / r_t * self._bsa
 
         # Calculate cardiac output [L/h]
-        co = threg.sum_bf(bf_core, bf_muscle, bf_fat, bf_skin, bf_ava_hand, bf_ava_foot)
+        co = threg.sum_bf(
+            bf_core=bf_core,
+            bf_muscle=bf_muscle,
+            bf_fat=bf_fat,
+            bf_skin=bf_skin,
+            bf_ava_hand=bf_ava_hand,
+            bf_ava_foot=bf_ava_foot,
+        )
 
         # Calculate weight loss rate by evaporation [g/sec]
         wlesk = (e_sweat + 0.06 * e_max) / 2418
@@ -961,22 +968,27 @@ class JOS3:
         # 1) bf_local for the local blood flow and 2) bf_whole for the whole-body blood flow.
         # These arrays are then combined to form arr_bf.
         bf_art, bf_vein = matrix.vessel_blood_flow(
-            bf_core,
-            bf_muscle,
-            bf_fat,
-            bf_skin,
-            bf_ava_hand,
-            bf_ava_foot,
+            bf_core=bf_core,
+            bf_muscle=bf_muscle,
+            bf_fat=bf_fat,
+            bf_skin=bf_skin,
+            bf_ava_hand=bf_ava_hand,
+            bf_ava_foot=bf_ava_foot,
         )
         bf_local = matrix.local_arr(
-            bf_core,
-            bf_muscle,
-            bf_fat,
-            bf_skin,
-            bf_ava_hand,
-            bf_ava_foot,
+            bf_core=bf_core,
+            bf_muscle=bf_muscle,
+            bf_fat=bf_fat,
+            bf_skin=bf_skin,
+            bf_ava_hand=bf_ava_hand,
+            bf_ava_foot=bf_ava_foot,
         )
-        bf_whole = matrix.whole_body(bf_art, bf_vein, bf_ava_hand, bf_ava_foot)
+        bf_whole = matrix.whole_body(
+            bf_art=bf_art,
+            bf_vein=bf_vein,
+            bf_ava_hand=bf_ava_hand,
+            bf_ava_foot=bf_ava_foot,
+        )
         arr_bf = np.zeros((NUM_NODES, NUM_NODES))
         arr_bf += bf_local
         arr_bf += bf_whole
@@ -1435,10 +1447,10 @@ class JOS3:
         """To : numpy.ndarray (17) Operative temperature [°C]."""
         hc = threg.fixed_hc(
             threg.conv_coef(
-                self._posture,
-                self._v,
-                self._tdb,
-                self.t_skin,
+                posture=self._posture,
+                v=self._v,
+                tdb=self._tdb,
+                t_skin=self.t_skin,
             ),
             self._v,
         )
@@ -1448,10 +1460,10 @@ class JOS3:
             ),
         )
         return threg.operative_temp(
-            self._tdb,
-            self._tr,
-            hc,
-            hr,
+            tdb=self._tdb,
+            tr=self._tr,
+            hc=hc,
+            hr=hr,
         )
 
     @to.setter
@@ -1545,10 +1557,10 @@ class JOS3:
         """Dry heat resistances between skin and ambience, 17 segments, [(m2*K)/W]."""
         hc = threg.fixed_hc(
             threg.conv_coef(
-                self._posture,
-                self._v,
-                self._tdb,
-                self.t_skin,
+                posture=self._posture,
+                v=self._v,
+                tdb=self._tdb,
+                t_skin=self.t_skin,
             ),
             self._v,
         )
@@ -1557,7 +1569,7 @@ class JOS3:
                 self._posture,
             ),
         )
-        return threg.dry_r(hc, hr, self._clo)
+        return threg.dry_r(hc=hc, hr=hr, clo=self._clo)
 
     @property
     def r_et(self):
@@ -1567,10 +1579,10 @@ class JOS3:
         """
         hc = threg.fixed_hc(
             threg.conv_coef(
-                self._posture,
-                self._v,
-                self._tdb,
-                self.t_skin,
+                posture=self._posture,
+                v=self._v,
+                tdb=self._tdb,
+                t_skin=self.t_skin,
             ),
             self._v,
         )
@@ -1660,10 +1672,10 @@ class JOS3:
     def bmr(self) -> float:
         """Bmr : float Basal metabolic rate [W/m2]."""
         tcr = threg.basal_met(
-            self._height,
-            self._weight,
-            self._age,
-            self._sex,
-            self._bmr_equation,
+            height=self._height,
+            weight=self._weight,
+            age=self._age,
+            sex=self._sex,
+            bmr_equation=self._bmr_equation,
         )
         return tcr / self.bsa.sum()

@@ -50,7 +50,7 @@ def _check_ashrae55_compliance(**kwargs):
             )
         v_valid = np.where(cond1, np.nan, v_valid)
 
-        to = operative_tmp(params["tdb"], params["tr"], params["v"])
+        to = operative_tmp(tdb=params["tdb"], tr=params["tr"], v=params["v"])
         v_limit = 50.49 - 4.4047 * to + 0.096425 * to * to
 
         cond2 = (

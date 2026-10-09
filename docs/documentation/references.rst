@@ -32,7 +32,7 @@ References
 .. [Yao2009] Yao, Runming & Li, Baizhan & Liu, Jing. (2009). A theoretical adaptive model of thermal comfort – Adaptive Predicted Mean Vote (aPMV). Building and Environment. 44. 2089-2096. 10.1016/j.buildenv.2009.02.014.
 .. [Fanger2002] Fanger, P. & Toftum, Jorn. (2002). Extension of the PMV model to non-air-conditioned buildings in warm climates. Energy and Buildings. 34. 533-536. 10.1016/S0378-7788(02)00003-8.
 .. [Schweiker2022] Schweiker, M., 2022. Combining adaptive and heat balance models for thermal sensation prediction: A new approach towards a theory and data‐driven adaptive thermal heat balance model. Indoor Air 32, 1–19. DOI: doi.org/10.1111/ina.13018
-.. [lu] Lu, Y.C. and Romps, D.M., Extending the Heat Index to Quantify the Physiological Response to Future Warming: A Modelling Study. Available at SSRN 3739854.
+.. [lu] Lu, Y.C. and Romps, D.M. (2022). Extending the heat index. Journal of Applied Meteorology and Climatology, 61(10), 1367-1383.
 .. [ISO9920] ISO, EN (2009). ISO 9920 - Ergonomics of the thermal environment. Estimation of thermal insulation and water vapour resistance of a clothing ensemble
 .. [Fanger1970] Fanger, P. O. (1970). Thermal comfort: analysis and applications in environmental engineering. McGraw-Hill, New York.
 .. [Tartarini2025PMV] Tartarini, F. and Schiavon, S., 2025. Comparative analysis of PMV Models accuracy implemented in the ISO 7730: 2005 and ASHRAE 55: 2023. Building and Environment, p.112766. doi: doi.org/10.1016/j.buildenv.2025.112766

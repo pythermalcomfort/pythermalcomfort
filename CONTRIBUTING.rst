@@ -40,6 +40,35 @@ If you are proposing a feature, please use the `Feature request` template and:
 * Keep the scope narrow so it is easier to review and implement.
 * Consider opening a discussion first for larger changes.
 
+Issue types, labels and triage (maintainers)
+--------------------------------------------
+
+Every issue gets one **issue type** and, once triaged, one **area** and one
+**priority** label. Status labels are added only when they apply.
+
+* **Type** (GitHub issue type, not a label): ``Bug`` for wrong results or crashes,
+  ``Feature`` for new functionality, models or speed-ups, ``Task`` for refactoring,
+  documentation, CI, dependencies and tests. The issue templates set the type for bug
+  reports and feature requests.
+* **Area**: ``area: models``, ``area: plots``, ``area: jos3`` or ``area: infra`` (CI,
+  dependencies, release, tests, tooling).
+* **Priority**: ``priority: high`` (wrong results or security, fix first),
+  ``priority: medium`` (should be done soon) or ``priority: low`` (nice to have).
+  High and medium issues go into the "Next release" milestone.
+* **Topic** (optional): ``new model``, ``documentation``, ``performance``.
+* **Status** (only when it applies): ``needs decision`` (waiting on a maintainer
+  design decision; tag the maintainer in a comment that states the question),
+  ``blocked`` (waiting on another issue, repository or external event) and
+  ``help wanted`` (open to new contributors).
+
+``dependencies`` and ``python`` are applied by Dependabot to its pull requests.
+
+Keep issues small enough to finish in one pull request. When a large issue is partly
+done, close it with a comment that lists what shipped, and open one scoped issue per
+remaining item, each linking back to the original. Close duplicates and questions that
+need no change with GitHub's "duplicate" or "not planned" close reasons rather than
+labels.
+
 Contributing - Code
 ===================
 
@@ -173,6 +202,14 @@ When implementing the function, follow these guidelines:
 - Use numpy vectorized operations for performance (e.g., ``np.log``) rather than ``math``.
 - Add a NumPy-style docstring including: Parameters, Raises, Returns, Examples, References.
 - Check in the BaseInputs how inputs are typically named, typed, and validated.
+- Call functions with keyword arguments, both in your own code and in docstring
+  examples: ``pmv_ppd_iso(tdb=25, tr=25, vr=0.1, rh=50, met=1.2, clo=0.5)``, not
+  ``pmv_ppd_iso(25, 25, 0.1, 50, 1.2, 0.5)``. Swapping two same-typed arguments
+  (e.g. ``tdb`` and ``tr``) still runs and returns a plausible number, so nothing
+  else catches it. ``tests/test_call_site_arguments.py`` fails if code in the package
+  passes 3 or more positional arguments to a package function. The one exception is
+  numba ``@vectorize`` functions, which do not accept keyword arguments (#441).
+  ``np.vectorize`` wrappers do accept them, so call those by keyword too.
 - Example skeleton for a new function:
 
 .. code-block:: python
@@ -211,7 +248,7 @@ When implementing the function, follow these guidelines:
             from pythermalcomfort.models import my_func
 
             tdb = 25
-            result = my_func(tdb)
+            result = my_func(x=tdb)
             print(result)  # Expected output: ...
         """
 
