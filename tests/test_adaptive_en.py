@@ -27,6 +27,19 @@ def test_adaptive_en(get_test_url, retrieve_data) -> None:
         validate_result(result, outputs, tolerance)
 
 
+def test_adaptive_en_running_mean_limits() -> None:
+    """EN 16798-1 applies for running mean outdoor temperatures of 10 to 30 °C."""
+    result = adaptive_en(tdb=25, tr=25, t_running_mean=[10, 30], v=0.1)
+    np.testing.assert_allclose(result.tmp_cmf, [22.1, 28.7])
+
+    with pytest.warns(UserWarning, match="t_running_mean"):
+        result = adaptive_en(tdb=25, tr=25, t_running_mean=[9.9, 30.1, 33], v=0.1)
+    assert np.all(np.isnan(result.tmp_cmf))
+
+    result = adaptive_en(tdb=25, tr=25, t_running_mean=33, v=0.1, limit_inputs=False)
+    assert np.isclose(result.tmp_cmf, 29.7)
+
+
 def test_ashrae_inputs_invalid_units() -> None:
     """Test that the function raises a ValueError for invalid units."""
     with pytest.raises(ValueError):
