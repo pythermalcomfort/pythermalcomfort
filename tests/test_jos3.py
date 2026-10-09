@@ -46,7 +46,93 @@ from pythermalcomfort.jos3_functions.thermoregulation import (
     sum_bf,
     wet_r,
 )
-from pythermalcomfort.models import JOS3
+from pythermalcomfort.models import JOS3, pmv_ppd_iso
+
+
+@pytest.mark.parametrize(
+    ("met", "expected_to"),
+    [
+        (0.9, 29.599326),
+        (0.85, 29.992688),
+        (0.846, 30.024176),
+        (0.8, 30.385882),
+        (0.79, 30.464226),
+        (0.6, 31.956085),
+    ],
+)
+def test_neutral_temperature_for_low_metabolic_rates(met, expected_to) -> None:
+    """ISO comfort limits must not truncate JOS3's internal neutral search (#435)."""
+    # Reference: TanabeLab/JOS-3 comfmod.preferred_temp, commit 3c74ee2.
+    model = JOS3()
+    to = model._calculate_operative_temp_when_pmv_is_zero(
+        v=0.1,
+        rh=50,
+        met=met,
+        clo=0,
+    )
+    assert to == pytest.approx(expected_to, abs=0.05)
+    residual = pmv_ppd_iso(
+        to,
+        to,
+        0.1,
+        50,
+        met,
+        0,
+        limit_inputs=False,
+        round_output=False,
+    ).pmv
+    assert abs(residual) <= 0.01
+
+
+@pytest.mark.parametrize("weight", [69.5, 70, 80])
+def test_low_metabolic_rate_set_points_are_finite(weight) -> None:
+    """Accepted body parameters must not initialize core/skin set points as NaN."""
+    model = JOS3(
+        height=1.6,
+        weight=weight,
+        age=80,
+        sex="female",
+        bmr_equation="japanese",
+    )
+    assert np.isfinite(model.cr_set_point).all()
+    assert np.isfinite(model.sk_set_point).all()
+
+
+def test_set_points_are_continuous_across_pmv_temperature_limit() -> None:
+    """A 0.5 kg weight change must not cause a ~2°C core set-point jump (#435)."""
+    params = dict(height=1.6, age=80, sex="female", bmr_equation="japanese")
+    lighter = JOS3(weight=69.5, **params)
+    heavier = JOS3(weight=70, **params)
+    assert abs(heavier.cr_set_point[2] - lighter.cr_set_point[2]) < 0.1
+
+
+def test_low_metabolic_rate_simulation_stays_finite() -> None:
+    """Invalid initialization must not poison a two-hour virtual exposure."""
+    model = JOS3(
+        height=1.6,
+        weight=80,
+        age=80,
+        sex="female",
+        bmr_equation="japanese",
+    )
+    model.to = 28
+    model.rh = 50
+    model.v = 0.1
+    model.clo = 0.5
+    model.par = 1.25
+    model.simulate(times=120, dtime=60)
+    results = model.dict_results()
+    for key in ["t_skin_mean", "t_core_chest", "t_skin_chest"]:
+        assert np.isfinite(results[key]).all()
+        assert len(results[key]) == 121
+
+
+def test_public_pmv_still_rejects_out_of_domain_neutral_conditions() -> None:
+    """Internal opt-out must not disable the public PMV applicability guard."""
+    with pytest.warns(UserWarning):
+        result = pmv_ppd_iso(30.5, 30.5, 0.1, 50, 0.79, 0)
+    assert np.isnan(result.pmv)
+    assert np.isnan(result.ppd)
 
 
 def test_jos3_class() -> None:
