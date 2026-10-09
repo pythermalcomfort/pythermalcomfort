@@ -45,7 +45,7 @@ def test_choice_fields_metadata_and_none(name, allowed, enum_value):
 @pytest.mark.parametrize(
     "kind", ["scalar", "uppercase", "list", "array", "enum", "series"]
 )
-def test_choice_fields_preserve_valid_values(request, name, allowed, enum_value, kind):
+def test_choice_fields_preserve_valid_values(name, allowed, enum_value, kind):
     value = {
         "scalar": allowed[0],
         "uppercase": allowed[0].upper(),
@@ -54,14 +54,6 @@ def test_choice_fields_preserve_valid_values(request, name, allowed, enum_value,
         "enum": enum_value,
         "series": pd.Series(allowed),
     }[kind]
-    if kind == "enum" and name == "work_intensity":
-        request.applymarker(
-            pytest.mark.xfail(
-                raises=ValueError,
-                strict=True,
-                reason="WorkIntensity subclasses str, so validation rejects it (#470)",
-            )
-        )
     result = getattr(BaseInputs(**{name: value}), name)
     if kind == "series":
         assert result == allowed
@@ -80,3 +72,11 @@ def test_choice_fields_reject_invalid_values(name, allowed, enum_value, kind):
     with pytest.raises(ValueError) as error:
         BaseInputs(**{name: value})
     assert str(error.value) == f"{name} must be one of {allowed!r}"
+
+
+def test_str_enum_members_validate_like_their_values():
+    """WorkIntensity subclasses str; numpy must not turn it into a truncated str (#470)."""
+    members = [WorkIntensity.MODERATE, WorkIntensity.LIGHT]
+    assert BaseInputs(work_intensity=members).work_intensity is members
+    with pytest.raises(ValueError, match="work_intensity must be one of"):
+        BaseInputs(work_intensity=[WorkIntensity.MODERATE, "invalid"])

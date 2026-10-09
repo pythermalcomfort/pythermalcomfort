@@ -168,9 +168,15 @@ class BaseInputs:
 
     @staticmethod
     def _validate_str_values(name: str, value: Any, allowed: list[str]) -> None:
-        arr = np.atleast_1d(value)
-        # Coerce Enums to their .value, then to str
-        coerced = [v.value if isinstance(v, Enum) else str(v) for v in arr.tolist()]
+        # Read Enum values before numpy sees them: np.atleast_1d turns a str-based
+        # Enum such as WorkIntensity into a truncated str, losing .value (#470).
+        if isinstance(value, np.ndarray):
+            items = value.ravel().tolist()
+        elif isinstance(value, (list, tuple)):
+            items = list(value)
+        else:
+            items = [value]
+        coerced = [v.value if isinstance(v, Enum) else str(v) for v in items]
         allowed_lower = {str(a).lower() for a in allowed}
         for v in coerced:
             if v.lower() not in allowed_lower:

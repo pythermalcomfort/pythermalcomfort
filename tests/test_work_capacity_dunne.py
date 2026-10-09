@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from pythermalcomfort.classes_input import WorkIntensity
 from pythermalcomfort.classes_return import WorkCapacity
 from pythermalcomfort.models import work_capacity_dunne
 
@@ -51,3 +52,11 @@ def test_invalid_intensity_raises() -> None:
     """Verify that providing an invalid intensity string raises a ValueError."""
     with pytest.raises(ValueError):
         work_capacity_dunne(25, "invalid")
+
+
+def test_work_intensity_accepts_enum() -> None:
+    """A WorkIntensity member gives the same result as its string value (#470)."""
+    assert (
+        work_capacity_dunne(wbgt=30, work_intensity=WorkIntensity.MODERATE).capacity
+        == work_capacity_dunne(wbgt=30, work_intensity="moderate").capacity
+    )

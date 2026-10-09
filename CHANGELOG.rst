@@ -4,6 +4,10 @@ Changelog
 Unreleased
 ----------
 
+* Fixed ``work_capacity_hothaps`` and ``work_capacity_dunne`` rejecting a
+  ``WorkIntensity`` member (e.g. ``WorkIntensity.MODERATE``) as ``work_intensity`` with
+  "must be one of", while the same value as a string worked
+  (`#470 <https://github.com/pythermalcomfort/pythermalcomfort/issues/470>`_).
 * Internal calls between package functions now pass arguments by keyword, so two
   same-typed arguments (e.g. ``tdb`` and ``tr``) cannot be swapped silently. A new test
   checks every call in the package for this. The ``pmv_e`` and ``ankle_draft``
