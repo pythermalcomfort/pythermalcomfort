@@ -4,6 +4,9 @@ Changelog
 Unreleased
 ----------
 
+* Fixed the ``heat_index_lu`` docstring example, which showed 25.9 instead of the 25.0
+  the call returns, and updated the Lu and Romps reference to the published 2022 paper
+  (`#257 <https://github.com/pythermalcomfort/pythermalcomfort/issues/257>`_).
 * Fixed the ``solar_gain`` docstring example, which showed ``erf`` 42.9 and
   ``delta_mrt`` 10.3 instead of the 43.3 and 10.4 the call returns
   (`#449 <https://github.com/pythermalcomfort/pythermalcomfort/issues/449>`_).
