@@ -21,40 +21,19 @@ def numeric_field(default=None):
 
 
 def choice_field(allowed: list[str], default: Any = None) -> Any:
-    """Create a dataclass field with allowed-choice metadata.
+    """Create a dataclass field whose value ``BaseInputs`` checks against ``allowed``.
 
     Parameters
     ----------
     allowed : list[str]
-        Choices stored in the field's ``allowed`` metadata for validation by
-        ``BaseInputs.__post_init__``.
+        Accepted values, compared case-insensitively by ``BaseInputs.__post_init__``.
     default : Any, optional
-        Initial field value, by default None. This factory does not validate
-        the default or any supplied value.
+        Default value of the field, by default None.
 
     Returns
     -------
     dataclasses.Field
-        A field with the supplied default and ``allowed`` metadata.
-
-    Raises
-    ------
-    ValueError
-        When a dataclass using the field is defined with a mutable default,
-        as enforced by the dataclasses module, not by this factory.
-
-    Examples
-    --------
-    >>> choice = choice_field(["light", "heavy"], default="light")
-    >>> choice.default
-    'light'
-    >>> choice.metadata["allowed"]
-    ['light', 'heavy']
-
-    Notes
-    -----
-    Applicability: use for fields validated by ``BaseInputs``. Other dataclasses
-    can store the same metadata but must implement their own choice validation.
+        A field with the given default and ``allowed`` metadata.
     """
     return field(default=default, metadata={"allowed": allowed})
 

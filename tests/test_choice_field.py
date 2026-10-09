@@ -45,7 +45,7 @@ def test_choice_fields_metadata_and_none(name, allowed, enum_value):
 @pytest.mark.parametrize(
     "kind", ["scalar", "uppercase", "list", "array", "enum", "series"]
 )
-def test_choice_fields_preserve_valid_values(name, allowed, enum_value, kind):
+def test_choice_fields_preserve_valid_values(request, name, allowed, enum_value, kind):
     value = {
         "scalar": allowed[0],
         "uppercase": allowed[0].upper(),
@@ -55,10 +55,13 @@ def test_choice_fields_preserve_valid_values(name, allowed, enum_value, kind):
         "series": pd.Series(allowed),
     }[kind]
     if kind == "enum" and name == "work_intensity":
-        # Preserve the existing rejection of this str/Enum subclass.
-        with pytest.raises(ValueError, match="work_intensity must be one of"):
-            BaseInputs(**{name: value})
-        return
+        request.applymarker(
+            pytest.mark.xfail(
+                raises=ValueError,
+                strict=True,
+                reason="WorkIntensity subclasses str, so validation rejects it (#470)",
+            )
+        )
     result = getattr(BaseInputs(**{name: value}), name)
     if kind == "series":
         assert result == allowed
