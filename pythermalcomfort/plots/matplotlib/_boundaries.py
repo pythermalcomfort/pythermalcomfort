@@ -536,7 +536,10 @@ def _collapse_missing_cuts(
         Edges of each row's valid interval.
     """
     for k in range(n_thresholds):
-        indices = [_cut_index(n_crossings, k, b) for b in range(n_crossings[k])]
+        indices = [
+            _cut_index(n_crossings=n_crossings, threshold=k, crossing=b)
+            for b in range(n_crossings[k])
+        ]
         for row in np.flatnonzero(has_valid):
             missing = [i for i in indices if not crossed[i, row]]
             if not missing:
@@ -732,7 +735,11 @@ def solve_region_bands(
                 edge = valid_end if slot.high_end else valid_start
                 edge[slot.row] = root
             else:
-                index = _cut_index(n_crossings, slot.threshold, slot.branch)
+                index = _cut_index(
+                    n_crossings=n_crossings,
+                    threshold=slot.threshold,
+                    crossing=slot.branch,
+                )
                 cuts[index, slot.row] = root
                 crossed[index, slot.row] = True
 
@@ -765,11 +772,13 @@ def solve_region_bands(
     curves: list[BoundaryCurve] = []
     for k, threshold in enumerate(thresholds):
         for crossing in range(n_crossings[k]):
-            index = _cut_index(n_crossings, k, crossing)
+            index = _cut_index(n_crossings=n_crossings, threshold=k, crossing=crossing)
             # NaN wherever the threshold is not actually crossed, so the curve
             # breaks instead of being dragged to the edge of the valid area.
             curve_x, curve_y = _to_xy(
-                scan_axis, np.where(crossed[index], cuts[index], np.nan), rows
+                scan_axis=scan_axis,
+                scan_coords=np.where(crossed[index], cuts[index], np.nan),
+                rows=rows,
             )
             curves.append(
                 BoundaryCurve(

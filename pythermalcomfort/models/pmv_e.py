@@ -100,7 +100,9 @@ def pmv_e(
         v_r = v_relative(v=v, met=met)
         # Calculate dynamic clothing
         clo_d = clo_dynamic_iso(clo=clo, met=met, v=v)
-        results = pmv_e(tdb, tr, v_r, rh, met, clo_d, e_coefficient=0.6)
+        results = pmv_e(
+            tdb=tdb, tr=tr, vr=v_r, rh=rh, met=met, clo=clo_d, e_coefficient=0.6
+        )
         print(results.e_pmv)  # 0.48
     """
     # Validate inputs using the EPMVInputs class

@@ -670,9 +670,9 @@ class SummaryPlot(BasePlot):
                 _apply_compact_layout(fig)
 
             _ensure_title_legend_spacing(
-                fig,
-                ax,
-                legend_artist,
+                fig=fig,
+                ax=ax,
+                legend=legend_artist,
                 adjust_layout=created_figure,
             )
 

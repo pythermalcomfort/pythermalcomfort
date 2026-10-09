@@ -263,27 +263,27 @@ def _two_nodes_gagge_sleep_optimized(
             out_alfa[i],
             out_skin_blood_flow[i],
         ) = _sleep_set_optimized(
-            tdb[i],
-            tr[i],
-            v[i],
-            rh[i],
-            clo[i],
-            thickness_quilt[i],
-            met,
-            wme,
-            p_atm,
-            ltime,
-            height,
-            weight,
-            c_sw,
-            c_dil,
-            c_str,
-            state_t_skin,
-            t_core_neutral,
-            state_e_skin,
-            state_alfa,
-            state_skin_blood_flow,
-            state_met_shivering,
+            tdb=tdb[i],
+            tr=tr[i],
+            v=v[i],
+            rh=rh[i],
+            clo=clo[i],
+            thickness=thickness_quilt[i],
+            met=met,
+            wme=wme,
+            p_atm=p_atm,
+            ltime=ltime,
+            height=height,
+            weight=weight,
+            c_sw=c_sw,
+            c_dil=c_dil,
+            c_str=c_str,
+            temp_skin_neutral=state_t_skin,
+            temp_core_neutral=t_core_neutral,
+            e_skin=state_e_skin,
+            alfa=state_alfa,
+            skin_blood_flow=state_skin_blood_flow,
+            met_shivering=state_met_shivering,
         )
 
         state_t_skin = out_t_skin[i]
@@ -471,8 +471,12 @@ def _sleep_set_optimized(
 
     flag1 = False
     while not flag1:
-        err1 = _fnerre(xold, q_skin, h_d, t_skin, wet, h_e, p_s_sk)
-        err2 = _fnerre(xold + delta, q_skin, h_d, t_skin, wet, h_e, p_s_sk)
+        err1 = _fnerre(
+            x=xold, hsk=q_skin, hd=h_d, tsk=t_skin, w=wet, he=h_e, pssk=p_s_sk
+        )
+        err2 = _fnerre(
+            x=xold + delta, hsk=q_skin, hd=h_d, tsk=t_skin, w=wet, he=h_e, pssk=p_s_sk
+        )
         err_diff = err2 - err1
         if abs(err_diff) < 1e-10:  # Avoid division by very small values
             # Use a fallback approach or break iteration
@@ -488,8 +492,18 @@ def _sleep_set_optimized(
 
     flag2 = False
     while not flag2:
-        err1 = _fnerrs(xold, q_skin, h_d_s, t_skin, wet, h_e_s, p_s_sk)
-        err2 = _fnerrs(xold + delta, q_skin, h_d_s, t_skin, wet, h_e_s, p_s_sk)
+        err1 = _fnerrs(
+            x=xold, hsk=q_skin, hd_s=h_d_s, tsk=t_skin, w=wet, he_s=h_e_s, pssk=p_s_sk
+        )
+        err2 = _fnerrs(
+            x=xold + delta,
+            hsk=q_skin,
+            hd_s=h_d_s,
+            tsk=t_skin,
+            w=wet,
+            he_s=h_e_s,
+            pssk=p_s_sk,
+        )
         x = xold - delta * err1 / (err2 - err1)
         if abs(x - xold) > 0.01:
             xold = x
