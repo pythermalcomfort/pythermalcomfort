@@ -14,7 +14,7 @@ def work_capacity_hothaps(
     wbgt: NumericInput,
     work_intensity: str = WorkIntensity.HEAVY.value,
 ) -> WorkCapacity:
-    """Estimate work capacity due to heat based on Kjellstrom et al. [Kjellstrom2018]_.
+    """Estimate work capacity due to heat, based on [Kjellstrom2018]_.
 
     Estimates the amount of work that will be done at a given WBGT and
     intensity of work as a percent. 100% means work is unaffected by heat. 0%

@@ -563,10 +563,10 @@ _DEFAULT_REGION_COLORS: dict[int, tuple[str, ...]] = {
 def _default_region_colors(n_regions: int) -> list[str]:
     """Return muted default colors from cool blue to warm terracotta.
 
-    Palettes with an odd number of regions place neutral gray in the central
-    band. Even palettes have no true midpoint, so they move directly from
-    pale blue to pale terracotta. Larger palettes interpolate between the
-    seven defined anchors while preserving that order.
+    Palettes with an odd number of regions place neutral gray in the central band. Even
+    palettes have no true midpoint, so they move directly from pale blue to pale
+    terracotta. Larger palettes interpolate between the seven defined anchors while
+    preserving that order.
     """
     if n_regions < 1:
         raise ValueError("n_regions must be at least 1.")
@@ -694,9 +694,9 @@ def _apply_default_links_to_kwargs(
 def _is_light_color(color: str) -> bool:
     """Return ``True`` when *color* has a perceived luminance above 0.7.
 
-    Uses WCAG 2.0 channel coefficients applied directly to sRGB values
-    (gamma linearisation is intentionally skipped for simplicity).
-    Accurate enough for choosing contrasting text colour (black vs. white).
+    Uses WCAG 2.0 channel coefficients applied directly to sRGB values (gamma
+    linearisation is intentionally skipped for simplicity). Accurate enough for choosing
+    contrasting text colour (black vs. white).
     """
     red, green, blue = mcolors.to_rgb(color)
     luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue

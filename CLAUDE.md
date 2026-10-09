@@ -86,6 +86,23 @@ Two things that bite, both covered in detail by the skill:
   at the current `validation-data-comfort-models` tag. See `CONTRIBUTING.rst`'s
   "Keeping the validation-data-comfort-models pin current".
 
+### Issues and triage
+
+Follow `CONTRIBUTING.rst`, "Issue types, labels and triage (maintainers)". In short:
+GitHub **issue type** (Bug / Feature / Task, not a label) + one `area: …` label + one
+`priority: high|medium|low` label; `needs decision` / `blocked` / `help wanted` only
+when they apply. High and medium go in the "Next release" milestone. For example:
+
+```bash
+gh issue create --type Bug --label "area: models" --label "priority: high" \
+  --milestone "Next release" --title "utci: ..." --body "..."
+gh issue edit 410 --type Bug --add-label "priority: high"
+```
+
+Before closing an issue as fixed, check the fix is merged (`gh pr view <n>`) and still
+holds on `development`. A "Closes #n" in a commit only auto-closes once it reaches
+`master`, so issues fixed on `development` are closed by hand with a link to the commit.
+
 ## Architecture Overview
 
 ### Codebase Organization

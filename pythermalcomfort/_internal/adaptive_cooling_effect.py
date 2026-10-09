@@ -10,7 +10,7 @@ def adaptive_cooling_effect(
     v: NumericInput,
     to: NumericInput,
 ) -> NDArray[np.float64]:
-    """Return the adaptive model cooling effect for a given air speed and operative temperature.
+    """Return the adaptive cooling effect for an air speed and operative temperature.
 
     The cooling effect is non-zero only when operative temperature is at or
     above 25 °C **and** air speed meets the minimum threshold (0.6 m/s).

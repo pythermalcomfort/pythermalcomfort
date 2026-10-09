@@ -388,19 +388,9 @@ def show_out_param_docs():
     docstring : str
         Text of the documentation of the output parameters
     """
-    outparams = textwrap.dedent(
-        """
-        Output parameters
-        -------
-        """,
-    )
+    outparams = "\nOutput parameters\n-------\n"
 
-    exoutparams = textwrap.dedent(
-        """
-        Extra output parameters
-        -------
-        """,
-    )
+    exoutparams = "\nExtra output parameters\n-------\n"
 
     sortkeys = list(ALL_OUT_PARAMS.keys())
     sortkeys.sort()

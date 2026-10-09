@@ -44,7 +44,6 @@ def validate_body_parameters(
     .. code-block:: python
 
         validate_body_parameters(height=1.80, weight=75, age=30, body_fat=20)
-
     """
     if not (0.5 <= height <= 3.0):
         raise ValueError("Height must be in the range [0.5, 3.0] meters.")
