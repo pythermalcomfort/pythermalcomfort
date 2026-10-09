@@ -7,7 +7,8 @@ Unreleased
 * Fixed ``solar_gain`` for ``posture="supine"``: the floor-reflected term used the
   transposed (body-relative) altitude instead of the solar altitude. The transposed
   angles are now used only for the projected area factor lookup, which matches the
-  CBE Thermal Comfort Tool. Supine ``erf`` and ``delta_mrt`` values change.
+  CBE Thermal Comfort Tool. Supine ``erf`` and ``delta_mrt`` values change
+  (`#438 <https://github.com/pythermalcomfort/pythermalcomfort/pull/438>`_).
 * Fixed ``work_capacity_hothaps`` and ``work_capacity_dunne`` rejecting a
   ``WorkIntensity`` member (e.g. ``WorkIntensity.MODERATE``) as ``work_intensity`` with
   "must be one of", while the same value as a string worked

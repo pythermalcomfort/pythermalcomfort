@@ -23,14 +23,15 @@ def test_solar_gain(get_test_url, retrieve_data) -> None:
 
 
 def test_solar_gain_regression_values() -> None:
-    """Pin erf/delta_mrt against the reference (pre-numba) implementation.
+    """Pin erf/delta_mrt for each posture.
 
-    Values were captured from the implementation before its table-lookup
-    kernel was rewritten for numba (posture strings -> integer codes, table
-    lists -> np.array, plain-Python loop -> njit/prange). Confirmed to match
-    bit-for-bit across a wide random sweep (all 3 postures) plus exact grid
-    boundary points. The supine value was updated when the floor-reflected
-    term was changed to use the true solar altitude.
+    The sitting and standing values were captured from the implementation before its
+    table-lookup kernel was rewritten for numba (posture strings -> integer codes,
+    table lists -> np.array, plain-Python loop -> njit/prange), and the numba kernel
+    matched it bit-for-bit across a wide random sweep plus exact grid boundary points.
+    The supine value differs from that implementation: its floor-reflected term used
+    the rotated altitude instead of the solar altitude (see
+    test_solar_gain_supine_reflected_uses_solar_altitude).
     """
     cases = [
         (0, 120, 800, 0.5, 0.5, 0.5, "sitting", 43.2839, 10.3649),
@@ -55,19 +56,24 @@ def test_solar_gain_regression_values() -> None:
 
 
 def test_solar_gain_supine_reflected_uses_solar_altitude() -> None:
-    """Supine: the transposed angles are used only for the fp lookup.
+    """Supine: the rotated angles are used only for the fp lookup.
 
     The floor-reflected term depends on the irradiance on the horizontal floor,
-    I_dir * sin(sol_altitude) + I_diff, so it must use the true solar altitude
-    and not the body-relative altitude used to read the fp table. Reference
-    values are the supine cases of the CBE Thermal Comfort Tool ERF tests.
+    sol_radiation_dir * sin(sol_altitude) + i_diff, so it must use the solar altitude
+    and not the rotated altitude used to read the fp table. In every case the two
+    altitudes differ, so each case fails if the rotated altitude is used. The expected
+    values agree within 2e-4 with the ERF function of the CBE Thermal Comfort Tool
+    (static/js/erf.js); the first two cases are the supine cases of its tests
+    (erf.test.js: 65.8 / 15.1 and 70.9 / 16.3).
     """
     cases = [
         # sol_altitude, sharp, sol_radiation_dir, sol_transmittance, f_svv, f_bes,
         # expected erf, expected delta_mrt
-        (45, 0, 700, 0.8, 0.2, 0.5, 60.9, 14.0),
-        (45, 45, 700, 0.8, 0.2, 0.5, 65.8, 15.1),
-        (45, 45, 800, 0.5, 0.5, 0.5, 70.9, 16.3),
+        (45, 45, 700, 0.8, 0.2, 0.5, 65.8266, 15.1326),  # rotated altitude 30
+        (45, 45, 800, 0.5, 0.5, 0.5, 70.8746, 16.293),  # rotated altitude 30
+        (30, 0, 700, 0.8, 0.2, 0.5, 49.3611, 11.3474),  # rotated altitude 60
+        (0, 60, 800, 0.5, 0.5, 0.5, 39.9589, 9.186),  # horizon, rotated 30
+        (90, 0, 800, 0.5, 0.5, 0.5, 86.5421, 19.8947),  # overhead, rotated 0
     ]
     for alt, sharp, rad, trans, svv, bes, exp_erf, exp_d_mrt in cases:
         result = solar_gain(
@@ -79,9 +85,10 @@ def test_solar_gain_supine_reflected_uses_solar_altitude() -> None:
             f_bes=bes,
             asw=0.7,
             posture="supine",
+            round_output=False,
         )
-        assert result.erf == pytest.approx(exp_erf)
-        assert result.delta_mrt == pytest.approx(exp_d_mrt)
+        assert np.isclose(result.erf, exp_erf, atol=1e-3)
+        assert np.isclose(result.delta_mrt, exp_d_mrt, atol=1e-3)
 
 
 def test_solar_gain_out_of_range_returns_nan() -> None:
