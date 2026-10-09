@@ -174,8 +174,8 @@ def model_name(
 docstring examples. Swapped same-typed arguments (`tdb`/`tr`) run silently and return
 plausible numbers. `tests/test_call_site_arguments.py` fails on 3+ positional arguments
 to a package function and on arguments that look swapped. The exception is numba
-`@vectorize` / `np.vectorize` kernels (e.g. `_pmv_ppd_optimized`), which reject keyword
-arguments. Public signatures do not use `*`: that would break positional callers, so it
+`@vectorize` kernels (e.g. `_pmv_ppd_optimized`), which reject keyword arguments;
+`np.vectorize` wrappers accept them and are not exempt. Public signatures do not use `*`: that would break positional callers, so it
 is deferred to a major version.
 
 **Input validation flow**:

@@ -208,8 +208,8 @@ When implementing the function, follow these guidelines:
   (e.g. ``tdb`` and ``tr``) still runs and returns a plausible number, so nothing
   else catches it. ``tests/test_call_site_arguments.py`` fails if code in the package
   passes 3 or more positional arguments to a package function. The one exception is
-  numba ``@vectorize`` and ``np.vectorize`` functions, which do not accept keyword
-  arguments (#441).
+  numba ``@vectorize`` functions, which do not accept keyword arguments (#441).
+  ``np.vectorize`` wrappers do accept them, so call those by keyword too.
 - Example skeleton for a new function:
 
 .. code-block:: python

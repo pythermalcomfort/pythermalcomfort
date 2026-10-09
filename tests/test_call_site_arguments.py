@@ -33,6 +33,26 @@ def _parse_package() -> dict[Path, ast.Module]:
     return {f: ast.parse(f.read_text()) for f in sorted(PACKAGE_DIR.rglob("*.py"))}
 
 
+def _is_numba_vectorize(decorator: ast.expr) -> bool:
+    """Return True for numba's ``@vectorize``, which builds a ufunc that rejects keyword
+    arguments.
+
+    ``np.vectorize`` wrappers accept keyword arguments, so they do not count. The
+    decorator may be wrapped, e.g. ``@cast(..., vectorize(...))`` in ``utci.py``.
+    """
+    for node in ast.walk(decorator):
+        if isinstance(node, ast.Name) and node.id == "vectorize":
+            return True
+        if (
+            isinstance(node, ast.Attribute)
+            and node.attr == "vectorize"
+            and isinstance(node.value, ast.Name)
+            and node.value.id == "numba"
+        ):
+            return True
+    return False
+
+
 def _collect_defs(trees: dict[Path, ast.Module]) -> dict[str, list[_FunctionDef]]:
     defs: dict[str, list[_FunctionDef]] = {}
     for file, tree in trees.items():
@@ -44,14 +64,15 @@ def _collect_defs(trees: dict[Path, ast.Module]) -> dict[str, list[_FunctionDef]
                     for a in args.posonlyargs + args.args
                     if a.arg not in ("self", "cls")
                 )
-                decorators = " ".join(ast.unparse(d) for d in node.decorator_list)
                 defs.setdefault(node.name, []).append(
                     _FunctionDef(
                         file=file,
                         params=params,
                         kwonly=tuple(a.arg for a in args.kwonlyargs),
                         has_vararg=args.vararg is not None,
-                        is_ufunc="vectorize" in decorators,
+                        is_ufunc=any(
+                            _is_numba_vectorize(d) for d in node.decorator_list
+                        ),
                     )
                 )
     return defs
@@ -137,7 +158,7 @@ def test_no_transposed_arguments() -> None:
 def test_package_calls_use_keyword_arguments() -> None:
     """Calls with 3+ arguments to package functions pass them by keyword.
 
-    Exceptions: vectorized ufuncs, which do not accept keyword arguments, and
+    Exceptions: numba ``@vectorize`` ufuncs, which do not accept keyword arguments, and
     functions that take ``*args``.
     """
     trees = _parse_package()

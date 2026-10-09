@@ -153,7 +153,17 @@ def ireq(
 
     for suffix, skin_temperature, wetness in calculation_criteria:
         ireq_final, icl_raw, dle = _solve_ireq_criterion(
-            tdb, tr, met, wme, vr, walk_sp, p, clo_m2c_w, rh, skin_temperature, wetness
+            tdb=tdb,
+            tr=tr,
+            met=met,
+            wme=wme,
+            vr=vr,
+            walk_sp=walk_sp,
+            p=p,
+            clo_m2c_w=clo_m2c_w,
+            rh=rh,
+            skin_temperature=skin_temperature,
+            wetness=wetness,
         )
 
         ireq_out = ireq_final / 0.155
