@@ -24,6 +24,7 @@ _ALIASES = {frozenset({"v", "vr"})}
 class _FunctionDef:
     file: Path
     params: tuple[str, ...]
+    kwonly: tuple[str, ...]
     has_vararg: bool
     is_ufunc: bool
 
@@ -48,6 +49,7 @@ def _collect_defs(trees: dict[Path, ast.Module]) -> dict[str, list[_FunctionDef]
                     _FunctionDef(
                         file=file,
                         params=params,
+                        kwonly=tuple(a.arg for a in args.kwonlyargs),
                         has_vararg=args.vararg is not None,
                         is_ufunc="vectorize" in decorators,
                     )
@@ -121,7 +123,9 @@ def test_no_transposed_arguments() -> None:
         bound += [(kw.arg, kw.value) for kw in call.keywords if kw.arg is not None]
         for param, arg in bound:
             arg_name = _base_name(arg)
-            if _is_transposed(arg_name, param.lstrip("_"), callee.params):
+            if _is_transposed(
+                arg_name, param.lstrip("_"), callee.params + callee.kwonly
+            ):
                 rel = file.relative_to(PACKAGE_DIR.parent)
                 problems.append(
                     f"{rel}:{call.lineno}: '{ast.unparse(arg)}' is passed as "
