@@ -4,6 +4,12 @@ Changelog
 Unreleased
 ----------
 
+* Internal calls between package functions now pass arguments by keyword, so two
+  same-typed arguments (e.g. ``tdb`` and ``tr``) cannot be swapped silently. A new test
+  checks every call in the package for this. The ``pmv_e`` and ``ankle_draft``
+  docstring examples now use keyword arguments. Public function signatures and results
+  are unchanged
+  (`#441 <https://github.com/pythermalcomfort/pythermalcomfort/issues/441>`_).
 * Fixed the ``heat_index_lu`` docstring example, which showed 25.9 instead of the 25.0
   the call returns, and updated the Lu and Romps reference to the published 2022 paper
   (`#257 <https://github.com/pythermalcomfort/pythermalcomfort/issues/257>`_).

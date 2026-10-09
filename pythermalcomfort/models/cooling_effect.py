@@ -168,16 +168,16 @@ def _set_for_cooling_effect(tdb, tr, v, rh, met, clo, wme):
     # the per-call input validation/dataclass overhead of the public API stack
     vapor_pressure = rh * _p_sat_torr(tdb) / 100.0
     return _gagge_two_nodes_optimized(
-        tdb,
-        tr,
-        v,
-        met,
-        clo,
-        vapor_pressure,
-        wme,
-        _BODY_SURFACE_AREA,
-        _P_ATM,
-        _POSITION_STANDING_CODE,
+        tdb=tdb,
+        tr=tr,
+        v=v,
+        met=met,
+        clo=clo,
+        vapor_pressure=vapor_pressure,
+        wme=wme,
+        body_surface_area=_BODY_SURFACE_AREA,
+        p_atm=_P_ATM,
+        position=_POSITION_STANDING_CODE,
         calculate_ce=True,
     )[0]
 
@@ -187,12 +187,20 @@ def _cooling_effect_vectorised(tdb, tr, still_air_threshold, rh, met, clo, wme, 
     if vr <= 0.1:
         return 0.0
 
-    initial_set_tmp = _set_for_cooling_effect(tdb, tr, vr, rh, met, clo, wme)
+    initial_set_tmp = _set_for_cooling_effect(
+        tdb=tdb, tr=tr, v=vr, rh=rh, met=met, clo=clo, wme=wme
+    )
 
     def function(x):
         return (
             _set_for_cooling_effect(
-                tdb - x, tr - x, still_air_threshold, rh, met, clo, wme
+                tdb=tdb - x,
+                tr=tr - x,
+                v=still_air_threshold,
+                rh=rh,
+                met=met,
+                clo=clo,
+                wme=wme,
             )
             - initial_set_tmp
         )

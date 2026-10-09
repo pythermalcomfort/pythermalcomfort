@@ -209,11 +209,11 @@ def _find_eq_var(ta, rh):
 
     lo_ts = max(0.0, min(_T_CR, ta) - rs * abs(m))
     hi_ts = max(_T_CR, ta) + rs * abs(m)
-    ts = _bisect(_R_TS, ta, pa, rs, 0.0, lo_ts, hi_ts, _TOL)
+    ts = _bisect(kind=_R_TS, p0=ta, p1=pa, p2=rs, p3=0.0, x1=lo_ts, x2=hi_ts, tol=_TOL)
 
     lo_tf = max(0.0, min(_T_CR, ta) - rs * abs(m_bar))
     hi_tf = max(_T_CR, ta) + rs * abs(m_bar)
-    tf = _bisect(_R_TF, ta, pa, rs, 0.0, lo_tf, hi_tf, _TOL)
+    tf = _bisect(kind=_R_TF, p0=ta, p1=pa, p2=rs, p3=0.0, x1=lo_tf, x2=hi_tf, tol=_TOL)
 
     q_minus_qv = _Q - _qv(ta, pa)
     flux1 = q_minus_qv - (1.0 - phi) * (_T_CR - ts) / rs  # C*dTc/dt when rf=Zf=inf
@@ -228,7 +228,16 @@ def _find_eq_var(ta, rh):
     elif flux2 <= 0.0:  # region II&III
         eq_var_code = _EQ_RF
         ts_bar = _T_CR - q_minus_qv * rs / phi + (1.0 / phi - 1.0) * (_T_CR - ts)
-        tf = _bisect(_R_TF_REGION_II_III, ta, pa, rs, ts_bar, ta, ts_bar, _TOL)
+        tf = _bisect(
+            kind=_R_TF_REGION_II_III,
+            p0=ta,
+            p1=pa,
+            p2=rs,
+            p3=ts_bar,
+            x1=ta,
+            x2=ts_bar,
+            tol=_TOL,
+        )
         rf = _ra_bar(tf, ta) * (ts_bar - tf) / (tf - ta)
     else:  # region IV,V,VI
         rf = 0.0
@@ -238,12 +247,30 @@ def _find_eq_var(ta, rh):
             - (_PHI_SALT * _pv_star(_T_CR) - pa) / _ZA_UN
         )
         if flux3 < 0.0:  # region IV,V
-            ts = _bisect(_R_TS_REGION_IV_V, ta, pa, 0.0, 0.0, 0.0, _T_CR, _TOL)
+            ts = _bisect(
+                kind=_R_TS_REGION_IV_V,
+                p0=ta,
+                p1=pa,
+                p2=0.0,
+                p3=0.0,
+                x1=0.0,
+                x2=_T_CR,
+                tol=_TOL,
+            )
             rs = (_T_CR - ts) / q_minus_qv
             eq_var_code = _EQ_RS
             ps = _P_CR - (_P_CR - pa) * _zs(rs) / (_zs(rs) + _ZA_UN)
             if ps > _PHI_SALT * _pv_star(ts):  # region V
-                ts = _bisect(_R_TS_REGION_V, ta, pa, 0.0, 0.0, 0.0, _T_CR, _TOL)
+                ts = _bisect(
+                    kind=_R_TS_REGION_V,
+                    p0=ta,
+                    p1=pa,
+                    p2=0.0,
+                    p3=0.0,
+                    x1=0.0,
+                    x2=_T_CR,
+                    tol=_TOL,
+                )
                 rs = (_T_CR - ts) / q_minus_qv
                 eq_var_code = _EQ_RS
         else:  # region VI
@@ -312,14 +339,14 @@ def _residual(kind, x, p0, p1, p2, p3):
 def _bisect(kind, p0, p1, p2, p3, x1, x2, tol):
     a = x1
     b = x2
-    fa = _residual(kind, a, p0, p1, p2, p3)
-    fb = _residual(kind, b, p0, p1, p2, p3)
+    fa = _residual(kind=kind, x=a, p0=p0, p1=p1, p2=p2, p3=p3)
+    fb = _residual(kind=kind, x=b, p0=p0, p1=p1, p2=p2, p3=p3)
     if fa * fb > 0.0:
         raise ValueError("wrong initial interval in the root solver")
     c = b
     for i in range(_MAX_ITER):
         c = (a + b) / 2.0
-        fc = _residual(kind, c, p0, p1, p2, p3)
+        fc = _residual(kind=kind, x=c, p0=p0, p1=p1, p2=p2, p3=p3)
         if fb * fc > 0.0:
             b = c
             fb = fc
@@ -335,12 +362,48 @@ def _bisect(kind, p0, p1, p2, p3, x1, x2, tol):
 @njit(cache=True)
 def _find_t(eq_var_code, eq_var):
     if eq_var_code == _EQ_PHI:
-        return _bisect(_R_T_PHI, eq_var, 0.0, 0.0, 0.0, 0.0, 240.0, _TOL_T)
+        return _bisect(
+            kind=_R_T_PHI,
+            p0=eq_var,
+            p1=0.0,
+            p2=0.0,
+            p3=0.0,
+            x1=0.0,
+            x2=240.0,
+            tol=_TOL_T,
+        )
     if eq_var_code == _EQ_RF:
-        return _bisect(_R_T_RF, eq_var, 0.0, 0.0, 0.0, 230.0, 300.0, _TOL_T)
+        return _bisect(
+            kind=_R_T_RF,
+            p0=eq_var,
+            p1=0.0,
+            p2=0.0,
+            p3=0.0,
+            x1=230.0,
+            x2=300.0,
+            tol=_TOL_T,
+        )
     if eq_var_code == _EQ_RS:
-        return _bisect(_R_T_RS, eq_var, 0.0, 0.0, 0.0, 295.0, 350.0, _TOL_T)
-    return _bisect(_R_T_DTCDT, eq_var, 0.0, 0.0, 0.0, 340.0, 1000.0, _TOL_T)
+        return _bisect(
+            kind=_R_T_RS,
+            p0=eq_var,
+            p1=0.0,
+            p2=0.0,
+            p3=0.0,
+            x1=295.0,
+            x2=350.0,
+            tol=_TOL_T,
+        )
+    return _bisect(
+        kind=_R_T_DTCDT,
+        p0=eq_var,
+        p1=0.0,
+        p2=0.0,
+        p3=0.0,
+        x1=340.0,
+        x2=1000.0,
+        tol=_TOL_T,
+    )
 
 
 @cast(

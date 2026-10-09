@@ -280,142 +280,174 @@ def whole_body(bf_art, bf_vein, bf_ava_hand, bf_ava_foot):
     right_leg = IDICT["right_leg"]["artery"]
     right_foot = IDICT["right_foot"]["artery"]
 
-    arr83 += flow(CB, neck, bf_art[1])  # CB to neck.art
-    arr83 += flow(neck, head, bf_art[0])  # neck.art to head.art
-    arr83 += flow(head + 1, neck + 1, bf_vein[0])  # head.vein to neck.vein
-    arr83 += flow(neck + 1, CB, bf_vein[1])  # neck.vein to CB
-
-    arr83 += flow(CB, chest, bf_art[2])  # CB to chest.art
-    arr83 += flow(chest + 1, CB, bf_vein[2])  # chest.vein to CB
-
-    arr83 += flow(CB, back, bf_art[3])  # CB to back.art
-    arr83 += flow(back + 1, CB, bf_vein[3])  # back.vein to CB
-
-    arr83 += flow(CB, pelvis, bf_art[4])  # CB to pelvis.art
-    arr83 += flow(pelvis + 1, CB, bf_vein[4])  # pelvis.vein to CB
-
-    arr83 += flow(CB, left_shoulder, bf_art[5])  # CB to left_shoulder.art
+    arr83 += flow(up=CB, down=neck, bloodflow=bf_art[1])  # CB to neck.art
+    arr83 += flow(up=neck, down=head, bloodflow=bf_art[0])  # neck.art to head.art
     arr83 += flow(
-        left_shoulder,
-        left_arm,
-        bf_art[6],
+        up=head + 1, down=neck + 1, bloodflow=bf_vein[0]
+    )  # head.vein to neck.vein
+    arr83 += flow(up=neck + 1, down=CB, bloodflow=bf_vein[1])  # neck.vein to CB
+
+    arr83 += flow(up=CB, down=chest, bloodflow=bf_art[2])  # CB to chest.art
+    arr83 += flow(up=chest + 1, down=CB, bloodflow=bf_vein[2])  # chest.vein to CB
+
+    arr83 += flow(up=CB, down=back, bloodflow=bf_art[3])  # CB to back.art
+    arr83 += flow(up=back + 1, down=CB, bloodflow=bf_vein[3])  # back.vein to CB
+
+    arr83 += flow(up=CB, down=pelvis, bloodflow=bf_art[4])  # CB to pelvis.art
+    arr83 += flow(up=pelvis + 1, down=CB, bloodflow=bf_vein[4])  # pelvis.vein to CB
+
+    arr83 += flow(
+        up=CB, down=left_shoulder, bloodflow=bf_art[5]
+    )  # CB to left_shoulder.art
+    arr83 += flow(
+        up=left_shoulder,
+        down=left_arm,
+        bloodflow=bf_art[6],
     )  # left_shoulder.art to left_arm.art
-    arr83 += flow(left_arm, left_hand, bf_art[7])  # left_arm.art to left_hand.art
     arr83 += flow(
-        left_hand + 1,
-        left_arm + 1,
-        bf_vein[7],
+        up=left_arm, down=left_hand, bloodflow=bf_art[7]
+    )  # left_arm.art to left_hand.art
+    arr83 += flow(
+        up=left_hand + 1,
+        down=left_arm + 1,
+        bloodflow=bf_vein[7],
     )  # left_hand.vein to left_arm.vein
     arr83 += flow(
-        left_arm + 1,
-        left_shoulder + 1,
-        bf_vein[6],
+        up=left_arm + 1,
+        down=left_shoulder + 1,
+        bloodflow=bf_vein[6],
     )  # left_arm.vein to left_shoulder.vein
-    arr83 += flow(left_shoulder + 1, CB, bf_vein[5])  # left_shoulder.vein to CB
     arr83 += flow(
-        left_hand + 2,
-        left_arm + 2,
-        bf_ava_hand,
+        up=left_shoulder + 1, down=CB, bloodflow=bf_vein[5]
+    )  # left_shoulder.vein to CB
+    arr83 += flow(
+        up=left_hand + 2,
+        down=left_arm + 2,
+        bloodflow=bf_ava_hand,
     )  # left_hand.sfvein to left_arm.sfvein
     arr83 += flow(
-        left_arm + 2,
-        left_shoulder + 2,
-        bf_ava_hand,
+        up=left_arm + 2,
+        down=left_shoulder + 2,
+        bloodflow=bf_ava_hand,
     )  # left_arm.sfvein to left_shoulder.sfvein
-    arr83 += flow(left_shoulder + 2, CB, bf_ava_hand)  # left_shoulder.sfvein to CB
+    arr83 += flow(
+        up=left_shoulder + 2, down=CB, bloodflow=bf_ava_hand
+    )  # left_shoulder.sfvein to CB
 
-    arr83 += flow(CB, right_shoulder, bf_art[8])  # CB to right_shoulder.art
     arr83 += flow(
-        right_shoulder,
-        right_arm,
-        bf_art[9],
+        up=CB, down=right_shoulder, bloodflow=bf_art[8]
+    )  # CB to right_shoulder.art
+    arr83 += flow(
+        up=right_shoulder,
+        down=right_arm,
+        bloodflow=bf_art[9],
     )  # right_shoulder.art to right_arm.art
-    arr83 += flow(right_arm, right_hand, bf_art[10])  # right_arm.art to right_hand.art
     arr83 += flow(
-        right_hand + 1,
-        right_arm + 1,
-        bf_vein[10],
+        up=right_arm, down=right_hand, bloodflow=bf_art[10]
+    )  # right_arm.art to right_hand.art
+    arr83 += flow(
+        up=right_hand + 1,
+        down=right_arm + 1,
+        bloodflow=bf_vein[10],
     )  # right_hand.vein to right_arm.vein
     arr83 += flow(
-        right_arm + 1,
-        right_shoulder + 1,
-        bf_vein[9],
+        up=right_arm + 1,
+        down=right_shoulder + 1,
+        bloodflow=bf_vein[9],
     )  # right_arm.vein to right_shoulder.vein
-    arr83 += flow(right_shoulder + 1, CB, bf_vein[8])  # right_shoulder.vein to CB
     arr83 += flow(
-        right_hand + 2,
-        right_arm + 2,
-        bf_ava_hand,
+        up=right_shoulder + 1, down=CB, bloodflow=bf_vein[8]
+    )  # right_shoulder.vein to CB
+    arr83 += flow(
+        up=right_hand + 2,
+        down=right_arm + 2,
+        bloodflow=bf_ava_hand,
     )  # right_hand.sfvein to right_arm.sfvein
     arr83 += flow(
-        right_arm + 2,
-        right_shoulder + 2,
-        bf_ava_hand,
+        up=right_arm + 2,
+        down=right_shoulder + 2,
+        bloodflow=bf_ava_hand,
     )  # right_arm.sfvein to right_shoulder.sfvein
-    arr83 += flow(right_shoulder + 2, CB, bf_ava_hand)  # right_shoulder.sfvein to CB
-
-    arr83 += flow(pelvis, left_thigh, bf_art[11])  # pelvis to left_thigh.art
-    arr83 += flow(left_thigh, left_leg, bf_art[12])  # left_thigh.art to left_leg.art
-    arr83 += flow(left_leg, left_foot, bf_art[13])  # left_leg.art to left_foot.art
     arr83 += flow(
-        left_foot + 1,
-        left_leg + 1,
-        bf_vein[13],
+        up=right_shoulder + 2, down=CB, bloodflow=bf_ava_hand
+    )  # right_shoulder.sfvein to CB
+
+    arr83 += flow(
+        up=pelvis, down=left_thigh, bloodflow=bf_art[11]
+    )  # pelvis to left_thigh.art
+    arr83 += flow(
+        up=left_thigh, down=left_leg, bloodflow=bf_art[12]
+    )  # left_thigh.art to left_leg.art
+    arr83 += flow(
+        up=left_leg, down=left_foot, bloodflow=bf_art[13]
+    )  # left_leg.art to left_foot.art
+    arr83 += flow(
+        up=left_foot + 1,
+        down=left_leg + 1,
+        bloodflow=bf_vein[13],
     )  # left_foot.vein to left_leg.vein
     arr83 += flow(
-        left_leg + 1,
-        left_thigh + 1,
-        bf_vein[12],
+        up=left_leg + 1,
+        down=left_thigh + 1,
+        bloodflow=bf_vein[12],
     )  # left_leg.vein to left_thigh.vein
-    arr83 += flow(left_thigh + 1, pelvis + 1, bf_vein[11])  # left_thigh.vein to pelvis
     arr83 += flow(
-        left_foot + 2,
-        left_leg + 2,
-        bf_ava_foot,
+        up=left_thigh + 1, down=pelvis + 1, bloodflow=bf_vein[11]
+    )  # left_thigh.vein to pelvis
+    arr83 += flow(
+        up=left_foot + 2,
+        down=left_leg + 2,
+        bloodflow=bf_ava_foot,
     )  # left_foot.sfvein to left_leg.sfvein
     arr83 += flow(
-        left_leg + 2,
-        left_thigh + 2,
-        bf_ava_foot,
+        up=left_leg + 2,
+        down=left_thigh + 2,
+        bloodflow=bf_ava_foot,
     )  # left_leg.sfvein to left_thigh.sfvein
-    arr83 += flow(left_thigh + 2, pelvis + 1, bf_ava_foot)  # left_thigh.vein to pelvis
+    arr83 += flow(
+        up=left_thigh + 2, down=pelvis + 1, bloodflow=bf_ava_foot
+    )  # left_thigh.vein to pelvis
 
-    arr83 += flow(pelvis, right_thigh, bf_art[14])  # pelvis to right_thigh.art
     arr83 += flow(
-        right_thigh,
-        right_leg,
-        bf_art[15],
+        up=pelvis, down=right_thigh, bloodflow=bf_art[14]
+    )  # pelvis to right_thigh.art
+    arr83 += flow(
+        up=right_thigh,
+        down=right_leg,
+        bloodflow=bf_art[15],
     )  # right_thigh.art to right_leg.art
-    arr83 += flow(right_leg, right_foot, bf_art[16])  # right_leg.art to right_foot.art
     arr83 += flow(
-        right_foot + 1,
-        right_leg + 1,
-        bf_vein[16],
+        up=right_leg, down=right_foot, bloodflow=bf_art[16]
+    )  # right_leg.art to right_foot.art
+    arr83 += flow(
+        up=right_foot + 1,
+        down=right_leg + 1,
+        bloodflow=bf_vein[16],
     )  # right_foot.vein to right_leg.vein
     arr83 += flow(
-        right_leg + 1,
-        right_thigh + 1,
-        bf_vein[15],
+        up=right_leg + 1,
+        down=right_thigh + 1,
+        bloodflow=bf_vein[15],
     )  # right_leg.vein to right_thigh.vein
     arr83 += flow(
-        right_thigh + 1,
-        pelvis + 1,
-        bf_vein[14],
+        up=right_thigh + 1,
+        down=pelvis + 1,
+        bloodflow=bf_vein[14],
     )  # right_thigh.vein to pelvis
     arr83 += flow(
-        right_foot + 2,
-        right_leg + 2,
-        bf_ava_foot,
+        up=right_foot + 2,
+        down=right_leg + 2,
+        bloodflow=bf_ava_foot,
     )  # right_foot.sfvein to right_leg.sfvein
     arr83 += flow(
-        right_leg + 2,
-        right_thigh + 2,
-        bf_ava_foot,
+        up=right_leg + 2,
+        down=right_thigh + 2,
+        bloodflow=bf_ava_foot,
     )  # right_leg.sfvein to right_thigh.sfvein
     arr83 += flow(
-        right_thigh + 2,
-        pelvis + 1,
-        bf_ava_foot,
+        up=right_thigh + 2,
+        down=pelvis + 1,
+        bloodflow=bf_ava_foot,
     )  # right_thigh.vein to pelvis
 
     return arr83

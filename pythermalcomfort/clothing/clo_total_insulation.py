@@ -81,8 +81,8 @@ def clo_total_insulation(
         _i_t: NDArray[np.number[Any]],
     ) -> NDArray[np.floating[Any]]:
         return (
-            (0.6 - _i_cl) * nude(_vr, _vw, _i_a_static)
-            + _i_cl * normal_clothing(_vr, _vw, _i_t)
+            (0.6 - _i_cl) * nude(_vr=_vr, _vw=_vw, _i_a_static=_i_a_static)
+            + _i_cl * normal_clothing(_vr=_vr, _vw=_vw, _i_t=_i_t)
         ) / 0.6
 
     i_t_r = np.where(

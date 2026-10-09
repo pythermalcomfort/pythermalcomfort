@@ -202,6 +202,14 @@ When implementing the function, follow these guidelines:
 - Use numpy vectorized operations for performance (e.g., ``np.log``) rather than ``math``.
 - Add a NumPy-style docstring including: Parameters, Raises, Returns, Examples, References.
 - Check in the BaseInputs how inputs are typically named, typed, and validated.
+- Call functions with keyword arguments, both in your own code and in docstring
+  examples: ``pmv_ppd_iso(tdb=25, tr=25, vr=0.1, rh=50, met=1.2, clo=0.5)``, not
+  ``pmv_ppd_iso(25, 25, 0.1, 50, 1.2, 0.5)``. Swapping two same-typed arguments
+  (e.g. ``tdb`` and ``tr``) still runs and returns a plausible number, so nothing
+  else catches it. ``tests/test_call_site_arguments.py`` fails if code in the package
+  passes 3 or more positional arguments to a package function. The one exception is
+  numba ``@vectorize`` functions, which do not accept keyword arguments (#441).
+  ``np.vectorize`` wrappers do accept them, so call those by keyword too.
 - Example skeleton for a new function:
 
 .. code-block:: python
@@ -240,7 +248,7 @@ When implementing the function, follow these guidelines:
             from pythermalcomfort.models import my_func
 
             tdb = 25
-            result = my_func(tdb)
+            result = my_func(x=tdb)
             print(result)  # Expected output: ...
         """
 
