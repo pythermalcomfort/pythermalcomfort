@@ -276,6 +276,46 @@ def _find_span(arr, x):
 
 
 @njit(cache=True)
+def _projected_area_factor(sol_altitude, sharp, posture_code):
+    """Return the projected area factor fp, interpolated from the posture's table.
+
+    For a supine person the table is read with angles relative to the body. The rotated
+    angles stay inside this function, so callers only use the solar angles. Returns NaN
+    if the angles are outside the table's domain.
+    """
+    if posture_code == _POSTURE_SITTING:
+        fp_table = _FP_TABLE_SITTING
+    else:
+        fp_table = _FP_TABLE_STANDING
+
+    if posture_code == _POSTURE_SUPINE:
+        sharp, sol_altitude = transpose_sharp_altitude(sharp, sol_altitude)
+
+    alt_i = _find_span(_ALT_RANGE, sol_altitude)
+    az_i = _find_span(_AZ_RANGE, sharp)
+    if alt_i == -1 or az_i == -1:
+        # angles out of the table's domain (0-90/0-180), or NaN (e.g. from
+        # _valid_range clipping upstream); for supine these are the rotated
+        # angles. -1 would otherwise wrap around to the last row/column instead
+        # of failing, so bail out explicitly rather than returning a
+        # plausible-looking wrong value.
+        return np.nan
+    fp11 = fp_table[az_i, alt_i]
+    fp12 = fp_table[az_i, alt_i + 1]
+    fp21 = fp_table[az_i + 1, alt_i]
+    fp22 = fp_table[az_i + 1, alt_i + 1]
+    az1 = _AZ_RANGE[az_i]
+    az2 = _AZ_RANGE[az_i + 1]
+    alt1 = _ALT_RANGE[alt_i]
+    alt2 = _ALT_RANGE[alt_i + 1]
+    fp = fp11 * (az2 - sharp) * (alt2 - sol_altitude)
+    fp += fp21 * (sharp - az1) * (alt2 - sol_altitude)
+    fp += fp12 * (az2 - sharp) * (sol_altitude - alt1)
+    fp += fp22 * (sharp - az1) * (sol_altitude - alt1)
+    return fp / ((az2 - az1) * (alt2 - alt1))
+
+
+@njit(cache=True)
 def _solar_gain_scalar(
     sol_altitude,
     sharp,
@@ -291,39 +331,11 @@ def _solar_gain_scalar(
     hr = 6
     i_diff = 0.2 * sol_radiation_dir
 
-    if posture_code == _POSTURE_SITTING:
-        fp_table = _FP_TABLE_SITTING
-    else:
-        fp_table = _FP_TABLE_STANDING
-
-    # for a supine person the fp table is read with body-relative angles; the
-    # floor-reflected term below keeps the true solar altitude
-    fp_sharp = sharp
-    fp_altitude = sol_altitude
-    if posture_code == _POSTURE_SUPINE:
-        fp_sharp, fp_altitude = transpose_sharp_altitude(sharp, sol_altitude)
-
-    alt_i = _find_span(_ALT_RANGE, fp_altitude)
-    az_i = _find_span(_AZ_RANGE, fp_sharp)
-    if alt_i == -1 or az_i == -1:
-        # sol_altitude/sharp out of the table's domain (0-90/0-180), or NaN
-        # (e.g. from _valid_range clipping upstream): -1 would otherwise wrap
-        # around to the last row/column instead of failing, so bail out
-        # explicitly rather than returning a plausible-looking wrong value.
+    fp = _projected_area_factor(
+        sol_altitude=sol_altitude, sharp=sharp, posture_code=posture_code
+    )
+    if np.isnan(fp):
         return np.nan, np.nan
-    fp11 = fp_table[az_i, alt_i]
-    fp12 = fp_table[az_i, alt_i + 1]
-    fp21 = fp_table[az_i + 1, alt_i]
-    fp22 = fp_table[az_i + 1, alt_i + 1]
-    az1 = _AZ_RANGE[az_i]
-    az2 = _AZ_RANGE[az_i + 1]
-    alt1 = _ALT_RANGE[alt_i]
-    alt2 = _ALT_RANGE[alt_i + 1]
-    fp = fp11 * (az2 - fp_sharp) * (alt2 - fp_altitude)
-    fp += fp21 * (fp_sharp - az1) * (alt2 - fp_altitude)
-    fp += fp12 * (az2 - fp_sharp) * (fp_altitude - alt1)
-    fp += fp22 * (fp_sharp - az1) * (fp_altitude - alt1)
-    fp /= (az2 - az1) * (alt2 - alt1)
 
     f_eff = 0.725  # fraction of the body surface exposed to environmental radiation
     if posture_code == _POSTURE_SITTING:
