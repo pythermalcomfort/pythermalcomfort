@@ -40,6 +40,35 @@ If you are proposing a feature, please use the `Feature request` template and:
 * Keep the scope narrow so it is easier to review and implement.
 * Consider opening a discussion first for larger changes.
 
+Issue types, labels and triage (maintainers)
+--------------------------------------------
+
+Every issue gets one **issue type** and, once triaged, one **area** and one
+**priority** label. Status labels are added only when they apply.
+
+* **Type** (GitHub issue type, not a label): ``Bug`` for wrong results or crashes,
+  ``Feature`` for new functionality, models or speed-ups, ``Task`` for refactoring,
+  documentation, CI, dependencies and tests. The issue templates set the type for bug
+  reports and feature requests.
+* **Area**: ``area: models``, ``area: plots``, ``area: jos3`` or ``area: infra`` (CI,
+  dependencies, release, tests, tooling).
+* **Priority**: ``priority: high`` (wrong results or security, fix first),
+  ``priority: medium`` (should be done soon) or ``priority: low`` (nice to have).
+  High and medium issues go into the "Next release" milestone.
+* **Topic** (optional): ``new model``, ``documentation``, ``performance``.
+* **Status** (only when it applies): ``needs decision`` (waiting on a maintainer
+  design decision; tag the maintainer in a comment that states the question),
+  ``blocked`` (waiting on another issue, repository or external event) and
+  ``help wanted`` (open to new contributors).
+
+``dependencies`` and ``python`` are applied by Dependabot to its pull requests.
+
+Keep issues small enough to finish in one pull request. When a large issue is partly
+done, close it with a comment that lists what shipped, and open one scoped issue per
+remaining item, each linking back to the original. Close duplicates and questions that
+need no change with GitHub's "duplicate" or "not planned" close reasons rather than
+labels.
+
 Contributing - Code
 ===================
 
