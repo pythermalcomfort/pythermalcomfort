@@ -123,7 +123,7 @@ def adaptive_ashrae(
             v=v,
         )
 
-    to = operative_tmp(tdb, tr, v, standard=standard)
+    to = operative_tmp(tdb=tdb, tr=tr, v=v, standard=standard)
 
     ce = adaptive_cooling_effect(v, to)
 

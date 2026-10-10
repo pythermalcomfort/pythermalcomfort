@@ -376,11 +376,11 @@ def ridge_regression_predict_t_re_t_sk(
             temp_valid,
             rh_valid,
         ) = _check_ridge_regression_compliance(
-            flat_inputs[1],
-            flat_inputs[2],
-            flat_inputs[3],
-            flat_inputs[4],
-            flat_inputs[5],
+            age=flat_inputs[1],
+            height=flat_inputs[2],
+            weight=flat_inputs[3],
+            tdb=flat_inputs[4],
+            rh=flat_inputs[5],
         )
 
     if t_re is not None and t_sk is not None:

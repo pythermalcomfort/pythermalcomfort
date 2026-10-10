@@ -20,6 +20,24 @@ def numeric_field(default=None):
     return field(default=default, metadata={"types": _NUMERIC_TYPES})
 
 
+def choice_field(allowed: list[str], default: Any = None) -> Any:
+    """Create a dataclass field whose value ``BaseInputs`` checks against ``allowed``.
+
+    Parameters
+    ----------
+    allowed : list[str]
+        Accepted values, compared case-insensitively by ``BaseInputs.__post_init__``.
+    default : Any, optional
+        Default value of the field, by default None.
+
+    Returns
+    -------
+    dataclasses.Field
+        A field with the given default and ``allowed`` metadata.
+    """
+    return field(default=default, metadata={"allowed": allowed})
+
+
 class WorkIntensity(str, Enum):
     """Enumeration for work intensity levels."""
 
@@ -50,32 +68,16 @@ class BaseInputs:
     max_sweating: NumericInput = numeric_field(500)
     met: NumericInput = numeric_field()
     p_atm: NumericInput = numeric_field(101325)
-    position: str | np.ndarray | list = field(
-        default=None,
-        metadata={
-            "allowed": [
-                Postures.sitting.value,
-                Postures.standing.value,
-                "standing, forced convection",
-            ]
-        },
+    position: str | np.ndarray | list = choice_field(
+        [Postures.sitting.value, Postures.standing.value, "standing, forced convection"]
     )
-    posture: str | np.ndarray | list = field(
-        default=None,
-        metadata={
-            "allowed": [
-                Postures.sitting.value,
-                Postures.standing.value,
-                Postures.crouching.value,
-            ]
-        },
+    posture: str | np.ndarray | list = choice_field(
+        [Postures.sitting.value, Postures.standing.value, Postures.crouching.value]
     )
     q: NumericInput = numeric_field()
     rh: NumericInput = numeric_field()
     round_output: bool = field(default=True, metadata={"is_bool": True})
-    sex: str | np.ndarray | list = field(
-        default=None, metadata={"allowed": [Sex.male.value, Sex.female.value]}
-    )
+    sex: str | np.ndarray | list = choice_field([Sex.male.value, Sex.female.value])
     sharp: NumericInput = numeric_field()
     sol_altitude: NumericInput = numeric_field()
     sol_radiation_dir: NumericInput = numeric_field()
@@ -101,9 +103,7 @@ class BaseInputs:
     wbgt: NumericInput = numeric_field()
     weight: NumericInput = numeric_field()
     with_solar_load: bool = field(default=False, metadata={"is_bool": True})
-    work_intensity: str | Enum = field(
-        default=None, metadata={"allowed": [i.value for i in WorkIntensity]}
-    )
+    work_intensity: str | Enum = choice_field([i.value for i in WorkIntensity])
     z0: NumericInput = numeric_field()
     z1: NumericInput = numeric_field()
     z2: NumericInput = numeric_field()
@@ -144,7 +144,9 @@ class BaseInputs:
             # Type validation
             expected_types = meta.get("types")
             if expected_types:
-                value = validate_type(value, f.name, expected_types)
+                value = validate_type(
+                    value=value, name=f.name, allowed_types=expected_types
+                )
                 # Store the validated and possibly normalized value.
                 setattr(self, f.name, value)
                 continue
@@ -152,7 +154,7 @@ class BaseInputs:
             # Allowed string values validation (supports arrays/lists)
             allowed = meta.get("allowed")
             if allowed:
-                self._validate_str_values(f.name, value, allowed)
+                self._validate_str_values(name=f.name, value=value, allowed=allowed)
                 setattr(self, f.name, value)
                 continue
 
@@ -166,9 +168,15 @@ class BaseInputs:
 
     @staticmethod
     def _validate_str_values(name: str, value: Any, allowed: list[str]) -> None:
-        arr = np.atleast_1d(value)
-        # Coerce Enums to their .value, then to str
-        coerced = [v.value if isinstance(v, Enum) else str(v) for v in arr.tolist()]
+        # Read Enum values before numpy sees them: np.atleast_1d turns a str-based
+        # Enum such as WorkIntensity into a truncated str, losing .value (#470).
+        if isinstance(value, np.ndarray):
+            items = value.ravel().tolist()
+        elif isinstance(value, (list, tuple)):
+            items = list(value)
+        else:
+            items = [value]
+        coerced = [v.value if isinstance(v, Enum) else str(v) for v in items]
         allowed_lower = {str(a).lower() for a in allowed}
         for v in coerced:
             if v.lower() not in allowed_lower:

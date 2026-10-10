@@ -81,8 +81,8 @@ def _validate_output_column(df: pd.DataFrame, output: str) -> str:
 def _validate_output_values(df: pd.DataFrame, output_column: str) -> None:
     """Ensure output column contains numeric finite values only.
 
-    Raises rather than silently dropping rows so callers are aware of missing
-    data and can decide how to handle it before plotting.
+    Raises rather than silently dropping rows so callers are aware of missing data and
+    can decide how to handle it before plotting.
     """
     numeric_values = pd.to_numeric(df[output_column], errors="coerce")
     invalid_mask = ~numeric_values.notna() | ~np.isfinite(numeric_values.to_numpy())
@@ -107,9 +107,9 @@ def _compute_region_percentages(
 ) -> pd.Series:
     """Assign each row to a threshold region and return percentage per region.
 
-    Uses integer indices internally for pd.cut so that duplicate or empty
-    display labels (e.g. ``["", "", ""]``) are handled correctly.  The
-    returned Series carries the display labels as its index.
+    Uses integer indices internally for pd.cut so that duplicate or empty display labels
+    (e.g. ``["", "", ""]``) are handled correctly.  The returned Series carries the
+    display labels as its index.
     """
     bins = [-np.inf, *levels, np.inf]
     values = pd.to_numeric(df[output_column], errors="raise")
@@ -132,9 +132,9 @@ def _compute_category_percentages(
 ) -> pd.Series:
     """Return percentage per label for a pre-computed array of category values.
 
-    Unlike ``pandas.Series.value_counts(normalize=True)``, this never silently
-    drops or renormalizes around unexpected values (including NaN) — any value
-    not present in ``labels`` raises instead of being dropped.
+    Unlike ``pandas.Series.value_counts(normalize=True)``, this never silently drops or
+    renormalizes around unexpected values (including NaN) — any value not present in
+    ``labels`` raises instead of being dropped.
     """
     series = pd.Series(np.asarray(categories, dtype=object))
     label_list = list(labels)
@@ -670,9 +670,9 @@ class SummaryPlot(BasePlot):
                 _apply_compact_layout(fig)
 
             _ensure_title_legend_spacing(
-                fig,
-                ax,
-                legend_artist,
+                fig=fig,
+                ax=ax,
+                legend=legend_artist,
                 adjust_layout=created_figure,
             )
 

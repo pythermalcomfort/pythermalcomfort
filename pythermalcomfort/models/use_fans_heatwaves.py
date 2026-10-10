@@ -116,12 +116,12 @@ def use_fans_heatwaves(
     wme = np.asarray(wme)
 
     output = two_nodes_gagge(
-        tdb,
-        tr,
-        v,
-        rh,
-        met,
-        clo,
+        tdb=tdb,
+        tr=tr,
+        v=v,
+        rh=rh,
+        met=met,
+        clo=clo,
         wme=wme,
         body_surface_area=body_surface_area,
         p_atm=p_atm,

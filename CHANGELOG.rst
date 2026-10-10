@@ -4,6 +4,34 @@ Changelog
 Unreleased
 ----------
 
+* Fixed ``work_capacity_hothaps`` and ``work_capacity_dunne`` rejecting a
+  ``WorkIntensity`` member (e.g. ``WorkIntensity.MODERATE``) as ``work_intensity`` with
+  "must be one of", while the same value as a string worked
+  (`#470 <https://github.com/pythermalcomfort/pythermalcomfort/issues/470>`_).
+* Internal calls between package functions now pass arguments by keyword, so two
+  same-typed arguments (e.g. ``tdb`` and ``tr``) cannot be swapped silently. A new test
+  checks every call in the package for this. The ``pmv_e`` and ``ankle_draft``
+  docstring examples now use keyword arguments. Public function signatures and results
+  are unchanged
+  (`#441 <https://github.com/pythermalcomfort/pythermalcomfort/issues/441>`_).
+* Fixed the ``heat_index_lu`` docstring example, which showed 25.9 instead of the 25.0
+  the call returns, and updated the Lu and Romps reference to the published 2022 paper
+  (`#257 <https://github.com/pythermalcomfort/pythermalcomfort/issues/257>`_).
+* Fixed ``JOS3`` initialization for low metabolic rates by allowing its internal
+  neutral-temperature search outside ISO 7730's comfort applicability limits. This
+  prevents discontinuous or NaN core and skin set points and resulting NaN simulations.
+  Previously affected set points change; the public ``pmv_ppd_iso()`` applicability
+  limits remain unchanged
+  (`#435 <https://github.com/pythermalcomfort/pythermalcomfort/issues/435>`_).
+* Fixed the ``solar_gain`` docstring example, which showed ``erf`` 42.9 and
+  ``delta_mrt`` 10.3 instead of the 43.3 and 10.4 the call returns
+  (`#449 <https://github.com/pythermalcomfort/pythermalcomfort/issues/449>`_).
+* Sped up ``sports_heat_stress_risk`` by roughly 3-9x (depending on the sport's
+  duration) (`#396 <https://github.com/pythermalcomfort/pythermalcomfort/issues/396>`_).
+  The ``brentq`` threshold solvers now call the PHS scalar kernel directly instead of
+  the public ``phs()``, skipping its input validation and the ``numba`` parallel array
+  dispatch on every solver iteration. Results are unchanged.
+
 4.6.1 (2026-10-06)
 ------------------
 
@@ -16,6 +44,13 @@ Unreleased
   logistic model is below the 34.5 % baseline (Liu et al. 2020, eq. 3).
 * Fixed ``AdaptivePlot`` losing or mislabeling legend entries for comfort bands and
   the center line when the legend is rebuilt after adding measured data (#415).
+* ``PsychrometricPlot`` draws constant-RH background curves at 25 % intervals
+  instead of 10 %, and RH labels use Matplotlib's default font size instead of a
+  fixed 8 pt, for readability on charts of different sizes.
+* Fixed ``AdaptivePlot.plot()`` showing Matplotlib's internal auto-generated
+  label (e.g. ``_child0``) in the legend when ``fill_kws`` or
+  ``center_line_kws`` explicitly passed ``label=None``, instead of falling
+  back to the band's or center line's configured default label.
 
 4.6.0 (2026-09-17)
 ------------------

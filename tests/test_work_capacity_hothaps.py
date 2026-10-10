@@ -89,3 +89,11 @@ def test_invalid_intensity_raises() -> None:
     """Test that the function raises ValueError for invalid work intensity."""
     with pytest.raises(ValueError):
         work_capacity_hothaps(30.0, work_intensity="invalid")
+
+
+def test_work_intensity_accepts_enum() -> None:
+    """A WorkIntensity member gives the same result as its string value (#470)."""
+    assert (
+        work_capacity_hothaps(wbgt=30, work_intensity=WorkIntensity.MODERATE).capacity
+        == work_capacity_hothaps(wbgt=30, work_intensity="moderate").capacity
+    )

@@ -86,6 +86,23 @@ Two things that bite, both covered in detail by the skill:
   at the current `validation-data-comfort-models` tag. See `CONTRIBUTING.rst`'s
   "Keeping the validation-data-comfort-models pin current".
 
+### Issues and triage
+
+Follow `CONTRIBUTING.rst`, "Issue types, labels and triage (maintainers)". In short:
+GitHub **issue type** (Bug / Feature / Task, not a label) + one `area: …` label + one
+`priority: high|medium|low` label; `needs decision` / `blocked` / `help wanted` only
+when they apply. High and medium go in the "Next release" milestone. For example:
+
+```bash
+gh issue create --type Bug --label "area: models" --label "priority: high" \
+  --milestone "Next release" --title "utci: ..." --body "..."
+gh issue edit 410 --type Bug --add-label "priority: high"
+```
+
+Before closing an issue as fixed, check the fix is merged (`gh pr view <n>`) and still
+holds on `development`. A "Closes #n" in a commit only auto-closes once it reaches
+`master`, so issues fixed on `development` are closed by hand with a link to the commit.
+
 ## Architecture Overview
 
 ### Codebase Organization
@@ -151,6 +168,15 @@ def model_name(
     round_output: bool = True,          # optional: round results
 ) -> OutputDataclass:                   # returns frozen dataclass
 ```
+
+**Calling convention** (#441): call functions with keyword arguments, e.g.
+`pmv_ppd_iso(tdb=25, tr=25, vr=0.1, rh=50, met=1.2, clo=0.5)`, in package code and in
+docstring examples. Swapped same-typed arguments (`tdb`/`tr`) run silently and return
+plausible numbers. `tests/test_call_site_arguments.py` fails on 3+ positional arguments
+to a package function and on arguments that look swapped. The exception is numba
+`@vectorize` kernels (e.g. `_pmv_ppd_optimized`), which reject keyword arguments;
+`np.vectorize` wrappers accept them and are not exempt. Public signatures do not use `*`: that would break positional callers, so it
+is deferred to a major version.
 
 **Input validation flow**:
 1. Function receives raw inputs

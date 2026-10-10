@@ -1,9 +1,9 @@
 """Adaptive comfort chart plotting for ASHRAE 55 and EN 16798.
 
-Comfort band boundaries are computed as smooth lines directly from the
-standard equations.  The slope, intercept, and cooling-effect function are
-imported from the underlying model modules so there is one single source of
-truth for every numeric constant.
+Comfort band boundaries are computed as smooth lines directly from the standard
+equations.  The slope, intercept, and cooling-effect function are imported from the
+underlying model modules so there is one single source of truth for every numeric
+constant.
 """
 
 from __future__ import annotations
@@ -534,6 +534,8 @@ class AdaptivePlot(BasePlot):
                 fig = ax.figure
 
             fill_opts = dict(fill_kws or {})
+            if fill_opts.get("label") is None:
+                fill_opts.pop("label", None)
             fill_opts.setdefault("alpha", _PlotDefaults.fill_alpha)
 
             slope: float = self._cfg["slope"]
@@ -589,6 +591,8 @@ class AdaptivePlot(BasePlot):
                 cl_opts = dict(_PlotDefaults.Adaptive.center_line_defaults)
                 if center_line_kws:
                     cl_opts.update(center_line_kws)
+                if cl_opts.get("label") is None:
+                    cl_opts.pop("label", None)
                 cl_opts.setdefault("label", _PlotDefaults.Adaptive.center_line_label)
                 t_lo, t_hi = self._t_rm_range
                 x = [t_lo, t_hi]

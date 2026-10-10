@@ -161,8 +161,8 @@ def solar_gain(
             asw=0.7,
             posture="sitting",
         )
-        print(result.erf)  # 42.9
-        print(result.delta_mrt)  # 10.3
+        print(result.erf)  # 43.3
+        print(result.delta_mrt)  # 10.4
 
     Applicability
     -------------
@@ -363,14 +363,14 @@ def _solar_gain_array(
     d_mrt = np.empty(n, dtype=np.float64)
     for i in prange(n):
         erf[i], d_mrt[i] = _solar_gain_scalar(
-            sol_altitude[i],
-            sharp[i],
-            sol_radiation_dir[i],
-            sol_transmittance[i],
-            f_svv[i],
-            f_bes[i],
-            asw[i],
-            floor_reflectance[i],
-            posture_code[i],
+            sol_altitude=sol_altitude[i],
+            sharp=sharp[i],
+            sol_radiation_dir=sol_radiation_dir[i],
+            sol_transmittance=sol_transmittance[i],
+            f_svv=f_svv[i],
+            f_bes=f_bes[i],
+            asw=asw[i],
+            floor_reflectance=floor_reflectance[i],
+            posture_code=posture_code[i],
         )
     return erf, d_mrt
