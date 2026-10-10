@@ -279,6 +279,19 @@ def test_ashrae_plot_returns_result() -> None:
     assert isinstance(result.fig, Figure)
 
 
+def test_ashrae_plot_hides_grid_by_default() -> None:
+    result = AdaptivePlot(adaptive_ashrae).plot()
+    gridlines = [*result.ax.get_xgridlines(), *result.ax.get_ygridlines()]
+    assert not any(line.get_visible() for line in gridlines)
+
+
+def test_ashrae_plot_grid_can_be_enabled() -> None:
+    result = AdaptivePlot(adaptive_ashrae).plot(grid=True)
+    gridlines = [*result.ax.get_xgridlines(), *result.ax.get_ygridlines()]
+    assert gridlines
+    assert all(line.get_visible() for line in gridlines)
+
+
 def test_ashrae_plot_default_fills() -> None:
     result = AdaptivePlot(adaptive_ashrae).plot()
     assert len(result.fills) == 2  # 80% and 90%
