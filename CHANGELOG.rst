@@ -4,6 +4,9 @@ Changelog
 Unreleased
 ----------
 
+* ``AdaptivePlot.plot()`` now hides background grid lines by default. Pass
+  ``grid=True`` to display them (`#433
+  <https://github.com/pythermalcomfort/pythermalcomfort/issues/433>`_).
 * Fixed ``work_capacity_hothaps`` and ``work_capacity_dunne`` rejecting a
   ``WorkIntensity`` member (e.g. ``WorkIntensity.MODERATE``) as ``work_intensity`` with
   "must be one of", while the same value as a string worked

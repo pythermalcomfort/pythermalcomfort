@@ -486,7 +486,7 @@ class AdaptivePlot(BasePlot):
         xlabel: str | None | Literal[_Default.XLABEL] = _DEFAULT_XLABEL,
         ylabel: str | None = "Operative Temperature [°C]",
         legend: bool = True,
-        grid: bool = True,
+        grid: bool = False,
         show_center_line: bool = True,
         center_line_kws: Mapping[str, Any] | None = None,
         fill_kws: Mapping[str, Any] | None = None,
@@ -509,7 +509,8 @@ class AdaptivePlot(BasePlot):
         legend : bool
             Whether to draw a legend.
         grid : bool
-            Whether to display background grid lines.
+            Whether to display background grid lines. Grid lines are hidden by
+            default; pass ``True`` to show them.
         show_center_line : bool
             Whether to draw the comfort temperature center line.
         center_line_kws : dict, optional
