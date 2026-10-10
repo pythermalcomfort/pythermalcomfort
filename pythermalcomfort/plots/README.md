@@ -73,9 +73,13 @@ Narrowing the axis ranges to where the model is well behaved usually fixes it.
 chart drawn on an `ax` you created matches one where `plot()` made the axis:
 
 - no grid — call `result.ax.grid(True)` to put it back
-- no top or right spine
+- no top spine; `ThresholdPlot` also hides the right spine
 - no boundary lines — pass `show_lines=True` to draw them
-- out-of-model-limits areas in neutral gray `#C4C9CC`, overridable via `invalid_color`
+- `ThresholdPlot` out-of-model-limits areas in neutral gray `#C4C9CC`,
+  overridable via `invalid_color`
+- `PsychrometricPlot` places its humidity-ratio axis on the right and uses the
+  lighter neutral gray `#DADCDD` for out-of-model-limits areas, also overridable
+  via `invalid_color`
 
 `AdaptivePlot` keeps its grid, which its bands are read against.
 

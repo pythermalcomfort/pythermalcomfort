@@ -146,6 +146,7 @@ class _PlotDefaults:
 
         p_atm: float = 101325.0
         n_tdb_points: int = 500
+        color_out_of_model: str = "#DADCDD"
         rh_line_color: str = "#a0a0a0"
         rh_line_linewidth: float = 0.8
         #: Labels are darker than their curves: the line can be faint because
@@ -369,6 +370,14 @@ class RegionConfig:
     colors: list[str]
 
 
+@dataclass(frozen=True)
+class _RegionPreset:
+    """Declarative defaults for one model output and threshold combination."""
+
+    labels: tuple[str, ...]
+    colors: tuple[str, ...]
+
+
 @dataclass
 class BasePlotResult:
     """Minimal result handle shared by all plot types.
@@ -559,6 +568,21 @@ _DEFAULT_REGION_COLORS: dict[int, tuple[str, ...]] = {
     ),
 }
 
+_EMPTY_REGION_PRESETS: Mapping[tuple[str, tuple[float, ...]], _RegionPreset] = (
+    MappingProxyType({})
+)
+
+_PSYCHROMETRIC_REGION_PRESETS: Mapping[tuple[str, tuple[float, ...]], _RegionPreset] = (
+    MappingProxyType(
+        {
+            ("pmv", (-0.5, 0.5)): _RegionPreset(
+                labels=("PMV < -0.5", "-0.5 ≤ PMV ≤ 0.5", "PMV > 0.5"),
+                colors=("#86AEC8", "#4CB15E", "#D88B7B"),
+            )
+        }
+    )
+)
+
 
 def _default_region_colors(n_regions: int) -> list[str]:
     """Return muted default colors from cool blue to warm terracotta.
@@ -610,6 +634,9 @@ def _configure_regions(
     thresholds: Sequence[float],
     labels: Sequence[str] | None = None,
     colors: Sequence[str] | None = None,
+    presets: Mapping[
+        tuple[str, tuple[float, ...]], _RegionPreset
+    ] = _EMPTY_REGION_PRESETS,
 ) -> RegionConfig:
     """Validate inputs and build a :class:`RegionConfig`.
 
@@ -628,6 +655,9 @@ def _configure_regions(
     colors : sequence of str, optional
         Matplotlib-compatible color for every region.  Must have length
         ``len(thresholds) + 1`` when provided.
+    presets : mapping, optional
+        Declarative defaults keyed by lower-case output name and normalized
+        thresholds. Explicit ``labels`` and ``colors`` take precedence.
 
     Returns
     -------
@@ -648,14 +678,17 @@ def _configure_regions(
         raise ValueError("output must be a non-empty string.")
 
     normalized_levels = _normalize_levels(thresholds)
+    preset = presets.get((output_name.casefold(), tuple(normalized_levels)))
+    preset_labels = getattr(preset, "labels", None)
+    preset_colors = getattr(preset, "colors", None)
     region_labels = _build_region_labels(
         output=output_name,
         levels=normalized_levels,
-        labels=labels,
+        labels=labels if labels is not None else preset_labels,
     )
     region_colors = _resolve_region_colors(
         n_regions=len(normalized_levels) + 1,
-        colors=colors,
+        colors=colors if colors is not None else preset_colors,
     )
 
     return RegionConfig(

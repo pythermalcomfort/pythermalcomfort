@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
+else:
+    Self = Any
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -23,6 +28,7 @@ from pythermalcomfort.plots.matplotlib._boundaries import (
     solve_region_bands,
 )
 from pythermalcomfort.plots.matplotlib._shared import (
+    _EMPTY_REGION_PRESETS,
     _PYTHERMALCOMFORT_RC,
     BasePlotResult,
     _apply_axes_style,
@@ -105,6 +111,8 @@ class ThresholdPlot(GridBasePlot):
         print(lower.threshold, lower.x[:3], lower.y[:3])
     """
 
+    _region_presets = _EMPTY_REGION_PRESETS
+
     def set_regions(
         self,
         *,
@@ -112,7 +120,7 @@ class ThresholdPlot(GridBasePlot):
         thresholds: Sequence[float],
         labels: Sequence[str] | None = None,
         colors: Sequence[str] | None = None,
-    ) -> ThresholdPlot:
+    ) -> Self:
         """Configure output regions.
 
         Parameters
@@ -141,7 +149,11 @@ class ThresholdPlot(GridBasePlot):
             If output name is empty, or thresholds/labels/colors are invalid.
         """
         self._region_config = _configure_regions(
-            output=output, thresholds=thresholds, labels=labels, colors=colors
+            output=output,
+            thresholds=thresholds,
+            labels=labels,
+            colors=colors,
+            presets=self._region_presets,
         )
         return self
 

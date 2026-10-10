@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 from matplotlib.collections import PolyCollection
+from matplotlib.colors import to_rgb, to_rgba
 
 from pythermalcomfort.models import pmv_ppd_iso
 from pythermalcomfort.plots.matplotlib import PsychrometricPlot, ThresholdPlotResult
@@ -94,6 +95,117 @@ def test_basic_plot_renders_and_preserves_limits() -> None:
     plt.close(result.fig)
 
 
+def test_default_colors_highlight_comfort_and_deemphasize_invalid_area() -> None:
+    """Defaults highlight only comfort and keep invalid areas distinct."""
+    plot = _new_plot()
+    plot.set_x_axis("tdb", 10.0, 40.0, resolution=1.0)
+    plot.set_y_axis("hr", 0.0, 30.0, resolution=2.0)
+
+    result = plot.plot()
+
+    assert result.legend is not None
+    patches = result.legend.get_patches()
+    labels = [text.get_text() for text in result.legend.get_texts()]
+    assert patches[0].get_facecolor() == pytest.approx(to_rgba("#86AEC8"), abs=1e-3)
+    assert patches[1].get_facecolor() == pytest.approx(to_rgba("#4CB15E"), abs=1e-3)
+    assert patches[2].get_facecolor() == pytest.approx(to_rgba("#D88B7B"), abs=1e-3)
+    invalid_patch = patches[labels.index("Out of model limits")]
+    assert invalid_patch.get_facecolor()[:3] == pytest.approx(
+        to_rgb("#DADCDD"), abs=1e-3
+    )
+
+    rendered_colors = [fill.get_facecolor()[0] for fill in result.fills]
+    assert any(
+        np.allclose(color, to_rgba("#4CB15E"), atol=1e-3) for color in rendered_colors
+    )
+    assert (
+        sum(
+            np.allclose(color, to_rgba("#DADCDD"), atol=1e-3)
+            for color in rendered_colors
+        )
+        == 2
+    )
+
+    plt.close(result.fig)
+
+
+def test_default_pmv_labels_include_both_neutral_boundaries() -> None:
+    """The neutral PMV legend label includes both comfort limits."""
+    plot = _new_plot()
+    plot.set_x_axis("tdb", 10.0, 40.0, resolution=1.0)
+    plot.set_y_axis("hr", 0.0, 30.0, resolution=2.0)
+
+    result = plot.plot()
+
+    assert result.legend is not None
+    assert [text.get_text() for text in result.legend.get_texts()[:3]] == [
+        "PMV < -0.5",
+        "-0.5 ≤ PMV ≤ 0.5",
+        "PMV > 0.5",
+    ]
+
+    plt.close(result.fig)
+
+
+def test_custom_region_and_invalid_colors_are_preserved() -> None:
+    """Psychrometric-specific defaults must preserve custom labels and colors."""
+    region_labels = ["Cool", "Neutral", "Warm"]
+    region_colors = ["#111111", "#222222", "#333333"]
+    plot = (
+        PsychrometricPlot(pmv_ppd_iso)
+        .set_params(vr=0.1, met=1.2, clo=0.5, tr=25.0)
+        .set_regions(
+            output="pmv",
+            thresholds=[-0.5, 0.5],
+            labels=region_labels,
+            colors=region_colors,
+        )
+        .set_x_axis("tdb", 10.0, 40.0, resolution=1.0)
+        .set_y_axis("hr", 0.0, 30.0, resolution=2.0)
+    )
+
+    result = plot.plot(invalid_color="#444444")
+
+    assert result.legend is not None
+    patches = result.legend.get_patches()
+    labels = [text.get_text() for text in result.legend.get_texts()]
+    assert labels[:3] == region_labels
+    for patch, color in zip(patches[:3], region_colors, strict=True):
+        assert patch.get_facecolor()[:3] == pytest.approx(to_rgb(color), abs=1e-3)
+    invalid_patch = patches[labels.index("Out of model limits")]
+    assert invalid_patch.get_facecolor()[:3] == pytest.approx(
+        to_rgb("#444444"), abs=1e-3
+    )
+
+    plt.close(result.fig)
+
+
+def test_default_pmv_preset_preserves_independent_overrides() -> None:
+    """Custom labels and colors independently override their preset values."""
+    custom_labels = ["Cool", "Neutral", "Warm"]
+    custom_colors = ["#111111", "#222222", "#333333"]
+
+    labels_plot = PsychrometricPlot(pmv_ppd_iso).set_regions(
+        output="PMV",
+        thresholds=[0.5, -0.5],
+        labels=custom_labels,
+    )
+    colors_plot = PsychrometricPlot(pmv_ppd_iso).set_regions(
+        output="pmv",
+        thresholds=[-0.5, 0.5],
+        colors=custom_colors,
+    )
+
+    assert labels_plot._region_config.labels == custom_labels
+    assert labels_plot._region_config.colors == ["#86AEC8", "#4CB15E", "#D88B7B"]
+    assert colors_plot._region_config.labels == [
+        "PMV < -0.5",
+        "-0.5 ≤ PMV ≤ 0.5",
+        "PMV > 0.5",
+    ]
+    assert colors_plot._region_config.colors == custom_colors
+
+
 def test_y_axis_has_default_humidity_ratio_label() -> None:
     """The chart labels its own y-axis instead of falling back to the bare 'hr'."""
     plot = _new_plot()
@@ -111,6 +223,22 @@ def test_y_axis_has_default_humidity_ratio_label() -> None:
     assert "kg" in ylabel
     assert "dry" in ylabel
     assert "kg/kg" not in ylabel.replace(" ", "")
+
+    plt.close(result.fig)
+
+
+def test_y_axis_is_displayed_on_the_right() -> None:
+    """Psychrometric charts conventionally place humidity ratio on the right."""
+    plot = _new_plot()
+    plot.set_x_axis("tdb", 10.0, 40.0, resolution=1.0)
+    plot.set_y_axis("hr", 0.0, 30.0, resolution=2.0)
+
+    result = plot.plot()
+
+    assert result.ax.yaxis.get_ticks_position() == "right"
+    assert result.ax.yaxis.get_label_position() == "right"
+    assert not result.ax.spines["left"].get_visible()
+    assert result.ax.spines["right"].get_visible()
 
     plt.close(result.fig)
 
