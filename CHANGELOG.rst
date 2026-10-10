@@ -4,6 +4,12 @@ Changelog
 Unreleased
 ----------
 
+* Refined ``PsychrometricPlot``'s default presentation: the humidity-ratio axis is
+  now on the right, the standard ``[-0.5, 0.5]`` PMV regions use a
+  psychrometric-specific blue, green, and terracotta palette, the neutral legend
+  label shows both limits, and out-of-model areas use a lighter contrasting gray.
+  Explicit labels, region colors, and invalid-area colors remain authoritative, and
+  non-default PMV thresholds retain the shared plot palette (#417).
 * Fixed ``work_capacity_hothaps`` and ``work_capacity_dunne`` rejecting a
   ``WorkIntensity`` member (e.g. ``WorkIntensity.MODERATE``) as ``work_intensity`` with
   "must be one of", while the same value as a string worked

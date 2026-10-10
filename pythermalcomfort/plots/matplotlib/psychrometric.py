@@ -367,9 +367,9 @@ class PsychrometricPlot(ThresholdPlot):
         - A white fill masking the physically impossible RH > 100 % area,
           starting exactly at the smooth saturation curve.
         - Dotted constant-RH background curves at 25 % intervals.
-        - A y-axis label naming the humidity ratio and its units, replacing
-          the bare parameter name the base class would otherwise use.  Call
-          ``result.ax.set_ylabel(...)`` afterwards to override it.
+        - A right-side y-axis label naming the humidity ratio and its units,
+          replacing the bare parameter name the base class would otherwise
+          use. Call ``result.ax.set_ylabel(...)`` afterwards to override it.
 
         Parameters
         ----------
@@ -391,7 +391,8 @@ class PsychrometricPlot(ThresholdPlot):
         legend_kws : dict, optional
             Keyword overrides forwarded to ``ax.legend``.
         invalid_color : str
-            Color used for out-of-model/invalid areas.
+            Color used for out-of-model/invalid areas. Defaults to the
+            psychrometric-specific light gray ``"#DADCDD"``.
 
         Returns
         -------
