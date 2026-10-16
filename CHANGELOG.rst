@@ -4,6 +4,12 @@ Changelog
 Unreleased
 ----------
 
+* Refined ``PsychrometricPlot``'s default presentation: the humidity-ratio axis is
+  now on the right, the standard ``[-0.5, 0.5]`` PMV regions use a
+  psychrometric-specific blue, green, and terracotta palette, the neutral legend
+  label shows both limits, and out-of-model areas use a lighter contrasting gray.
+  Explicit labels, region colors, and invalid-area colors remain authoritative, and
+  non-default PMV thresholds retain the shared plot palette (#417).
 * Dropped support for Python 3.10, which reached end of life in October 2026.
   pythermalcomfort now requires Python 3.11 or later. Users on Python 3.10 keep
   getting 4.6.2 from pip.
