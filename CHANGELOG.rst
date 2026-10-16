@@ -4,6 +4,9 @@ Changelog
 Unreleased
 ----------
 
+* Matplotlib plotting classes now accept ``font_family`` in ``plot()`` for a
+  per-chart font override while continuing to respect the global Matplotlib
+  ``font.family`` setting (#454).
 * Dropped support for Python 3.10, which reached end of life in October 2026.
   pythermalcomfort now requires Python 3.11 or later. Users on Python 3.10 keep
   getting 4.6.2 from pip.

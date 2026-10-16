@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -56,6 +56,7 @@ class BasePlot(ABC):
         *,
         ax: Axes | None = None,
         title: str | None = None,
+        font_family: str | Sequence[str] | None = None,
     ) -> BasePlotResult:
         """Render the plot.
 
@@ -66,6 +67,10 @@ class BasePlot(ABC):
             created.
         title : str, optional
             Optional chart title.
+        font_family : str or sequence of str, optional
+            Font family for this plot. If omitted, Matplotlib's current
+            ``font.family`` setting is used. Existing annotations on a
+            caller-supplied ``ax`` are not modified.
 
         Returns
         -------
