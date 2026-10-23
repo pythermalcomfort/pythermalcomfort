@@ -4,6 +4,9 @@ Changelog
 Unreleased
 ----------
 
+* Added ``SummaryPlot.set_regions(preset=...)`` for PMV, UTCI and Heat Index,
+  with standard classifications and overridable column names, labels and colors
+  (`#458 <https://github.com/pythermalcomfort/pythermalcomfort/issues/458>`_).
 * Dropped support for Python 3.10, which reached end of life in October 2026.
   pythermalcomfort now requires Python 3.11 or later. Users on Python 3.10 keep
   getting 4.6.2 from pip.

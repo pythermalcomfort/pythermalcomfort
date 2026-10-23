@@ -25,6 +25,73 @@ from pythermalcomfort.plots.matplotlib._shared import (
     _PlotDefaults,
 )
 
+
+@dataclass(frozen=True)
+class _RegionPreset:
+    """Default configuration for a standard continuous model output."""
+
+    output: str
+    thresholds: tuple[float, ...]
+    labels: tuple[str, ...]
+    right: bool = False
+    colors: tuple[str, ...] | None = None
+
+
+# Classifications follow pmv_ppd_iso.tsv, utci.stress_category and the
+# Rothfusz/Schoen Heat Index stress categories, respectively. The final mapping
+# sentinels (10 for PMV, 1000 for temperature) are not internal region boundaries.
+_REGION_PRESETS = {
+    "pmv": _RegionPreset(
+        output="pmv",
+        thresholds=(-2.5, -1.5, -0.5, 0.5, 1.5, 2.5),
+        labels=(
+            "Cold",
+            "Cool",
+            "Slightly Cool",
+            "Neutral",
+            "Slightly Warm",
+            "Warm",
+            "Hot",
+        ),
+    ),
+    "utci": _RegionPreset(
+        output="utci",
+        thresholds=(-40, -27, -13, 0, 9, 26, 32, 38, 46),
+        labels=(
+            "extreme cold stress",
+            "very strong cold stress",
+            "strong cold stress",
+            "moderate cold stress",
+            "slight cold stress",
+            "no thermal stress",
+            "moderate heat stress",
+            "strong heat stress",
+            "very strong heat stress",
+            "extreme heat stress",
+        ),
+        right=True,
+        colors=(
+            "#313695",
+            "#4575B4",
+            "#74ADD1",
+            "#ABD9E9",
+            "#E0F3F8",
+            "#91CF60",
+            "#FEE090",
+            "#FDAE61",
+            "#F46D43",
+            "#A50026",
+        ),
+    ),
+    "heat_index": _RegionPreset(
+        output="hi",
+        thresholds=(27, 32, 41, 54),
+        labels=("no risk", "caution", "extreme caution", "danger", "extreme danger"),
+        right=True,
+        colors=("#FFFFB2", "#FECC5C", "#FD8D3C", "#F03B20", "#BD0026"),
+    ),
+}
+
 # ── result container ───────────────────────────────────────────────────────
 
 
@@ -104,6 +171,7 @@ def _compute_region_percentages(
     output_column: str,
     levels: Sequence[float],
     region_labels: Sequence[str],
+    right: bool = False,
 ) -> pd.Series:
     """Assign each row to a threshold region and return percentage per region.
 
@@ -115,7 +183,7 @@ def _compute_region_percentages(
     values = pd.to_numeric(df[output_column], errors="raise")
     n_regions = len(levels) + 1
     int_labels = list(range(n_regions))
-    categorized = pd.cut(values, bins=bins, labels=int_labels, right=False)
+    categorized = pd.cut(values, bins=bins, labels=int_labels, right=right)
     result = (
         categorized.value_counts(normalize=True)
         .reindex(int_labels, fill_value=0.0)
@@ -396,29 +464,47 @@ class SummaryPlot(BasePlot):
         self._categories: np.ndarray | None = None
         self._category_labels: list[str] | None = None
         self._category_colors: list[str] | None = None
+        self._regions_right = False
 
     def set_regions(
         self,
         *,
-        output: str,
-        thresholds: Sequence[float],
+        output: str | None = None,
+        thresholds: Sequence[float] | None = None,
         labels: Sequence[str] | None = None,
         colors: Sequence[str] | None = None,
+        preset: str | None = None,
     ) -> SummaryPlot:
         """Set output variable and threshold region configuration.
 
         Parameters
         ----------
-        output : str
-            Name of the DataFrame column to categorize.
-        thresholds : sequence of float
+        output : str, optional
+            Name of the DataFrame column to categorize. Required without a preset;
+            otherwise defaults to ``pmv``, ``utci``, or ``hi`` for the chosen preset.
+        thresholds : sequence of float, optional
             Numeric boundary values that divide the output range into regions.
+            Required without a preset. Cannot be combined with ``preset``.
         labels : sequence of str, optional
             Region labels.  Must have length ``len(thresholds) + 1`` when
             provided.
         colors : sequence of str, optional
             Region colors.  Must have length ``len(thresholds) + 1`` when
             provided.
+        preset : {"pmv", "utci", "heat_index"}, optional
+            Standard thresholds, labels and colors. PMV uses the seven thermal
+            sensation categories from ``pmv_ppd_iso`` with left-closed intervals.
+            UTCI uses ten stress categories and Heat Index uses five risk categories
+            from the Rothfusz/Schoen models, both with right-closed intervals.
+            UTCI and Heat Index values must be in degrees Celsius. Presets classify
+            already-computed values; they do not check model applicability limits.
+            For Heat Index, compute values with ``round_output=False`` when the
+            summary must match the model's ``stress_category``. Those models
+            classify before rounding, so rounded values can cross a boundary.
+            To summarize categories already returned by a model, use
+            :meth:`set_categories` instead.
+            Override ``output``, ``labels`` or ``colors`` as needed. Use the existing
+            explicit configuration without a preset to customize thresholds.
 
         Returns
         -------
@@ -431,8 +517,31 @@ class SummaryPlot(BasePlot):
             If ``output`` is not a string.
         ValueError
             If the output column is missing or has invalid values, or if
-            thresholds/labels/colors are invalid.
+            thresholds/labels/colors or the preset combination are invalid.
+
+        Examples
+        --------
+        >>> df = pd.DataFrame({"pmv": [-1.0, 0.0, 1.0]})
+        >>> chart = SummaryPlot(df).set_regions(preset="pmv")
         """
+        right = False
+        if preset is not None:
+            if not isinstance(preset, str):
+                raise TypeError("preset must be a string.")
+            if preset not in _REGION_PRESETS:
+                msg = f"Unknown preset {preset!r}. Choose from {', '.join(_REGION_PRESETS)}."
+                raise ValueError(msg)
+            if thresholds is not None:
+                raise ValueError("preset and thresholds cannot be combined.")
+            defaults = _REGION_PRESETS[preset]
+            output = defaults.output if output is None else output
+            thresholds = defaults.thresholds
+            labels = defaults.labels if labels is None else labels
+            colors = defaults.colors if colors is None else colors
+            right = defaults.right
+        elif output is None or thresholds is None:
+            raise ValueError("output and thresholds are required without a preset.")
+
         output_name = _validate_output_column(self._df, output)
         _validate_output_values(self._df, output_name)
         self._region_config = _configure_regions(
@@ -444,6 +553,7 @@ class SummaryPlot(BasePlot):
         self._categories = None
         self._category_labels = None
         self._category_colors = None
+        self._regions_right = right
         return self
 
     def set_categories(
@@ -605,6 +715,7 @@ class SummaryPlot(BasePlot):
                     output_column=rc.output_name,
                     levels=rc.thresholds,
                     region_labels=rc.labels,
+                    right=self._regions_right,
                 )
                 labels, colors = rc.labels, rc.colors
             else:
