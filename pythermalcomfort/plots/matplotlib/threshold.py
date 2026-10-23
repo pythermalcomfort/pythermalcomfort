@@ -23,12 +23,13 @@ from pythermalcomfort.plots.matplotlib._boundaries import (
     solve_region_bands,
 )
 from pythermalcomfort.plots.matplotlib._shared import (
-    _PYTHERMALCOMFORT_RC,
     BasePlotResult,
     _apply_axes_style,
+    _apply_font_family,
     _AxisConfig,
     _configure_regions,
     _legend_anchor_y,
+    _plot_rc,
     _PlotDefaults,
     _title_y_above_legend,
 )
@@ -301,6 +302,7 @@ class ThresholdPlot(GridBasePlot):
         fill_kws: Mapping[str, Any] | None = None,
         legend_kws: Mapping[str, Any] | None = None,
         invalid_color: str = _PlotDefaults.color_out_of_model,
+        font_family: str | Sequence[str] | None = None,
     ) -> ThresholdPlotResult:
         """Render threshold regions and their boundaries on a Matplotlib axis.
 
@@ -328,6 +330,10 @@ class ThresholdPlot(GridBasePlot):
             Keyword overrides forwarded to ``ax.legend``.
         invalid_color : str
             Color used for areas outside the model's applicability limits.
+        font_family : str or sequence of str, optional
+            Font family for this plot. If omitted, Matplotlib's current
+            ``font.family`` setting is used. Existing annotations on a
+            caller-supplied ``ax`` are not modified.
         Returns
         -------
         ThresholdPlotResult
@@ -347,7 +353,8 @@ class ThresholdPlot(GridBasePlot):
         sets how finely the boundary curves are sampled.  Both have floors, so
         omitting ``resolution`` gives a chart that is already smooth.
         """
-        with mpl.rc_context(_PYTHERMALCOMFORT_RC):
+        with mpl.rc_context(_plot_rc(font_family)):
+            existing_annotations = frozenset(ax.texts) if ax is not None else ()
             self._validate_plot_inputs(fill_kws=fill_kws)
             self._validate_invalid_color(invalid_color)
 
@@ -445,6 +452,7 @@ class ThresholdPlot(GridBasePlot):
             ax.set_ylabel(y_axis.name)
             if title is not None:
                 ax.set_title(title, y=title_y)
+            _apply_font_family(ax, font_family, exclude=existing_annotations)
 
             return ThresholdPlotResult(
                 fig=fig,
