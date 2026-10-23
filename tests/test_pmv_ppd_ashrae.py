@@ -101,7 +101,7 @@ class TestPmvPpd:
                 limit_inputs=False,
             ),
             PMVPPDAshrae(
-                pmv=np.float64(4.48),
+                pmv=np.float64(4.51),  # 4.48 before #489
                 ppd=np.float64(100.0),
                 tsv=np.str_("Hot"),
                 compliance=np.bool_(False),

@@ -719,6 +719,15 @@ class GaggeTwoNodesInputs(BaseInputs):
             w_max=w_max,
         )
 
+    def __post_init__(self):
+        super().__post_init__()
+
+        # False, None and 0 mean that the model computes w_max from v and clo
+        if self.w_max is not None:
+            w_max = np.asarray(self.w_max, dtype=float)
+            if np.any((w_max != 0) & ((w_max < 0.06) | (w_max > 1))):
+                raise ValueError("w_max must be between 0.06 and 1.")
+
 
 @dataclass
 class GaggeTwoNodesJiInputs(BaseInputs):

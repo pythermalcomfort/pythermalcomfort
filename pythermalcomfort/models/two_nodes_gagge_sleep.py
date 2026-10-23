@@ -435,7 +435,9 @@ def _sleep_set_optimized(
         e_diff = p_wet * e_max - e_rsw
         if p_wet > w_max:
             p_wet = w_max
-            p_rsw = w_max / 0.94
+            # inverse of p_wet = 0.06 + 0.94 * p_rsw, as in Gagge et al. (1986). The ASHRAE 55
+            # code uses w_max / 0.94, which makes SET discontinuous at the cap (#489)
+            p_rsw = (w_max - 0.06) / 0.94
             e_rsw = p_rsw * e_max
             e_diff = 0.06 * (1 - p_rsw) * e_max
         e_skin = e_rsw + e_diff

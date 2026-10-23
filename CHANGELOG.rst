@@ -4,6 +4,20 @@ Changelog
 Unreleased
 ----------
 
+* Fixed a discontinuity in SET from ``two_nodes_gagge``, ``set_tmp`` and
+  ``two_nodes_gagge_sleep``. When skin wettedness reached its maximum ``w_max``, the
+  model set the regulatory sweating fraction to ``w_max / 0.94`` instead of
+  ``(w_max - 0.06) / 0.94``, so the skin lost about 8 % more heat by evaporation than
+  just below the cap. SET could jump by up to 0.5 °C for a 0.001 °C change in air
+  temperature. The new formula follows Gagge et al. (1986) and JOS-3, and deliberately
+  departs from the ASHRAE 55 reference code, which has the same error. Results change
+  only where wettedness reaches ``w_max``, mostly hot conditions with high metabolic
+  rates. For example, ``cooling_effect`` returns 5.11 °C instead of 5.14 °C at
+  35 °C, 90 % RH, 1.5 m/s, 2.5 met and 0.2 clo, and ``disc`` is now exactly 4.7 at
+  the cap instead of 5.3-6.0.
+  ``two_nodes_gagge`` now rejects ``w_max`` values below 0.06 or above 1, because
+  below 0.06 the sweating rate at the cap would be negative (`#489
+  <https://github.com/pythermalcomfort/pythermalcomfort/issues/489>`_).
 * ``JOS3.t_core`` now has a setter, like ``t_skin``: ``model.t_core = 38.0`` sets the
   core temperatures of all 17 segments (a scalar, an array of 17 values, or a dict of
   body parts). Before, it raised ``AttributeError``. The ``t_core`` and ``t_skin``
