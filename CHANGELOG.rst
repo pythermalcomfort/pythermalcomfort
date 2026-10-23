@@ -4,6 +4,9 @@ Changelog
 Unreleased
 ----------
 
+* Added ``bfu_rest`` (Morris et al., 2021) and ``bfu_occupational``
+  (Foster et al., 2021) to compare heat storage with and without fan use.
+
 * Dropped support for Python 3.10, which reached end of life in October 2026.
   pythermalcomfort now requires Python 3.11 or later. Users on Python 3.10 keep
   getting 4.6.2 from pip.

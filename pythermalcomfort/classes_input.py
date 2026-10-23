@@ -462,6 +462,142 @@ class HumidexModels(Enum):
     masterson = "masterson"
 
 
+def _bfu_choice_array(value):
+    """Normalize scalar or array enum/string choices without losing dimensions."""
+    arr = np.asarray(value, dtype=object)
+    return np.asarray(
+        [
+            str(item.value if isinstance(item, Enum) else item).lower()
+            for item in arr.flat
+        ]
+    ).reshape(arr.shape)
+
+
+def _validate_bfu_numeric(value, name, units, minimum=None, maximum=None):
+    """Reject missing, non-finite, and physically invalid fan-model inputs."""
+    if value is None:
+        message = f"{name} [{units}] is required."
+        raise ValueError(message)
+    arr = np.asarray(value, dtype=float)
+    if not arr.size or not np.all(np.isfinite(arr)):
+        message = f"{name} [{units}] must contain finite values."
+        raise ValueError(message)
+    if units == "°C" and np.any(arr <= -273.15):
+        raise ValueError("Temperature [°C] must be greater than -273.15.")
+    if minimum is not None and np.any(arr < minimum):
+        message = f"{name} [{units}] must be greater than or equal to {minimum}."
+        raise ValueError(message)
+    if maximum is not None and np.any(arr > maximum):
+        message = f"{name} [{units}] must be less than or equal to {maximum}."
+        raise ValueError(message)
+
+
+@dataclass(kw_only=True)
+class BFURestInputs(BaseInputs):
+    """Validated inputs for the Morris resting fan model."""
+
+    population: str = "YNG"
+
+    def __post_init__(self):
+        super().__post_init__()
+        _validate_bfu_numeric(value=self.tdb, name="tdb", units="°C", minimum=None)
+        _validate_bfu_numeric(
+            value=self.rh, name="rh", units="%", minimum=0, maximum=100
+        )
+        if not isinstance(self.population, (str, Enum)):
+            raise TypeError("population must be a string or BFURestPopulation member.")
+        self.population = (
+            self.population.value
+            if isinstance(self.population, Enum)
+            else self.population
+        ).upper()
+        if self.population not in {"YNG", "OLD", "MEDS"}:
+            raise ValueError("population must be one of {'YNG', 'OLD', 'MEDS'}.")
+        try:
+            np.broadcast_arrays(self.tdb, self.rh)
+        except ValueError as err:
+            raise ValueError(
+                "Input arrays are not broadcastable to a common shape."
+            ) from err
+
+
+@dataclass(kw_only=True)
+class BFUOccupationalInputs(BaseInputs):
+    """Validated inputs for the Foster occupational fan model."""
+
+    v_no_fan: NumericInput = numeric_field(0.2)
+    posture: str | np.ndarray | list = field(default=Postures.standing.value)
+    activity: str | np.ndarray | list = choice_field(["walk", "rest", "cycle"], "walk")
+    speed: NumericInput = numeric_field(1.66)
+    max_sweating: NumericInput | None = numeric_field(None)
+
+    def __post_init__(self):
+        # Normalize categorical values before BaseInputs validates common fields.
+        posture = _bfu_choice_array(self.posture)
+        self.posture = np.where(
+            posture == "seated",
+            Postures.sitting.value,
+            np.where(posture == "stand", Postures.standing.value, posture),
+        )
+        self.activity = _bfu_choice_array(self.activity)
+        if self.tr is None:
+            self.tr = self.tdb
+        super().__post_init__()
+        for name, units, minimum, maximum in (
+            ("tdb", "°C", None, None),
+            ("tr", "°C", None, None),
+            ("rh", "%", 0, 100),
+            ("clo", "clo", 0, None),
+            ("met", "met", 0, None),
+            ("v", "m/s", 0, None),
+            ("v_no_fan", "m/s", 0, None),
+            ("speed", "m/s for walking; rpm for cycling", 0, None),
+            ("body_surface_area", "m²", 0, None),
+        ):
+            _validate_bfu_numeric(
+                value=getattr(self, name),
+                name=name,
+                units=units,
+                minimum=minimum,
+                maximum=maximum,
+            )
+        if np.any(np.asarray(self.body_surface_area) <= 0):
+            raise ValueError("body_surface_area [m²] must be greater than 0.")
+        if not np.isin(
+            self.posture, [Postures.standing.value, Postures.sitting.value]
+        ).all():
+            raise ValueError("posture must contain only 'standing' or 'sitting'.")
+        if self.max_sweating is not None:
+            _validate_bfu_numeric(
+                value=self.max_sweating,
+                name="max_sweating",
+                units="g/(h m²)",
+                minimum=0,
+            )
+        # All numeric and categorical inputs participate in NumPy broadcasting.
+        values = [
+            self.tdb,
+            self.tr,
+            self.rh,
+            self.clo,
+            self.met,
+            self.body_surface_area,
+            self.speed,
+            self.v,
+            self.v_no_fan,
+            self.posture,
+            self.activity,
+        ]
+        if self.max_sweating is not None:
+            values.append(self.max_sweating)
+        try:
+            np.broadcast_arrays(*values)
+        except ValueError as err:
+            raise ValueError(
+                "Input arrays are not broadcastable to a common shape."
+            ) from err
+
+
 @dataclass
 class HumidexInputs(BaseInputs):
     def __init__(

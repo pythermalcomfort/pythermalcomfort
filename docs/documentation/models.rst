@@ -73,6 +73,25 @@ Ankle draft
 .. autoclass:: pythermalcomfort.classes_return.AnkleDraft
     :members:
 
+Biophysical Fan Use Model: Occupational
+-----------------------------------------
+
+.. autofunction:: pythermalcomfort.models.bfu_occupational.bfu_occupational
+
+.. autoclass:: pythermalcomfort.classes_return.BFUOccupational
+    :members:
+
+Biophysical Fan Use Model: Rest
+---------------------------------
+
+.. autofunction:: pythermalcomfort.models.bfu_rest.bfu_rest
+
+.. autoclass:: pythermalcomfort.classes_return.BFURest
+    :members:
+
+.. autoclass:: pythermalcomfort.utilities.BFURestPopulation
+    :members:
+
 Clothing prediction
 -------------------
 

@@ -2,6 +2,8 @@ from .adaptive_ashrae import adaptive_ashrae
 from .adaptive_en import adaptive_en
 from .ankle_draft import ankle_draft
 from .at import at
+from .bfu_occupational import bfu_occupational
+from .bfu_rest import bfu_rest
 from .clo_tout import clo_tout
 from .cooling_effect import cooling_effect
 from .discomfort_index import discomfort_index
@@ -46,6 +48,8 @@ __all__ = [
     "adaptive_en",
     "ankle_draft",
     "at",
+    "bfu_occupational",
+    "bfu_rest",
     "clo_tout",
     "cooling_effect",
     "discomfort_index",

@@ -57,6 +57,21 @@ class Postures(Enum):
     crouching = "crouching"
 
 
+class BFURestPopulation(Enum):
+    """Physiological parameter sets in the Morris et al. (2021) resting fan model.
+
+    Population definitions follow [Morris2021]_: ``YNG`` represents healthy
+    young adults aged 18-40 years; ``OLD`` represents healthy older adults aged
+    65 years or older; ``MEDS`` represents older adults taking anticholinergic
+    medication. Each group selects the source model's fixed sweat-production
+    and skin-wettedness parameters.
+    """
+
+    young = "YNG"
+    older = "OLD"
+    older_meds = "MEDS"
+
+
 class BodySurfaceAreaEquations(Enum):
     """Body Surface Area Equations."""
 
