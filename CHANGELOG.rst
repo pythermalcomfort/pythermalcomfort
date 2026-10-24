@@ -4,6 +4,9 @@ Changelog
 Unreleased
 ----------
 
+* Added ``clo_individual_garment_groups`` and missing sweater-vest, sandal, and
+  chair entries. Existing garment keys and values are preserved (`#478
+  <https://github.com/pythermalcomfort/pythermalcomfort/issues/478>`_).
 * ``JOS3.t_core`` now has a setter, like ``t_skin``: ``model.t_core = 38.0`` sets the
   core temperatures of all 17 segments (a scalar, an array of 17 values, or a dict of
   body parts). Before, it raised ``AttributeError``. The ``t_core`` and ``t_skin``

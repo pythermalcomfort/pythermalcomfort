@@ -8,6 +8,51 @@ import pythermalcomfort.utilities as utilities
 from pythermalcomfort.utilities import Units, body_surface_area, units_converter
 
 
+def test_garment_groups_cover_every_item_once() -> None:
+    groups = utilities.clo_individual_garment_groups
+    assert list(groups) == [
+        "Underwear",
+        "Footwear",
+        "Shirts and Blouses",
+        "Trousers and Coveralls",
+        "Dress and Skirts",
+        "Sweaters",
+        "Suit Jackets and Vests",
+        "Sleepwear and Robes",
+        "Chairs",
+    ]
+    garments = [garment for group in groups.values() for garment in group]
+    assert len(garments) == len(set(garments))
+    assert set(garments) == set(utilities.clo_individual_garments)
+
+
+def test_missing_garment_and_chair_insulation() -> None:
+    """Distinguish sweater vests from the existing lined suit vests."""
+    values = utilities.clo_individual_garments
+    assert values["Sweater vest (thin)"] == 0.13
+    assert values["Sweater vest (thick)"] == 0.22
+    assert values["Sandals/thongs"] == 0.02
+    assert values["Net chair"] == 0.0
+    assert values["Wooden side arm chair"] == 0.0
+    assert values["Sleeveless vest (thin)"] == 0.10
+    assert values["Sleeveless vest (thick)"] == 0.17
+    assert values["Shoes or sandals"] == 0.02
+
+
+def test_garment_groups_disambiguate_legacy_descriptions() -> None:
+    """Historical shirt keys retain their values in the proper table groups."""
+    groups = utilities.clo_individual_garment_groups
+    values = utilities.clo_individual_garments
+    assert "Long sleeve shirt (thin)" in groups["Sweaters"]
+    assert "Long sleeve shirt (thick)" in groups["Sweaters"]
+    assert values["Long sleeve shirt (thin)"] == 0.25
+    assert values["Long sleeve shirt (thick)"] == 0.36
+    assert "Sleeveless, scoop-neck shirt (thin)" in groups["Dress and Skirts"]
+    assert "Sleeveless, scoop-neck shirt (thick)" in groups["Dress and Skirts"]
+    assert values["Sleeveless, scoop-neck shirt (thin)"] == 0.23
+    assert values["Sleeveless, scoop-neck shirt (thick)"] == 0.27
+
+
 def test_ip_units_converter() -> None:
     """Test the units converter for IP and SI units."""
     assert (units_converter(tdb=77, tr=77, v=3.2, from_units=Units.IP.value)) == [
