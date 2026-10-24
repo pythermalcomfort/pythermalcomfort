@@ -4,6 +4,9 @@ Changelog
 Unreleased
 ----------
 
+* Fixed the IP cooling effect conversion to use the Celsius-to-Fahrenheit
+  temperature difference factor of 1.8 (`#473
+  <https://github.com/pythermalcomfort/pythermalcomfort/issues/473>`_).
 * ``JOS3.t_core`` now has a setter, like ``t_skin``: ``model.t_core = 38.0`` sets the
   core temperatures of all 17 segments (a scalar, an array of 17 values, or a dict of
   body parts). Before, it raised ``AttributeError``. The ``t_core`` and ``t_skin``
