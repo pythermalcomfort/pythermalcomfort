@@ -4,6 +4,9 @@ Changelog
 Unreleased
 ----------
 
+* ``adaptive_ashrae`` now rounds reported IP temperatures to one decimal place
+  when ``round_output=True``, while preserving the existing SI comfort decisions
+  (`#428 <https://github.com/pythermalcomfort/pythermalcomfort/issues/428>`_).
 * ``JOS3.t_core`` now has a setter, like ``t_skin``: ``model.t_core = 38.0`` sets the
   core temperatures of all 17 segments (a scalar, an array of 17 values, or a dict of
   body parts). Before, it raised ``AttributeError``. The ``t_core`` and ``t_skin``

@@ -6,6 +6,51 @@ from pythermalcomfort.utilities import Units
 from tests.conftest import Urls, retrieve_reference_table, validate_result
 
 
+@pytest.mark.parametrize("round_output", [True, False])
+def test_ip_temperature_rounding_preserves_acceptability(round_output: bool) -> None:
+    """Round reported IP temperatures without changing SI comfort decisions."""
+    running_mean = np.array([21.5, 22.0, 25.0])
+    temperatures = np.array([20.9, 27.14, 31.0])
+    si = adaptive_ashrae(
+        tdb=temperatures,
+        tr=temperatures,
+        t_running_mean=running_mean,
+        v=0.1,
+        round_output=round_output,
+    )
+    ip = adaptive_ashrae(
+        tdb=temperatures * 1.8 + 32,
+        tr=temperatures * 1.8 + 32,
+        t_running_mean=running_mean * 1.8 + 32,
+        v=0.3281,
+        units="IP",
+        round_output=round_output,
+    )
+
+    for field in (
+        "tmp_cmf",
+        "tmp_cmf_80_low",
+        "tmp_cmf_80_up",
+        "tmp_cmf_90_low",
+        "tmp_cmf_90_up",
+    ):
+        expected = getattr(si, field) * 1.8 + 32
+        if round_output:
+            expected = np.around(expected, 1)
+        np.testing.assert_allclose(getattr(ip, field), expected)
+    np.testing.assert_array_equal(ip.acceptability_80, si.acceptability_80)
+    np.testing.assert_array_equal(ip.acceptability_90, si.acceptability_90)
+
+
+def test_ip_scalar_comfort_temperatures_round_to_one_decimal() -> None:
+    result = adaptive_ashrae(tdb=77, tr=77, t_running_mean=71.6, v=0.3, units="IP")
+    assert result.tmp_cmf == 76.3
+    assert result.tmp_cmf_80_low == 70.0
+    assert result.tmp_cmf_80_up == 82.6
+    assert result.tmp_cmf_90_low == 71.8
+    assert result.tmp_cmf_90_up == 80.8
+
+
 def test_adaptive_ashrae(get_test_url, retrieve_data) -> None:
     """Test that the Adaptive ASHRAE function calculates correctly for various inputs."""
     reference_table = retrieve_reference_table(

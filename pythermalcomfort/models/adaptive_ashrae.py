@@ -62,8 +62,8 @@ def adaptive_ashrae(
         If True, rounds ``t_cmf`` to one decimal place in SI before the comfort bounds are
         derived, so ``tmp_cmf_80_low``, ``tmp_cmf_80_up``, ``tmp_cmf_90_low`` and
         ``tmp_cmf_90_up`` inherit that rounding. If False, ``t_cmf`` and the derived bounds
-        are returned at full precision. Under ``units='IP'`` the rounded SI value is then
-        converted to °F, so IP outputs carry the extra decimals from the °C-to-°F conversion.
+        are returned at full precision. Under ``units='IP'``, the five reported
+        temperatures are also rounded to one decimal place after conversion.
         Defaults to True.
 
     Returns
@@ -170,6 +170,12 @@ def adaptive_ashrae(
             tmp_cmf_90_low=tmp_cmf_90_low,
             tmp_cmf_90_up=tmp_cmf_90_up,
         )
+        if round_output:
+            t_cmf = np.around(t_cmf, 1)
+            tmp_cmf_80_low = np.around(tmp_cmf_80_low, 1)
+            tmp_cmf_80_up = np.around(tmp_cmf_80_up, 1)
+            tmp_cmf_90_low = np.around(tmp_cmf_90_low, 1)
+            tmp_cmf_90_up = np.around(tmp_cmf_90_up, 1)
 
     return AdaptiveASHRAE(
         tmp_cmf=t_cmf,
