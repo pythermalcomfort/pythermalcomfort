@@ -589,7 +589,7 @@ class HeatWatch(AutoStrMixin):
     disc : float or list of floats
         Thermal discomfort (DISC) from the Gagge two-node model, [dimensionless].
     m_bl : float or list of floats
-        Skin blood flow from the Gagge two-node model, [L/(h m2)].
+        Skin blood flow from the Gagge two-node model, [kg/h/m2].
     """
 
     hhrs: NumericInput

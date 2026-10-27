@@ -13,7 +13,7 @@ from pythermalcomfort.utilities import Postures
 # DISC equals 4.7 when skin wettedness reaches w_max, so D = 1 at the person's limit.
 _DISC_AT_W_MAX = 4.7
 # Skin blood flow is normalised between the Gagge neutral value and the maximum
-# passed to the model, both in L/(h m2).
+# passed to the model, both in kg/h/m2.
 _M_BL_NEUTRAL = 6.3
 _M_BL_MAX = 90.0
 # The score is scaled down linearly from full value at 25 °C to zero at 20 °C.
