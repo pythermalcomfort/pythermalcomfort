@@ -1,12 +1,12 @@
 name: Claude Review
 
 # CodeRabbit and Copilot review PRs into master. This workflow reviews PRs into
-# development: Haiku runs once when a PR opens, Sonnet runs when a maintainer
-# comments "@claude" on a PR.
+# development: Haiku runs when a PR opens and on every push, Sonnet runs when a
+# maintainer comments "@claude" on a PR.
 
 on:
     pull_request:
-        types: [ opened, ready_for_review ]
+        types: [ opened, synchronize, ready_for_review ]
         branches:
             - development
     issue_comment:
@@ -15,6 +15,11 @@ on:
 jobs:
 
     auto-review:
+
+        # a new push cancels the review of the previous one
+        concurrency:
+            group: claude-review-${{ github.event.pull_request.number }}
+            cancel-in-progress: true
 
         # fork PRs get no secrets, so a maintainer reviews them with an @claude comment
         if: >
@@ -37,6 +42,8 @@ jobs:
                     anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                     # posts a tracking comment that Claude fills in with the summary
                     track_progress: true
+                    # edits the same tracking comment on every push, rather than adding one each time
+                    use_sticky_comment: true
                     # lists the tool calls in the job summary, safe because fork PRs never reach this job
                     display_report: true
                     prompt: |
@@ -45,14 +52,26 @@ jobs:
 
                         Review this PR for correctness bugs, wrong physics or units,
                         and missing tests. Skip style issues, because ruff checks them.
-                        Post at most 5 inline comments, most important first.
+
+                        This PR may already have review threads from your earlier runs.
+                        List them first with this GraphQL query:
+
+                        gh api graphql -F owner=${{ github.repository_owner }} -F name=${{ github.event.repository.name }} -F pr=${{ github.event.pull_request.number }} -f query='query($owner: String!, $name: String!, $pr: Int!) { repository(owner: $owner, name: $name) { pullRequest(number: $pr) { reviewThreads(first: 100) { nodes { id isResolved path line comments(first: 1) { nodes { author { login } body } } } } } } }'
+
+                        For each unresolved thread whose first comment is yours (author
+                        login "claude"): if the current code fixes the problem, resolve it
+                        with the resolveReviewThread mutation. Never resolve threads that
+                        other reviewers or people started. Never post a comment on a
+                        problem that an existing thread already raises, resolved or not.
+
+                        Post at most 5 new inline comments, most important first.
                         Write each fix as a GitHub suggestion block so the author can
                         commit it with one click. Write a one-paragraph summary in
-                        your tracking comment.
+                        your tracking comment, and say which threads you resolved.
                     claude_args: |
                         --model claude-haiku-5-5
                         --max-turns 30
-                        --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+                        --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(gh api graphql:*),mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
 
     on-demand-review:
 
