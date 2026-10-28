@@ -46,8 +46,8 @@ jobs:
                         commit it with one click. End with a one-paragraph summary.
                     claude_args: |
                         --model claude-haiku-5-5
-                        --max-turns 15
-                        --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+                        --max-turns 30
+                        --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
 
     on-demand-review:
 
@@ -74,6 +74,6 @@ jobs:
                     anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                     claude_args: |
                         --model claude-sonnet-5-5
-                        --max-turns 25
-                        --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+                        --max-turns 40
+                        --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
                         --append-system-prompt "When asked to review, focus on correctness bugs, wrong physics or units, and missing tests. Post at most 5 inline comments and write each fix as a GitHub suggestion block."
