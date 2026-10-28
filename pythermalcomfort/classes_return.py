@@ -588,14 +588,14 @@ class HeatWatch(AutoStrMixin):
         Extreme (above 5 to 6).
     disc : float or list of floats
         Thermal discomfort (DISC) from the Gagge two-node model, [dimensionless].
-    m_bl : float or list of floats
-        Skin blood flow from the Gagge two-node model, [kg/h/m2].
+    t_core : float or list of floats
+        Core temperature from the Gagge two-node model, [°C].
     """
 
     hhrs: NumericInput
     risk_category: str | list[str]
     disc: NumericInput
-    m_bl: NumericInput
+    t_core: NumericInput
 
 
 @dataclass(frozen=True, repr=False)

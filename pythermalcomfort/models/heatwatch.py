@@ -12,10 +12,10 @@ from pythermalcomfort.utilities import Postures
 
 # DISC equals 4.7 when skin wettedness reaches w_max, so D = 1 at the person's limit.
 _DISC_AT_W_MAX = 4.7
-# Skin blood flow is normalised between the Gagge neutral value and the maximum
-# passed to the model, both in kg/h/m2.
-_M_BL_NEUTRAL = 6.3
-_M_BL_MAX = 90.0
+# Core temperature is normalised between the Gagge neutral value and the rectal
+# temperature limit used by the Predicted Heat Strain model (ISO 7933), both in °C.
+_T_CORE_NEUTRAL = 36.8
+_T_CORE_LIMIT = 38.0
 _HHRS_MAX = 6.0
 
 # Each category covers one unit of the score, including its upper edge.
@@ -28,15 +28,13 @@ _RISK_CATEGORIES = {
     6: "Extreme",
 }
 
-# Age bands (upper edge, exclusive) with the maximum skin wettedness and the weight
-# given to relative skin wettedness over skin blood flow.
+# Age bands (upper edge, exclusive) with the maximum skin wettedness.
 _AGE_BANDS = (
-    (18, 0.85, 0.6),
-    (40, 0.85, 0.7),
-    (60, 0.8, 0.55),
-    (70, 0.75, 0.5),
-    (80, 0.7, 0.4),
-    (np.inf, 0.65, 0.3),
+    (40, 0.85),
+    (60, 0.8),
+    (70, 0.75),
+    (80, 0.7),
+    (np.inf, 0.65),
 )
 _W_MAX_FACTOR_HEALTH_CONDITION = 0.95
 _W_MAX_FACTOR_ACCLIMATISED = 1 / 0.9
@@ -68,8 +66,6 @@ class Persona:
         True if the person is pregnant. Defaults to False.
     mobility_impairment : bool, optional
         True if the person has a mobility impairment. Defaults to False.
-    homelessness : bool, optional
-        True if the person is experiencing homelessness. Defaults to False.
     illness : bool, optional
         True if the person has a chronic illness, for example cardiovascular disease.
         Defaults to False.
@@ -84,7 +80,6 @@ class Persona:
             age=75, met=1.2, clo=0.45, posture="sitting", illness=True, medication=True
         )
         print(round(older_adult.w_max, 3))  # 0.632
-        print(older_adult.alpha)  # 0.4
     """
 
     age: int
@@ -96,7 +91,6 @@ class Persona:
     medication: bool = False
     pregnancy: bool = False
     mobility_impairment: bool = False
-    homelessness: bool = False
     illness: bool = False
 
     def __post_init__(self):
@@ -110,7 +104,6 @@ class Persona:
             "medication",
             "pregnancy",
             "mobility_impairment",
-            "homelessness",
             "illness",
         ):
             validate_type(value=getattr(self, name), name=name, allowed_types=(bool,))
@@ -129,12 +122,6 @@ class Persona:
             msg = f"posture must be one of {allowed_postures}, got {self.posture!r}"
             raise ValueError(msg)
 
-    def _age_band(self) -> tuple[float, float]:
-        for upper_age, w_max, alpha in _AGE_BANDS:
-            if self.age < upper_age:
-                return w_max, alpha
-        raise AssertionError("the last age band has no upper limit")
-
     @property
     def w_max(self) -> float:
         """Maximum skin wettedness, [dimensionless].
@@ -143,7 +130,7 @@ class Persona:
         0.95 for each of obesity, medication, pregnancy, mobility impairment and
         illness.
         """
-        w_max, _ = self._age_band()
+        w_max = next(w for upper_age, w in _AGE_BANDS if self.age < upper_age)
         if self.acclimatised:
             w_max *= _W_MAX_FACTOR_ACCLIMATISED
         health_conditions = sum(
@@ -156,20 +143,6 @@ class Persona:
             )
         )
         return w_max * _W_MAX_FACTOR_HEALTH_CONDITION**health_conditions
-
-    @property
-    def alpha(self) -> float:
-        """Weight of relative skin wettedness over skin blood flow, [dimensionless].
-
-        Depends on age, and is at most 0.6 with obesity or illness and at most 0.5 with
-        homelessness.
-        """
-        _, alpha = self._age_band()
-        if self.obesity or self.illness:
-            alpha = min(alpha, 0.6)
-        if self.homelessness:
-            alpha = min(alpha, 0.5)
-        return alpha
 
 
 def heatwatch(
@@ -188,20 +161,25 @@ def heatwatch(
 
     * relative skin wettedness, ``D = disc / 4.7``, which is 0 at thermal comfort and
       1 when skin wettedness reaches ``w_max``;
-    * normalised skin blood flow, ``B = (m_bl - 6.3) / (90 - 6.3)``, which is 0 at the
-      neutral skin blood flow and 1 at the maximum.
+    * relative core temperature, ``C = (t_core - 36.8) / (38.0 - 36.8)``, which is 0
+      at the Gagge neutral core temperature and 1 at 38.0 °C, the rectal temperature
+      limit used by the Predicted Heat Strain model (ISO 7933).
 
-    The person's weight ``alpha`` sets how much blood flow can add to the score:
+    The score follows whichever limit the person is closer to:
 
     .. math::
 
-        HHRS = 6 \\, \\mathrm{clip}(\\max(D, \\alpha D + (1 - \\alpha) B), 0, 1)
+        HHRS = 6 \\, \\mathrm{clip}(\\max(D, C), 0, 1)
 
-    Blood flow can only raise the score above ``D``, never lower it. The score has no
-    separate air temperature cut-off, so radiant heat and metabolic rate raise it
-    through the Gagge model even in cool air. Outdoors, use the air speed at body
-    height and a mean radiant temperature that includes the solar load, because the
-    score is sensitive to both.
+    Skin blood flow is not used, because in the Gagge model it follows core
+    temperature and saturates at a model constant (90 kg/h/m2), not at a
+    physiological limit. The score therefore does not represent cardiovascular
+    strain.
+
+    The score has no separate air temperature cut-off, so radiant heat and metabolic
+    rate raise it through the Gagge model even in cool air. Outdoors, use the air
+    speed at body height and a mean radiant temperature that includes the solar load,
+    because the score is sensitive to both.
 
     The score is assigned to six categories: Minimal (0 to 1), Low (above 1 to 2),
     Moderate, High, Severe and Extreme (above 5 to 6). With ``round_output=True`` the
@@ -229,8 +207,8 @@ def heatwatch(
     Returns
     -------
     HeatWatch
-        A dataclass containing the score, the risk category, and the DISC and skin
-        blood flow values from the Gagge model. See
+        A dataclass containing the score, the risk category, and the DISC and core
+        temperature values from the Gagge model. See
         :py:class:`~pythermalcomfort.classes_return.HeatWatch` for more details.
 
     Raises
@@ -262,19 +240,15 @@ def heatwatch(
         met=persona.met,
         clo=persona.clo,
         position=persona.posture,
-        max_skin_blood_flow=_M_BL_MAX,
         w_max=persona.w_max,
         round_output=False,
     )
     disc = np.asarray(gagge.disc, dtype=float)
-    m_bl = np.asarray(gagge.m_bl, dtype=float)
+    t_core = np.asarray(gagge.t_core, dtype=float)
 
     relative_wettedness = disc / _DISC_AT_W_MAX
-    blood_flow = (m_bl - _M_BL_NEUTRAL) / (_M_BL_MAX - _M_BL_NEUTRAL)
-    combined = np.maximum(
-        relative_wettedness,
-        persona.alpha * relative_wettedness + (1 - persona.alpha) * blood_flow,
-    )
+    relative_core = (t_core - _T_CORE_NEUTRAL) / (_T_CORE_LIMIT - _T_CORE_NEUTRAL)
+    combined = np.maximum(relative_wettedness, relative_core)
     hhrs = _HHRS_MAX * np.clip(combined, 0, 1)
 
     if round_output:
@@ -285,5 +259,5 @@ def heatwatch(
         hhrs=hhrs,
         risk_category=_mapping(hhrs, _RISK_CATEGORIES),
         disc=disc[()],
-        m_bl=m_bl[()],
+        t_core=t_core[()],
     )

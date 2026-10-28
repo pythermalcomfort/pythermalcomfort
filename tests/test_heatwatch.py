@@ -13,31 +13,27 @@ OUTDOOR_WORKER = Persona(age=30, met=1.8, clo=0.55)
 
 
 @pytest.mark.parametrize(
-    ("age", "w_max", "alpha"),
+    ("age", "w_max"),
     [
-        (10, 0.85, 0.6),
-        (17, 0.85, 0.6),
-        (18, 0.85, 0.7),
-        (39, 0.85, 0.7),
-        (40, 0.8, 0.55),
-        (59, 0.8, 0.55),
-        (60, 0.75, 0.5),
-        (69, 0.75, 0.5),
-        (70, 0.7, 0.4),
-        (79, 0.7, 0.4),
-        (80, 0.65, 0.3),
-        (95, 0.65, 0.3),
+        (10, 0.85),
+        (39, 0.85),
+        (40, 0.8),
+        (59, 0.8),
+        (60, 0.75),
+        (69, 0.75),
+        (70, 0.7),
+        (79, 0.7),
+        (80, 0.65),
+        (95, 0.65),
     ],
 )
-def test_persona_age_bands(age, w_max, alpha):
+def test_persona_age_bands(age, w_max):
     persona = Persona(age=age, met=1.2, clo=0.5)
     assert persona.w_max == pytest.approx(w_max)
-    assert persona.alpha == pytest.approx(alpha)
 
 
 def test_persona_health_conditions_and_acclimatisation():
     assert OLDER_ADULT.w_max == pytest.approx(0.7 * 0.95**2)
-    assert OLDER_ADULT.alpha == pytest.approx(0.4)
 
     all_conditions = Persona(
         age=30,
@@ -47,16 +43,9 @@ def test_persona_health_conditions_and_acclimatisation():
         medication=True,
         pregnancy=True,
         mobility_impairment=True,
-        homelessness=True,
         illness=True,
     )
-    # homelessness changes alpha but not w_max
     assert all_conditions.w_max == pytest.approx(0.85 * 0.95**5)
-    assert all_conditions.alpha == pytest.approx(0.5)
-
-    assert Persona(age=30, met=1.2, clo=0.5, obesity=True).alpha == pytest.approx(0.6)
-    # alpha caps never raise the age value
-    assert Persona(age=85, met=1.2, clo=0.5, illness=True).alpha == pytest.approx(0.3)
 
     acclimatised = Persona(age=30, met=1.2, clo=0.5, acclimatised=True)
     assert acclimatised.w_max == pytest.approx(0.85 / 0.9)
@@ -71,6 +60,7 @@ def test_persona_health_conditions_and_acclimatisation():
         ({"clo": -0.1}, ValueError),
         ({"posture": "walking"}, ValueError),
         ({"illness": 1}, TypeError),
+        ({"homelessness": True}, TypeError),
     ],
 )
 def test_persona_validation(kwargs, error):
@@ -100,24 +90,22 @@ def test_heatwatch_matches_formula(persona):
         met=persona.met,
         clo=persona.clo,
         position=persona.posture,
-        max_skin_blood_flow=90,
         w_max=persona.w_max,
         round_output=False,
     )
     d = gagge.disc / 4.7
-    b = (gagge.m_bl - 6.3) / (90 - 6.3)
-    combined = np.maximum(d, persona.alpha * d + (1 - persona.alpha) * b)
-    expected = 6 * np.clip(combined, 0, 1)
+    c = (gagge.t_core - 36.8) / (38.0 - 36.8)
+    expected = 6 * np.clip(np.maximum(d, c), 0, 1)
 
     np.testing.assert_allclose(result.hhrs, expected)
     np.testing.assert_allclose(result.disc, gagge.disc)
-    np.testing.assert_allclose(result.m_bl, gagge.m_bl)
+    np.testing.assert_allclose(result.t_core, gagge.t_core)
 
 
 def test_heatwatch_reference_values():
     tdb = [20, 22.5, 26, 30, 34, 38, 42]
     result = heatwatch(tdb=tdb, tr=tdb, v=0.2, rh=50, persona=OLDER_ADULT)
-    np.testing.assert_allclose(result.hhrs, [0.0, 0.1, 0.6, 2.2, 4.2, 6.0, 6.0])
+    np.testing.assert_allclose(result.hhrs, [0.2, 0.3, 0.6, 2.2, 4.2, 6.0, 6.0])
     assert list(result.risk_category) == [
         "Minimal",
         "Minimal",
@@ -129,12 +117,13 @@ def test_heatwatch_reference_values():
     ]
 
 
-def test_blood_flow_only_raises_the_score():
-    # In hot, dry air during work, skin blood flow raises the score above the
+def test_core_temperature_only_raises_the_score():
+    # In hot, dry air during heavy work, core temperature raises the score above the
     # relative skin wettedness term.
-    kwargs = {"tdb": 40, "tr": 40, "v": 0.2, "rh": 5, "round_output": False}
-    result = heatwatch(persona=OUTDOOR_WORKER, **kwargs)
-    assert result.hhrs == pytest.approx(3.19, abs=0.01)
+    heavy_worker = Persona(age=30, met=3.0, clo=0.55)
+    kwargs = {"tdb": 40, "tr": 40, "v": 0.5, "rh": 5, "round_output": False}
+    result = heatwatch(persona=heavy_worker, **kwargs)
+    assert result.hhrs == pytest.approx(6 * (result.t_core - 36.8) / 1.2)
     assert result.hhrs > 6 * result.disc / 4.7
 
     # In hot, humid air the score equals the relative skin wettedness term.
@@ -193,7 +182,7 @@ def test_scalar_and_array_inputs_agree():
 
     assert isinstance(scalar, HeatWatch)
     assert isinstance(scalar.risk_category, str)
-    for name in ("hhrs", "disc", "m_bl"):
+    for name in ("hhrs", "disc", "t_core"):
         assert np.ndim(scalar[name]) == 0
         assert not isinstance(scalar[name], np.ndarray)
     np.testing.assert_allclose(array.hhrs, [scalar.hhrs, scalar.hhrs])
