@@ -35,6 +35,10 @@ jobs:
                 uses: anthropics/claude-code-action@v1
                 with:
                     anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+                    # posts a tracking comment that Claude fills in with the summary
+                    track_progress: true
+                    # lists the tool calls in the job summary, safe because fork PRs never reach this job
+                    display_report: true
                     prompt: |
                         REPO: ${{ github.repository }}
                         PR NUMBER: ${{ github.event.pull_request.number }}
@@ -43,7 +47,8 @@ jobs:
                         and missing tests. Skip style issues, because ruff checks them.
                         Post at most 5 inline comments, most important first.
                         Write each fix as a GitHub suggestion block so the author can
-                        commit it with one click. End with a one-paragraph summary.
+                        commit it with one click. Write a one-paragraph summary in
+                        your tracking comment.
                     claude_args: |
                         --model claude-haiku-5-5
                         --max-turns 30
