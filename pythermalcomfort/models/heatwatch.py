@@ -286,9 +286,10 @@ def heatwatch(
     if round_output:
         hhrs = np.round(hhrs, 1)
 
+    # [()] turns a 0-d array from scalar input into a scalar and leaves arrays as-is
     return HeatWatch(
         hhrs=hhrs,
         risk_category=_mapping(hhrs, _RISK_CATEGORIES),
-        disc=disc,
-        m_bl=m_bl,
+        disc=disc[()],
+        m_bl=m_bl[()],
     )

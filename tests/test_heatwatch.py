@@ -190,6 +190,9 @@ def test_scalar_and_array_inputs_agree():
 
     assert isinstance(scalar, HeatWatch)
     assert isinstance(scalar.risk_category, str)
+    for name in ("hhrs", "disc", "m_bl"):
+        assert np.ndim(scalar[name]) == 0
+        assert not isinstance(scalar[name], np.ndarray)
     np.testing.assert_allclose(array.hhrs, [scalar.hhrs, scalar.hhrs])
     assert list(array.risk_category) == [scalar.risk_category] * 2
 
