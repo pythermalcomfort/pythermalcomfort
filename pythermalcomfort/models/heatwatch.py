@@ -16,9 +16,6 @@ _DISC_AT_W_MAX = 4.7
 # passed to the model, both in kg/h/m2.
 _M_BL_NEUTRAL = 6.3
 _M_BL_MAX = 90.0
-# The score is scaled down linearly from full value at 25 °C to zero at 20 °C.
-_TDB_CORRECTION_ZERO = 20.0
-_TDB_CORRECTION_FULL = 25.0
 _HHRS_MAX = 6.0
 
 # Each category covers one unit of the score, including its upper edge.
@@ -198,10 +195,13 @@ def heatwatch(
 
     .. math::
 
-        HHRS = 6 \\, c(t_{db}) \\, \\mathrm{clip}(\\max(D, \\alpha D + (1 - \\alpha) B), 0, 1)
+        HHRS = 6 \\, \\mathrm{clip}(\\max(D, \\alpha D + (1 - \\alpha) B), 0, 1)
 
-    Blood flow can only raise the score above ``D``, never lower it. The factor
-    ``c(t_db)`` is 0 below 20 °C, rises linearly to 1 at 25 °C, and is 1 above 25 °C.
+    Blood flow can only raise the score above ``D``, never lower it. The score has no
+    separate air temperature cut-off, so radiant heat and metabolic rate raise it
+    through the Gagge model even in cool air. Outdoors, use the air speed at body
+    height and a mean radiant temperature that includes the solar load, because the
+    score is sensitive to both.
 
     The score is assigned to six categories: Minimal (0 to 1), Low (above 1 to 2),
     Moderate, High, Severe and Extreme (above 5 to 6). With ``round_output=True`` the
@@ -268,7 +268,6 @@ def heatwatch(
     )
     disc = np.asarray(gagge.disc, dtype=float)
     m_bl = np.asarray(gagge.m_bl, dtype=float)
-    tdb = np.asarray(tdb, dtype=float)
 
     relative_wettedness = disc / _DISC_AT_W_MAX
     blood_flow = (m_bl - _M_BL_NEUTRAL) / (_M_BL_MAX - _M_BL_NEUTRAL)
@@ -276,12 +275,7 @@ def heatwatch(
         relative_wettedness,
         persona.alpha * relative_wettedness + (1 - persona.alpha) * blood_flow,
     )
-    tdb_correction = np.clip(
-        (tdb - _TDB_CORRECTION_ZERO) / (_TDB_CORRECTION_FULL - _TDB_CORRECTION_ZERO),
-        0,
-        1,
-    )
-    hhrs = _HHRS_MAX * tdb_correction * np.clip(combined, 0, 1)
+    hhrs = _HHRS_MAX * np.clip(combined, 0, 1)
 
     if round_output:
         hhrs = np.round(hhrs, 1)

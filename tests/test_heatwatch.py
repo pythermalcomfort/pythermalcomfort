@@ -107,8 +107,7 @@ def test_heatwatch_matches_formula(persona):
     d = gagge.disc / 4.7
     b = (gagge.m_bl - 6.3) / (90 - 6.3)
     combined = np.maximum(d, persona.alpha * d + (1 - persona.alpha) * b)
-    correction = np.clip((tdb - 20) / 5, 0, 1)
-    expected = 6 * correction * np.clip(combined, 0, 1)
+    expected = 6 * np.clip(combined, 0, 1)
 
     np.testing.assert_allclose(result.hhrs, expected)
     np.testing.assert_allclose(result.disc, gagge.disc)
@@ -143,17 +142,21 @@ def test_blood_flow_only_raises_the_score():
     assert humid.hhrs == pytest.approx(6 * humid.disc / 4.7, abs=0.05)
 
 
-def test_temperature_correction_is_continuous():
-    persona = Persona(age=30, met=3.0, clo=0.5)
-    tdb = np.array([19.99, 20.0, 20.001, 24.999, 25.0])
-    result = heatwatch(
-        tdb=tdb, tr=tdb, v=0.2, rh=90, persona=persona, round_output=False
-    )
+def test_cool_shade_scores_minimal():
+    tdb = [10, 15, 18, 20]
+    result = heatwatch(tdb=tdb, tr=tdb, v=0.2, rh=95, persona=OLDER_ADULT)
+    assert list(result.risk_category) == ["Minimal"] * 4
 
-    assert result.hhrs[0] == 0
-    assert result.hhrs[1] == 0
-    assert result.hhrs[2] == pytest.approx(0, abs=1e-2)
-    assert result.hhrs[3] == pytest.approx(result.hhrs[4], abs=1e-2)
+
+def test_radiant_heat_raises_the_score_in_cool_air():
+    # Full sun at 19 °C air adds about 30 K to the mean radiant temperature. In still
+    # air the score rises above Low but stays below Severe, and a light breeze removes
+    # most of the radiant load.
+    kwargs = {"tdb": 19, "tr": 50, "rh": 50, "persona": OLDER_ADULT}
+    still = heatwatch(v=0.2, round_output=False, **kwargs)
+    assert 2 < still.hhrs < 4
+    breeze = heatwatch(v=1.0, **kwargs)
+    assert breeze.risk_category == "Minimal"
 
 
 def test_score_is_capped_at_six():
