@@ -166,7 +166,7 @@ Notes on this shape:
 from .<name> import <name>          # with the other imports
 ```
 ```python
-    "<name>",                        # in __all__
+("<name>",)  # in __all__
 ```
 
 Adding only the import is the easy mistake, and it does **not** fail loudly:

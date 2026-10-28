@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* Improved the performance of steady-state Physiological Equivalent Temperature (PET)
+  calculations by introducing a Numba-compiled Newton-based solver for ``pet_steady``,
+  reducing computational overhead for both scalar and vectorized inputs. Added a Numba-compatible
+  ``p_sat_numba`` implementation to support efficient saturation vapour pressure calculations
+  within the compiled execution path, while retaining the existing SciPy-based implementation
+  and NumPy-based ``p_sat`` function for compatibility.
+
 4.7.0 (2026-10-27)
 ------------------
 
