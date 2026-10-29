@@ -31,6 +31,12 @@ Unreleased
   which side of a threshold a value exactly on it falls, as the model classifies it.
   For example, ``pmv_ppd_ashrae`` gives ``-0.5 < PMV ≤ 0.5`` and ``pmv_ppd_iso`` gives
   ``-0.5 ≤ PMV < 0.5``. Before, every label read ``a ≤ X < b``.
+* Added ``SummaryPlot.set_regions(preset=...)`` with the presets ``"pmv_iso"``,
+  ``"pmv_ashrae"``, ``"utci"`` and ``"heat_index"``. Each preset takes its thresholds,
+  labels and boundary rule from the model, so a summary matches the model's own
+  categories. UTCI and Heat Index values must be in °C. Column names, labels and colors
+  can be overridden
+  (`#458 <https://github.com/pythermalcomfort/pythermalcomfort/issues/458>`_).
 
 4.7.0 (2026-10-27)
 ------------------

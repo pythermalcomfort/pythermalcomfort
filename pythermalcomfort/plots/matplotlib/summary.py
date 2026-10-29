@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Any
 
 import matplotlib as mpl
@@ -16,7 +17,14 @@ from matplotlib.figure import Figure
 from matplotlib.legend import Legend
 from matplotlib.patches import Patch
 
+from pythermalcomfort.models import (
+    heat_index_rothfusz,
+    pmv_ppd_ashrae,
+    pmv_ppd_iso,
+    utci,
+)
 from pythermalcomfort.plots.matplotlib._base import BasePlot
+from pythermalcomfort.plots.matplotlib._model_regions import _get_model_regions
 from pythermalcomfort.plots.matplotlib._shared import (
     BasePlotResult,
     _apply_font_family,
@@ -24,6 +32,37 @@ from pythermalcomfort.plots.matplotlib._shared import (
     _is_light_color,
     _plot_rc,
     _PlotDefaults,
+)
+
+# Preset names accepted by SummaryPlot.set_regions. Each one shows the categories of a
+# model, so its thresholds, labels and boundary closure come from the model registry.
+_PRESET_MODELS: Mapping[str, Callable[..., Any]] = MappingProxyType(
+    {
+        "pmv_iso": pmv_ppd_iso,
+        "pmv_ashrae": pmv_ppd_ashrae,
+        "utci": utci,
+        # heat_index_schoen uses the same categories
+        "heat_index": heat_index_rothfusz,
+    }
+)
+
+# Default colors of the presets that do not use the shared cool-to-warm palette.
+_PRESET_COLORS: Mapping[str, tuple[str, ...]] = MappingProxyType(
+    {
+        "utci": (
+            "#313695",
+            "#4575B4",
+            "#74ADD1",
+            "#ABD9E9",
+            "#E0F3F8",
+            "#91CF60",
+            "#FEE090",
+            "#FDAE61",
+            "#F46D43",
+            "#A50026",
+        ),
+        "heat_index": ("#FFFFB2", "#FECC5C", "#FD8D3C", "#F03B20", "#BD0026"),
+    }
 )
 
 # ── result container ───────────────────────────────────────────────────────
@@ -105,6 +144,7 @@ def _compute_region_percentages(
     output_column: str,
     levels: Sequence[float],
     region_labels: Sequence[str],
+    right: bool = False,
 ) -> pd.Series:
     """Assign each row to a threshold region and return percentage per region.
 
@@ -116,7 +156,7 @@ def _compute_region_percentages(
     values = pd.to_numeric(df[output_column], errors="raise")
     n_regions = len(levels) + 1
     int_labels = list(range(n_regions))
-    categorized = pd.cut(values, bins=bins, labels=int_labels, right=False)
+    categorized = pd.cut(values, bins=bins, labels=int_labels, right=right)
     result = (
         categorized.value_counts(normalize=True)
         .reindex(int_labels, fill_value=0.0)
@@ -397,29 +437,53 @@ class SummaryPlot(BasePlot):
         self._categories: np.ndarray | None = None
         self._category_labels: list[str] | None = None
         self._category_colors: list[str] | None = None
+        self._regions_right = False
 
     def set_regions(
         self,
         *,
-        output: str,
-        thresholds: Sequence[float],
+        output: str | None = None,
+        thresholds: Sequence[float] | None = None,
         labels: Sequence[str] | None = None,
         colors: Sequence[str] | None = None,
+        preset: str | None = None,
     ) -> SummaryPlot:
         """Set output variable and threshold region configuration.
 
         Parameters
         ----------
-        output : str
-            Name of the DataFrame column to categorize.
-        thresholds : sequence of float
+        output : str, optional
+            Name of the DataFrame column to categorize. Required without a preset;
+            otherwise defaults to ``pmv``, ``utci``, or ``hi`` for the chosen preset.
+        thresholds : sequence of float, optional
             Numeric boundary values that divide the output range into regions.
+            Required without a preset. Cannot be combined with ``preset``.
         labels : sequence of str, optional
             Region labels.  Must have length ``len(thresholds) + 1`` when
             provided.
         colors : sequence of str, optional
             Region colors.  Must have length ``len(thresholds) + 1`` when
             provided.
+        preset : {"pmv_iso", "pmv_ashrae", "utci", "heat_index"}, optional
+            Show the categories of a model: the seven thermal sensation categories of
+            ``pmv_ppd_iso`` or ``pmv_ppd_ashrae``, the ten stress categories of
+            ``utci``, or the five risk categories of ``heat_index_rothfusz`` and
+            ``heat_index_schoen``. Thresholds, labels and which region a value exactly
+            on a threshold falls in are taken from the model, so the summary matches
+            the model's own category output. ``pmv_iso`` puts a PMV of exactly 0.5 in
+            "Slightly Warm", while ``pmv_ashrae`` puts it in "Neutral".
+
+            UTCI and Heat Index values must be in °C. A column computed with
+            ``units="IP"`` is classified wrongly without any error, so convert it to
+            °C first or pass your own ``thresholds``.
+
+            Presets classify already-computed values and do not check the model's
+            applicability limits. The Heat Index models classify before rounding, so
+            compute values with ``round_output=False`` when the summary must match
+            their ``stress_category``. To summarize categories already returned by a
+            model, use :meth:`set_categories` instead. ``output``, ``labels`` and
+            ``colors`` can be overridden. ``thresholds`` cannot be combined with a
+            preset.
 
         Returns
         -------
@@ -432,8 +496,38 @@ class SummaryPlot(BasePlot):
             If ``output`` is not a string.
         ValueError
             If the output column is missing or has invalid values, or if
-            thresholds/labels/colors are invalid.
+            thresholds/labels/colors or the preset combination are invalid.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            import pandas as pd
+
+            from pythermalcomfort.plots.matplotlib import SummaryPlot
+
+            df = pd.DataFrame({"pmv": [-1.0, 0.0, 0.5, 1.0]})
+            result = SummaryPlot(df).set_regions(preset="pmv_iso").plot()
+            print(result.percentages)
         """
+        right = False
+        if preset is not None:
+            if not isinstance(preset, str):
+                raise TypeError("preset must be a string.")
+            if preset not in _PRESET_MODELS:
+                msg = f"Unknown preset {preset!r}. Choose from {', '.join(_PRESET_MODELS)}."
+                raise ValueError(msg)
+            if thresholds is not None:
+                raise ValueError("preset and thresholds cannot be combined.")
+            regions = _get_model_regions(_PRESET_MODELS[preset])
+            output = regions.output if output is None else output
+            thresholds = regions.bins.thresholds
+            labels = regions.bins.labels if labels is None else labels
+            colors = _PRESET_COLORS.get(preset) if colors is None else colors
+            right = regions.bins.right
+        elif output is None or thresholds is None:
+            raise ValueError("output and thresholds are required without a preset.")
+
         output_name = _validate_output_column(self._df, output)
         _validate_output_values(self._df, output_name)
         self._region_config = _configure_regions(
@@ -441,10 +535,12 @@ class SummaryPlot(BasePlot):
             thresholds=thresholds,
             labels=labels,
             colors=colors,
+            right=right,
         )
         self._categories = None
         self._category_labels = None
         self._category_colors = None
+        self._regions_right = right
         return self
 
     def set_categories(
@@ -611,6 +707,7 @@ class SummaryPlot(BasePlot):
                     output_column=rc.output_name,
                     levels=rc.thresholds,
                     region_labels=rc.labels,
+                    right=self._regions_right,
                 )
                 labels, colors = rc.labels, rc.colors
             else:
