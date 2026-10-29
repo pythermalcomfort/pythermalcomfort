@@ -4,6 +4,10 @@ Changelog
 Unreleased
 ----------
 
+* ``solar_gain`` no longer rounds the rotated solar angles to three decimals before it
+  looks up the projected area factor of a supine person, so supine results match the
+  CBE Thermal Comfort Tool. The change is in the fourth or fifth significant figure
+  (`#451 <https://github.com/pythermalcomfort/pythermalcomfort/issues/451>`_).
 * Fixed ``two_nodes_gagge_sleep`` returning negative skin wettedness and an implausibly
   low ``disc`` when the air is more humid than the skin, for example at 38 °C and 90 %
   RH. It now uses the same guards as ``two_nodes_gagge``: no sweat evaporates and
