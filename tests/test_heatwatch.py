@@ -60,12 +60,22 @@ def test_persona_health_conditions_and_acclimatisation():
         ({"clo": -0.1}, ValueError),
         ({"posture": "walking"}, ValueError),
         ({"illness": 1}, TypeError),
-        ({"homelessness": True}, TypeError),
     ],
 )
 def test_persona_validation(kwargs, error):
     values = {"age": 30, "met": 1.2, "clo": 0.5} | kwargs
     with pytest.raises(error):
+        Persona(**values)
+
+
+@pytest.mark.parametrize(
+    "field",
+    ["acclimatised", "obesity", "medication", "pregnancy", "mobility_impairment"],
+)
+def test_persona_bool_fields_reject_non_bool(field):
+    """Each flag goes through validate_type, not the dataclass constructor."""
+    values = {"age": 30, "met": 1.2, "clo": 0.5, field: "yes"}
+    with pytest.raises(TypeError, match="must be one of the following types"):
         Persona(**values)
 
 
