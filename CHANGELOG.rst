@@ -4,6 +4,11 @@ Changelog
 Unreleased
 ----------
 
+* Removed the ``temp_core_neutral`` keyword argument of ``two_nodes_gagge_sleep``. The
+  model always derived core temperature from the Yan et al. (2022) time polynomial and
+  ignored the value passed. Passing it now raises ``TypeError`` instead of being
+  silently ignored
+  (`#387 <https://github.com/pythermalcomfort/pythermalcomfort/issues/387>`_).
 * ``solar_gain`` no longer rounds the rotated solar angles to three decimals before it
   looks up the projected area factor of a supine person, so supine results match the
   CBE Thermal Comfort Tool. The change is in the fourth or fifth significant figure

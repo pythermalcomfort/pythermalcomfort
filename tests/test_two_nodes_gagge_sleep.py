@@ -283,6 +283,20 @@ def test_two_nodes_gagge_sleep_continuous_at_critical_wettedness() -> None:
     assert np.all(np.diff(result) > 0)  # monotonic
 
 
+def test_temp_core_neutral_is_rejected() -> None:
+    """The model derives core temperature from the Yan et al. time polynomial (#387)."""
+    with pytest.raises(TypeError, match="temp_core_neutral"):
+        two_nodes_gagge_sleep(
+            tdb=18,
+            tr=18,
+            v=0.05,
+            rh=50,
+            clo=1.4,
+            thickness_quilt=1.76,
+            temp_core_neutral=37,
+        )
+
+
 def test_two_nodes_gagge_sleep_air_more_humid_than_skin() -> None:
     """Wettedness and DISC stay physical when the air is more humid than the skin (#501).
 
