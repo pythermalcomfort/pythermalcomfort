@@ -7,10 +7,27 @@ import numpy as np
 from numba import float64, vectorize
 from numpy.typing import NDArray
 
-from pythermalcomfort._internal.validation import _mapping, _valid_range
+from pythermalcomfort._internal.validation import _CategoryBins, _valid_range
 from pythermalcomfort.classes_input import NumericInput, UTCIInputs
 from pythermalcomfort.classes_return import UTCI
 from pythermalcomfort.utilities import Units, units_converter
+
+#: Thermal stress category of each UTCI range, [°C]. Bins include their upper edge.
+STRESS_CATEGORIES = _CategoryBins(
+    edges={
+        -40.0: "extreme cold stress",
+        -27.0: "very strong cold stress",
+        -13.0: "strong cold stress",
+        0.0: "moderate cold stress",
+        9.0: "slight cold stress",
+        26.0: "no thermal stress",
+        32.0: "moderate heat stress",
+        38.0: "strong heat stress",
+        46.0: "very strong heat stress",
+        1000.0: "extreme heat stress",
+    },
+    right=True,
+)
 
 
 def utci(
@@ -157,26 +174,13 @@ def utci(
             from_units=Units.SI.value.lower(),
         )[0]
 
-    stress_categories = {
-        -40.0: "extreme cold stress",
-        -27.0: "very strong cold stress",
-        -13.0: "strong cold stress",
-        0.0: "moderate cold stress",
-        9.0: "slight cold stress",
-        26.0: "no thermal stress",
-        32.0: "moderate heat stress",
-        38.0: "strong heat stress",
-        46.0: "very strong heat stress",
-        1000.0: "extreme heat stress",
-    }
-
     if round_output:
         utci_approx = np.round(utci_approx, 1)
         utci_si = np.round(utci_si, 1)
 
     return UTCI(
         utci=utci_approx,
-        stress_category=_mapping(utci_si, stress_categories),
+        stress_category=STRESS_CATEGORIES.map(utci_si),
     )
 
 

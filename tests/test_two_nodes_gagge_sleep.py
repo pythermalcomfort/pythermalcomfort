@@ -281,3 +281,16 @@ def test_two_nodes_gagge_sleep_continuous_at_critical_wettedness() -> None:
     max_step = np.max(np.abs(np.diff(result)))
     assert max_step < 0.05
     assert np.all(np.diff(result) > 0)  # monotonic
+
+
+def test_two_nodes_gagge_sleep_air_more_humid_than_skin() -> None:
+    """Wettedness and DISC stay physical when the air is more humid than the skin (#501).
+
+    No sweat can evaporate, so wettedness is w_max, and sweating can no longer cope, so DISC
+    is 6.
+    """
+    result = two_nodes_gagge_sleep(
+        tdb=38, tr=38, v=0.1, rh=90, clo=1.4, thickness_quilt=1.76
+    )
+    assert 0.06 <= result.wet <= 0.59 * 0.1**-0.08
+    assert result.disc == 6.0

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from pythermalcomfort._internal.validation import _mapping, _valid_range
+from pythermalcomfort._internal.validation import _CategoryBins, _valid_range
 from pythermalcomfort.classes_input import NumericInput, PMVPPDInputs
 from pythermalcomfort.classes_return import PMVPPD
 from pythermalcomfort.models._pmv_ppd_optimized import _pmv_ppd_optimized
@@ -10,6 +10,20 @@ from pythermalcomfort.utilities import (
     Models,
     Units,
     units_converter,
+)
+
+#: Thermal sensation of each PMV range. Bins include their lower edge.
+TSV_CATEGORIES = _CategoryBins(
+    edges={
+        -2.5: "Cold",
+        -1.5: "Cool",
+        -0.5: "Slightly Cool",
+        0.5: "Neutral",
+        1.5: "Slightly Warm",
+        2.5: "Warm",
+        10: "Hot",
+    },
+    right=False,
 )
 
 
@@ -206,18 +220,8 @@ def pmv_ppd_iso(
         pmv = np.round(pmv, 2)
         ppd_array = np.round(ppd_array, 1)
 
-    thermal_sensation = {
-        -2.5: "Cold",
-        -1.5: "Cool",
-        -0.5: "Slightly Cool",
-        0.5: "Neutral",
-        1.5: "Slightly Warm",
-        2.5: "Warm",
-        10: "Hot",
-    }
-
     return PMVPPD(
         pmv=pmv,
         ppd=ppd_array,
-        tsv=_mapping(pmv, thermal_sensation, right=False),
+        tsv=TSV_CATEGORIES.map(pmv),
     )

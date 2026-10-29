@@ -59,12 +59,10 @@ def adaptive_ashrae(
             ASHRAE 55 2020 limits: 10 < tdb [°C] < 40, 10 < tr [°C] < 40, 0 < vr [m/s] < 2, 10 < t_running_mean [°C] < 33.5.
 
     round_output : bool, optional
-        If True, rounds ``t_cmf`` to one decimal place in SI before the comfort bounds are
-        derived, so ``tmp_cmf_80_low``, ``tmp_cmf_80_up``, ``tmp_cmf_90_low`` and
-        ``tmp_cmf_90_up`` inherit that rounding. If False, ``t_cmf`` and the derived bounds
-        are returned at full precision. Under ``units='IP'`` the rounded SI value is then
-        converted to °F, so IP outputs carry the extra decimals from the °C-to-°F conversion.
-        Defaults to True.
+        If True, rounds the five reported temperatures to one decimal place, after the
+        conversion to °F when ``units='IP'``. The comfort bounds and the acceptability
+        flags are always calculated from unrounded values, so ``round_output`` never
+        changes ``acceptability_80`` or ``acceptability_90``. Defaults to True.
 
     Returns
     -------
@@ -144,9 +142,6 @@ def adaptive_ashrae(
         )
         t_cmf = np.where(all_valid, t_cmf, np.nan)
 
-    if round_output:
-        t_cmf = np.around(t_cmf, 1)
-
     tmp_cmf_80_low = t_cmf - 3.5
     tmp_cmf_90_low = t_cmf - 2.5
     tmp_cmf_80_up = t_cmf + 3.5 + ce
@@ -170,6 +165,14 @@ def adaptive_ashrae(
             tmp_cmf_90_low=tmp_cmf_90_low,
             tmp_cmf_90_up=tmp_cmf_90_up,
         )
+
+    # round only the reported temperatures, so round_output never changes acceptability
+    if round_output:
+        t_cmf = np.around(t_cmf, 1)
+        tmp_cmf_80_low = np.around(tmp_cmf_80_low, 1)
+        tmp_cmf_80_up = np.around(tmp_cmf_80_up, 1)
+        tmp_cmf_90_low = np.around(tmp_cmf_90_low, 1)
+        tmp_cmf_90_up = np.around(tmp_cmf_90_up, 1)
 
     return AdaptiveASHRAE(
         tmp_cmf=t_cmf,

@@ -3,12 +3,29 @@ from __future__ import annotations
 import numpy as np
 
 from pythermalcomfort._internal.ashrae55 import _check_ashrae55_compliance
-from pythermalcomfort._internal.validation import _finalize_scalar_or_array, _mapping
+from pythermalcomfort._internal.validation import (
+    _CategoryBins,
+    _finalize_scalar_or_array,
+)
 from pythermalcomfort.classes_input import NumericInput, PMVPPDInputs
 from pythermalcomfort.classes_return import PMVPPDAshrae
 from pythermalcomfort.models._pmv_ppd_optimized import _pmv_ppd_optimized
 from pythermalcomfort.models.cooling_effect import cooling_effect
 from pythermalcomfort.utilities import Models, Units, units_converter
+
+#: Thermal sensation of each PMV range. Bins include their upper edge.
+TSV_CATEGORIES = _CategoryBins(
+    edges={
+        -2.5: "Cold",
+        -1.5: "Cool",
+        -0.5: "Slightly Cool",
+        0.5: "Neutral",
+        1.5: "Slightly Warm",
+        2.5: "Warm",
+        10: "Hot",
+    },
+    right=True,
+)
 
 
 def pmv_ppd_ashrae(
@@ -224,19 +241,9 @@ def pmv_ppd_ashrae(
         pmv_array = np.round(pmv_array, 2)
         ppd_array = np.round(ppd_array, 1)
 
-    thermal_sensation = {
-        -2.5: "Cold",
-        -1.5: "Cool",
-        -0.5: "Slightly Cool",
-        0.5: "Neutral",
-        1.5: "Slightly Warm",
-        2.5: "Warm",
-        10: "Hot",
-    }
-
     return PMVPPDAshrae(
         pmv=pmv_array,
         ppd=ppd_array,
-        tsv=_mapping(pmv_array, thermal_sensation),
+        tsv=TSV_CATEGORIES.map(pmv_array),
         compliance=compliance_array,
     )

@@ -2,6 +2,8 @@ import ast
 import inspect
 import warnings
 from collections.abc import Mapping
+from dataclasses import dataclass, field
+from types import MappingProxyType
 from typing import Any
 
 import numpy as np
@@ -166,9 +168,8 @@ def _finalize_scalar_or_array(arr: Any) -> Any:
     return arr
 
 
-# Stress category thresholds shared by the Heat Index models (e.g. Rothfusz, Schoen).
-# Each model prepends its own "no risk" floor, since that lower bound depends on the
-# model's applicability range, e.g. {27.0: "no risk", **HEAT_INDEX_STRESS_CATEGORIES}.
+# Stress category thresholds of the Heat Index, [°C]. HEAT_INDEX_RISK_CATEGORIES below
+# adds the "no risk" floor that the Rothfusz and Schoen models use.
 HEAT_INDEX_STRESS_CATEGORIES = {
     32.0: "caution",
     41.0: "extreme caution",
@@ -215,6 +216,52 @@ def _mapping(
     categories = np.append(categories, np.nan)
     idx = np.digitize(value_arr, bins, right=right)
     return categories[idx]
+
+
+@dataclass(frozen=True)
+class _CategoryBins:
+    """Bin edges, labels and interval closure of a categorical model output.
+
+    Models classify their numeric output with :meth:`map`, and the plotting classes read
+    ``thresholds``, ``labels`` and ``right`` from the same object, so a plot cannot
+    disagree with the model it draws.
+
+    Attributes
+    ----------
+    edges : Mapping[float, str]
+        Upper edge of each bin mapped to its label, in increasing order, as passed to
+        :func:`_mapping`. The last edge is a sentinel above any realistic value.
+    right : bool
+        If True, each bin includes its upper edge, e.g. (26, 32]. If False, it includes
+        its lower edge, e.g. [-0.5, 0.5).
+    """
+
+    # a mapping proxy is unhashable, so leave it out of the generated __hash__
+    edges: Mapping[float, str] = field(hash=False)
+    right: bool = True
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "edges", MappingProxyType(dict(self.edges)))
+
+    @property
+    def thresholds(self) -> tuple[float, ...]:
+        """Boundaries between bins, without the final sentinel edge."""
+        return tuple(self.edges)[:-1]
+
+    @property
+    def labels(self) -> tuple[str, ...]:
+        """Label of every bin, from the lowest to the highest."""
+        return tuple(self.edges.values())
+
+    def map(self, value: float | np.ndarray) -> np.ndarray:
+        """Return the label of the bin each value falls in, or NaN above the sentinel."""
+        return _mapping(value, dict(self.edges), right=self.right)
+
+
+# Shared by the Rothfusz and Schoen Heat Index models. Below 27 °C there is no risk.
+HEAT_INDEX_RISK_CATEGORIES = _CategoryBins(
+    edges={27.0: "no risk", **HEAT_INDEX_STRESS_CATEGORIES}, right=True
+)
 
 
 def validate_type(

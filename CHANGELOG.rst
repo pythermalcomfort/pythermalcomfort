@@ -1,6 +1,28 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* Fixed ``two_nodes_gagge_sleep`` returning negative skin wettedness and an implausibly
+  low ``disc`` when the air is more humid than the skin, for example at 38 °C and 90 %
+  RH. It now uses the same guards as ``two_nodes_gagge``: no sweat evaporates and
+  wettedness is ``w_max`` when the maximum evaporative capacity is zero or negative, and
+  ``disc`` is 6 when sweating can no longer cope. In that example ``wet`` changes from
+  -1.69 to 0.71, ``disc`` from 1.32 to 6.0 and ``set`` from 52.6 °C to 42.4 °C
+  (`#501 <https://github.com/pythermalcomfort/pythermalcomfort/issues/501>`_).
+* ``adaptive_ashrae`` now rounds reported IP temperatures to one decimal place
+  when ``round_output=True``
+  (`#428 <https://github.com/pythermalcomfort/pythermalcomfort/issues/428>`_).
+* ``round_output`` no longer changes ``acceptability_80`` and ``acceptability_90`` in
+  ``adaptive_ashrae``. It used to round ``t_cmf`` before the comfort limits were
+  calculated, so an operative temperature within 0.05 °C of a limit could be accepted
+  with ``round_output=True`` and rejected with ``round_output=False``. The limits and
+  acceptability now always come from unrounded values, as in jsthermalcomfort, and only
+  the five reported temperatures are rounded. For example, ``tdb=tr=21.11``,
+  ``t_running_mean=22`` and ``v=0.1`` is now outside the 80 % band for both settings
+  (`#500 <https://github.com/pythermalcomfort/pythermalcomfort/issues/500>`_).
+
 4.7.0 (2026-10-27)
 ------------------
 
