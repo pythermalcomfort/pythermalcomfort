@@ -37,6 +37,10 @@ def _check_ashrae55_compliance(**kwargs):
         values_to_return["v"] = v_valid
 
     if not params["airspeed_control"]:
+        missing = [k for k in ("v", "met", "clo") if k not in params]
+        if missing:
+            msg = f"airspeed_control=False requires {', '.join(missing)} to check the limits."
+            raise ValueError(msg)
         v_arr = np.asarray(params["v"])
         cond1 = (params["v"] > 0.8) & (params["clo"] < 0.7) & (params["met"] < 1.3)
         if np.any(cond1):

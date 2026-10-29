@@ -18,10 +18,11 @@ from matplotlib.patches import Patch
 
 from pythermalcomfort.plots.matplotlib._base import BasePlot
 from pythermalcomfort.plots.matplotlib._shared import (
-    _PYTHERMALCOMFORT_RC,
     BasePlotResult,
+    _apply_font_family,
     _configure_regions,
     _is_light_color,
+    _plot_rc,
     _PlotDefaults,
 )
 
@@ -558,6 +559,7 @@ class SummaryPlot(BasePlot):
         legend: bool = True,
         bar_kws: Mapping[str, Any] | None = None,
         legend_kws: Mapping[str, Any] | None = None,
+        font_family: str | Sequence[str] | None = None,
     ) -> SummaryPlotResult:
         """Render a summary plot for the configured regions or categories.
 
@@ -580,6 +582,10 @@ class SummaryPlot(BasePlot):
             stacked bar segments after SummaryPlot defaults are applied.
         legend_kws : dict, optional
             Keyword overrides forwarded to ``ax.legend``.
+        font_family : str or sequence of str, optional
+            Font family for this plot. If omitted, Matplotlib's current
+            ``font.family`` setting is used. A caller-supplied ``ax`` is
+            cleared before the summary plot is rendered.
 
         Returns
         -------
@@ -592,7 +598,7 @@ class SummaryPlot(BasePlot):
             If neither :meth:`set_regions` nor :meth:`set_categories` has
             been called first.
         """
-        with mpl.rc_context(_PYTHERMALCOMFORT_RC):
+        with mpl.rc_context(_plot_rc(font_family)):
             if self._categories is not None:
                 percentages = _compute_category_percentages(
                     self._categories, self._category_labels
@@ -675,6 +681,7 @@ class SummaryPlot(BasePlot):
                 legend=legend_artist,
                 adjust_layout=created_figure,
             )
+            _apply_font_family(ax, font_family)
 
             return SummaryPlotResult(
                 fig=fig,

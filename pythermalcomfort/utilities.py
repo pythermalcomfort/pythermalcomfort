@@ -270,9 +270,12 @@ clo_individual_garments = {
     "Wooden side arm chair": 0.0,
 }
 
-#: Garment keys grouped in ASHRAE 55 Table 5.2.2.2B order, followed by the
-#: chair adjustments from Table 5.2.2.2C (Addendum h to ASHRAE 55-2010).
+#: Garment keys follow the garment insulation table of ASHRAE 55 [55ASHRAE2023]_,
+#: then its chair adjustments. A freely available copy is Addendum h to ASHRAE
+#: 55-2010 (Tables 5.2.2.2B and 5.2.2.2C).
 #: Values remain in ``clo_individual_garments``; legacy keys are preserved.
+#: The legacy key "Shoes or sandals" represents the table's "Shoes" row;
+#: "Sandals/thongs" is the separate sandals row.
 clo_individual_garment_groups = {
     "Underwear": (
         "Bra",

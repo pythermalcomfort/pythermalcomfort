@@ -180,10 +180,11 @@ Insulation of individual garments, [clo]
 .. autodata:: pythermalcomfort.utilities.clo_individual_garment_groups
 
 The group mapping lists keys of ``clo_individual_garments`` in the order of
-ASHRAE 55's garment table, followed by chair adjustments. The values and groups
-are based on Tables 5.2.2.2B and 5.2.2.2C in
+the garment insulation table of ASHRAE 55 [55ASHRAE2023]_, followed by chair
+adjustments. A freely available copy of both tables is
 `Addendum h to ASHRAE 55-2010
 <https://www.ashrae.org/File%20Library/Technical%20Resources/Standards%20and%20Guidelines/Standards%20Addenda/55_2010_h_Final.pdf>`_.
+The table numbers 5.2.2.2B and 5.2.2.2C refer to that addendum.
 Every garment key appears in one group. Chair values are optional additions to
 the insulation of an ensemble, rather than garments to wear.
 
@@ -191,9 +192,12 @@ Existing dictionary keys retain their historical names and values. In
 particular, ``Long sleeve shirt (thin/thick)`` refers to the sweater rows,
 and ``Sleeveless, scoop-neck shirt (thin/thick)`` to the dress rows.
 ``Sleeveless vest (thin/thick)`` refers to lined suit vests; the separate
-``Sweater vest (thin/thick)`` entries have different insulation values.
-``Shoes or sandals`` remains available alongside the explicit ``Sandals/thongs``
-entry for compatibility.
+``Sweater vest (thin/thick)`` keys are the package's names for the standard's
+"Sleeveless vest (thin/thick)" rows under Sweaters, which have different
+insulation values.
+The legacy key ``Shoes or sandals`` represents the table's "Shoes" row.
+Use the separate ``Sandals/thongs`` entry for sandals to avoid selecting them
+twice.
 
 To build a grouped selection list without duplicating the insulation data:
 

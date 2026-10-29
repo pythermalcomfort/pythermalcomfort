@@ -30,9 +30,11 @@ from pythermalcomfort.models.adaptive_en import INTERCEPT as _EN_INTERCEPT
 from pythermalcomfort.models.adaptive_en import SLOPE as _EN_SLOPE
 from pythermalcomfort.plots.matplotlib._base import BasePlot
 from pythermalcomfort.plots.matplotlib._shared import (
-    _PYTHERMALCOMFORT_RC,
     BasePlotResult,
+    _apply_font_family,
+    _caller_texts,
     _limit_labeled_ticks,
+    _plot_rc,
     _PlotDefaults,
 )
 
@@ -491,6 +493,7 @@ class AdaptivePlot(BasePlot):
         center_line_kws: Mapping[str, Any] | None = None,
         fill_kws: Mapping[str, Any] | None = None,
         legend_kws: Mapping[str, Any] | None = None,
+        font_family: str | Sequence[str] | None = None,
     ) -> AdaptivePlotResult:
         """Render the adaptive comfort chart.
 
@@ -520,13 +523,18 @@ class AdaptivePlot(BasePlot):
             colors are set via :meth:`set_regions`.
         legend_kws : dict, optional
             Overrides for the legend (``ax.legend``).
+        font_family : str or sequence of str, optional
+            Font family for this plot. If omitted, Matplotlib's current
+            ``font.family`` setting is used. Existing annotations on a
+            caller-supplied ``ax`` are not modified.
 
         Returns
         -------
         AdaptivePlotResult
             Result with figure, axes, and artists.
         """
-        with mpl.rc_context(_PYTHERMALCOMFORT_RC):
+        with mpl.rc_context(_plot_rc(font_family)):
+            existing_annotations = _caller_texts(ax)
             bands = self._resolve_bands()
 
             if ax is None:
@@ -665,6 +673,7 @@ class AdaptivePlot(BasePlot):
             if self._y_range is not None:
                 ax.set_ylim(self._y_range)
             _limit_labeled_ticks(ax)
+            _apply_font_family(ax, font_family, exclude=existing_annotations)
 
             return AdaptivePlotResult(
                 fig=fig,

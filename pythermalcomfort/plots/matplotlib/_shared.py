@@ -6,7 +6,7 @@ import contextlib
 import inspect
 import math
 import warnings
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Collection, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from numbers import Number
 from types import MappingProxyType
@@ -16,6 +16,7 @@ import numpy as np
 from matplotlib import colors as mcolors
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+from matplotlib.text import Text
 from matplotlib.ticker import MaxNLocator
 from matplotlib.transforms import BboxBase
 
@@ -209,6 +210,51 @@ _PYTHERMALCOMFORT_RC: dict[str, Any] = {
     "grid.linewidth": 0.5,
     "grid.alpha": 0.7,
 }
+
+
+def _plot_rc(font_family: str | Sequence[str] | None = None) -> dict[str, Any]:
+    """Return the package style with an optional per-plot font override."""
+    rc = dict(_PYTHERMALCOMFORT_RC)
+    if font_family is not None:
+        rc["font.family"] = font_family
+    return rc
+
+
+def _caller_texts(ax: Axes | None) -> frozenset[Text]:
+    """Return the text artists a caller added to ``ax`` before plotting.
+
+    These are ``ax.texts`` plus text inside artists added with
+    ``ax.add_artist()``, such as an ``AnchoredText`` box, so that
+    ``_apply_font_family`` leaves them in the font the caller chose.
+    """
+    if ax is None:
+        return frozenset()
+    texts = set(ax.texts)
+    for artist in ax.artists:
+        texts.update(artist.findobj(match=Text))
+    return frozenset(texts)
+
+
+def _apply_font_family(
+    ax: Axes,
+    font_family: str | Sequence[str] | None,
+    *,
+    exclude: Collection[Text] = (),
+) -> None:
+    """Apply an explicit font family to plot-owned text artists on an axis.
+
+    ``rc_context`` controls text created inside the context, but it cannot
+    restyle labels and tick text that already belong to a caller-supplied
+    axis. Applying the explicit override to the finished axis keeps those
+    elements consistent without modifying caller-owned annotations in
+    ``exclude``. ``None`` deliberately does nothing, so normal Matplotlib
+    ``rcParams`` remain authoritative by default.
+    """
+    if font_family is None:
+        return
+    for text in ax.findobj(match=Text):
+        if text not in exclude:
+            text.set_fontfamily(font_family)
 
 
 def _legend_anchor_y(

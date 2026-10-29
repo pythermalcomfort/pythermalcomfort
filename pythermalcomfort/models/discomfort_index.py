@@ -2,9 +2,23 @@ from __future__ import annotations
 
 import numpy as np
 
-from pythermalcomfort._internal.validation import _mapping
+from pythermalcomfort._internal.validation import _CategoryBins
 from pythermalcomfort.classes_input import DIInputs, NumericInput
 from pythermalcomfort.classes_return import DI
+
+#: Discomfort condition of each Discomfort Index range, [°C]. Bins include their lower
+#: edge.
+DISCOMFORT_CATEGORIES = _CategoryBins(
+    edges={
+        21: "No discomfort",
+        24: "Less than 50% feels discomfort",
+        27: "More than 50% feels discomfort",
+        29: "Most of the population feels discomfort",
+        32: "Everyone feels severe stress",
+        99: "State of medical emergency",
+    },
+    right=False,
+)
 
 
 def discomfort_index(
@@ -65,16 +79,7 @@ def discomfort_index(
 
     di = tdb - 0.55 * (1 - 0.01 * rh) * (tdb - 14.5)
 
-    di_categories = {
-        21: "No discomfort",
-        24: "Less than 50% feels discomfort",
-        27: "More than 50% feels discomfort",
-        29: "Most of the population feels discomfort",
-        32: "Everyone feels severe stress",
-        99: "State of medical emergency",
-    }
-
     return DI(
         di=np.around(di, 1),
-        discomfort_condition=_mapping(di, di_categories, right=False),
+        discomfort_condition=DISCOMFORT_CATEGORIES.map(di),
     )

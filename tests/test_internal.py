@@ -124,6 +124,20 @@ class TestCheckAshrae55Compliance:
         )
         assert len(recwarn) == 0
 
+    @pytest.mark.parametrize("missing", ["v", "met", "clo"])
+    def test_airspeed_control_false_requires_v_met_clo(self, missing: str) -> None:
+        """airspeed_control=False without v, met or clo raises a clear error (#391)."""
+        kwargs = {
+            "tdb": np.float64(24),
+            "tr": np.float64(24),
+            "v": np.float64(0.1),
+            "met": np.float64(1.2),
+            "clo": np.float64(0.5),
+        }
+        del kwargs[missing]
+        with pytest.raises(ValueError, match=f"requires {missing}"):
+            _check_ashrae55_compliance(**kwargs, airspeed_control=False)
+
 
 def test_validate_type() -> None:
     """Test the validate_type function for type validation."""

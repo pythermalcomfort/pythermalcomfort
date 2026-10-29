@@ -89,7 +89,7 @@ Setting up your development environment:
     git fetch upstream
     git checkout development
 
-2. Set up a virtual environment and install the development dependencies with `uv <https://docs.astral.sh/uv/>`_ (it installs Python 3.12 for you if needed):
+2. Set up a virtual environment and install the development dependencies with `uv <https://docs.astral.sh/uv/>`_ 0.8.18 or later (it installs Python 3.12 for you if needed):
 
 .. code-block:: bash
 

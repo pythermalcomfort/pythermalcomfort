@@ -64,7 +64,7 @@ uv run pre-commit run --all-files
 ```
 
 ### CI/CD Workflow
-- **Pull Request (development branch)**: Runs the format job on Python 3.13 and the test matrix on Python 3.11 only, for fast feedback. numba's `llvmlite` dependency has no prebuilt wheel for very new Python versions yet (e.g. 3.14), so including them here would build from source on every PR run (~4 min vs ~1 min). The full `3.11`-`3.14` matrix across ubuntu/macos/windows runs in `build-test-publish.yml` on every release tag instead, so full compatibility is still verified before anything ships.
+- **Pull Request (development branch)**: Runs the format job on Python 3.13 and the test matrix on Python 3.11 only, for fast feedback. numba's `llvmlite` dependency has no prebuilt wheel for very new Python versions yet (e.g. 3.14), so including them here would build from source on every PR run (~4 min vs ~1 min). The full `3.11`-`3.14` matrix on Ubuntu, macOS and Windows runs in `build-test-publish.yml` on every release tag instead, RC tags included, so full compatibility is verified before the final release ships. Before 4.7.0 that job ran every matrix entry on Ubuntu, so macOS and Windows were never actually tested.
 - **Tag `v*rc*` on development**: Runs tests and deploys to TestPyPI
 - **Tag `v*` (non-RC) on master**: Runs full test matrix and deploys to PyPI
 
@@ -194,6 +194,7 @@ is deferred to a major version.
 **Numba optimization**:
 - Performance-critical functions (e.g., UTCI) use `@vectorize` and `@jit` decorators
 - Allows element-wise operations without explicit Python loops
+- "Should we rewrite in Rust?" was benchmarked in 2026-10 and the answer was no: see `docs/contributing/performance.rst` before re-asking
 
 ### Key Module Interactions
 

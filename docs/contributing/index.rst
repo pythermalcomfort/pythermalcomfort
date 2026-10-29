@@ -12,3 +12,4 @@ Use the guides below to get started:
     general
     functions
     plots
+    performance

@@ -77,7 +77,10 @@ def two_nodes_gagge(
     max_sweating : float or list of floats, optional
         Maximum rate at which regulatory sweat is generated, [kg/h/m2]. Defaults to 500.
     w_max : float or list of floats, optional
-        Maximum skin wettedness (w) adimensional. Ranges from 0 and 1. Defaults to False.
+        Maximum skin wettedness (w) adimensional, greater than 0.06 and at most 1. 0.06
+        is the wettedness from skin diffusion alone, without sweating, so it is
+        excluded. Defaults to False, which computes it from `v` and `clo`. False and 0
+        both mean the value is computed; True and NaN are rejected.
 
     Returns
     -------
@@ -402,7 +405,9 @@ def _gagge_two_nodes_optimized(
         e_diff = w * e_max - e_rsw  # vapor diffusion through skin
         if w > w_max:
             w = w_max
-            p_rsw = w_max / 0.94
+            # inverse of w = 0.06 + 0.94 * p_rsw, as in Gagge et al. (1986). The ASHRAE 55
+            # code uses w_max / 0.94, which makes SET discontinuous at the cap (#489)
+            p_rsw = (w_max - 0.06) / 0.94
             e_rsw = p_rsw * e_max
             e_diff = 0.06 * (1.0 - p_rsw) * e_max
         if e_max < 0:

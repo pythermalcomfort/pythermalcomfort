@@ -152,7 +152,7 @@ def cooling_effect(
     )
 
     if units.upper() == Units.IP.value:
-        _ce = _ce / 1.8 * 3.28
+        _ce = _ce * 1.8
 
     return CE(ce=np.around(_ce, 2))
 

@@ -719,6 +719,26 @@ class GaggeTwoNodesInputs(BaseInputs):
             w_max=w_max,
         )
 
+    def __post_init__(self):
+        super().__post_init__()
+
+        # False, None and 0 mean that the model computes w_max from v and clo
+        if self.w_max is not None:
+            message = (
+                "w_max must be greater than 0.06 and at most 1 "
+                "(False or 0 means the model computes it)."
+            )
+            # True would otherwise be read as a cap of 1, also inside a list such as
+            # [True, 0.5], where NumPy converts it to 1.0
+            values = np.asarray(self.w_max, dtype=object).ravel()
+            if any(isinstance(v, (bool, np.bool_)) and v for v in values):
+                raise ValueError(message)
+            w_max = np.asarray(self.w_max, dtype=float)
+            # At 0.06 no regulatory sweat is left at the cap, so disc divides by zero
+            out_of_range = (w_max != 0) & ((w_max <= 0.06) | (w_max > 1))
+            if np.any(np.isnan(w_max) | out_of_range):
+                raise ValueError(message)
+
 
 @dataclass
 class GaggeTwoNodesJiInputs(BaseInputs):

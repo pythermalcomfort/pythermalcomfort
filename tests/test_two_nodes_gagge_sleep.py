@@ -261,3 +261,36 @@ def test_non_positive_ltime_raises_value_error() -> None:
         two_nodes_gagge_sleep(18, 18, 0.05, 50, 1.4, 1.76, ltime=0)
     with pytest.raises(ValueError, match="ltime"):
         two_nodes_gagge_sleep(18, 18, 0.05, 50, 1.4, 1.76, ltime=-1)
+
+
+def test_two_nodes_gagge_sleep_continuous_at_critical_wettedness() -> None:
+    """SET should be continuous when skin wettedness reaches w_max.
+
+    At the cap, p_rsw must invert p_wet = 0.06 + 0.94 * p_rsw, i.e. (w_max - 0.06) / 0.94 as in
+    Gagge et al. (1986).
+    """
+    t = np.round(np.arange(28.5, 30.0, 0.005), 3)
+    result = np.array(
+        [
+            two_nodes_gagge_sleep(
+                tdb=x, tr=x, v=0.1, rh=90, clo=1.4, thickness_quilt=1.76
+            ).set
+            for x in t
+        ]
+    )
+    max_step = np.max(np.abs(np.diff(result)))
+    assert max_step < 0.05
+    assert np.all(np.diff(result) > 0)  # monotonic
+
+
+def test_two_nodes_gagge_sleep_air_more_humid_than_skin() -> None:
+    """Wettedness and DISC stay physical when the air is more humid than the skin (#501).
+
+    No sweat can evaporate, so wettedness is w_max, and sweating can no longer cope, so DISC
+    is 6.
+    """
+    result = two_nodes_gagge_sleep(
+        tdb=38, tr=38, v=0.1, rh=90, clo=1.4, thickness_quilt=1.76
+    )
+    assert 0.06 <= result.wet <= 0.59 * 0.1**-0.08
+    assert result.disc == 6.0

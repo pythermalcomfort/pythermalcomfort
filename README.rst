@@ -149,14 +149,15 @@ Common commands
 
     # create a branch and work on it
     git checkout -b Feature/awesome-feature
-    tox  # run the full matrix (slow)
-    tox -e py312  # run a single env
-    pytest -k test_name_fragment
+    uv sync  # one-time setup of the development environment (uv 0.8.18 or later)
+    uv run tox  # run the full matrix (slow)
+    uv run tox -e py312  # run a single env
+    uv run pytest -k test_name_fragment
 
     # fix linting/formatting
-    ruff check --fix
-    ruff format
-    docformatter --in-place --wrap-summaries 88 --wrap-descriptions 88 pythermalcomfort/*.py
+    uv run ruff check --fix
+    uv run ruff format
+    uv run docformatter -r -i --wrap-summaries 88 --wrap-descriptions 88 pythermalcomfort
 
     # commit and push
     git add .
@@ -185,7 +186,7 @@ Step 1 — pre-release on ``development`` (TestPyPI)
     git fetch --tags --prune
 
     # Start the RC cycle for the next patch release (e.g. 3.9.8 → 3.9.9rc1):
-    bump-my-version bump patch
+    uv run bump-my-version bump patch
 
     # Push the bump commit and tag — this triggers tests + TestPyPI deploy:
     git push
@@ -195,7 +196,7 @@ If the RC needs additional fixes, make the commits then create another RC:
 
 .. code-block:: bash
 
-    bump-my-version bump pre_n    # e.g. 3.9.9rc1 → 3.9.9rc2
+    uv run bump-my-version bump pre_n    # e.g. 3.9.9rc1 → 3.9.9rc2
     git push
     git push --tags
 
@@ -215,7 +216,7 @@ Step 3 — finalize on ``master`` (PyPI)
 
     # Strip the rc suffix to produce the stable version.
     # Replace X.Y.Z with the target version (e.g. 3.9.9):
-    bump-my-version bump --new-version X.Y.Z patch
+    uv run bump-my-version bump --new-version X.Y.Z patch
 
     # Push the bump commit and tag — this triggers tests + PyPI deploy:
     git push
