@@ -125,10 +125,12 @@ class AdaptiveASHRAE(AutoStrMixin):
         Lower acceptable comfort temperature for 90% occupants, default in [°C] or [°F].
     tmp_cmf_90_up : float or list of floats
         Upper acceptable comfort temperature for 90% occupants, default in [°C] or [°F].
-    acceptability_80 : bool or list of bools
-        Acceptability for 80% occupants.
-    acceptability_90 : bool or list of bools
-        Acceptability for 90% occupants.
+    acceptability_80 : float or array of floats
+        1.0 if the operative temperature is acceptable for 80% of occupants, 0.0 if
+        not, and NaN where the inputs are outside the applicability limits.
+    acceptability_90 : float or array of floats
+        1.0 if the operative temperature is acceptable for 90% of occupants, 0.0 if
+        not, and NaN where the inputs are outside the applicability limits.
     """
 
     tmp_cmf: NumericInput
@@ -136,8 +138,8 @@ class AdaptiveASHRAE(AutoStrMixin):
     tmp_cmf_80_up: NumericInput
     tmp_cmf_90_low: NumericInput
     tmp_cmf_90_up: NumericInput
-    acceptability_80: bool | list[bool]
-    acceptability_90: bool | list[bool]
+    acceptability_80: NumericInput
+    acceptability_90: NumericInput
 
 
 @dataclass
@@ -149,12 +151,15 @@ class AdaptiveEN(AutoStrMixin):
     ----------
     tmp_cmf : float or list of floats
         Comfort temperature at that specific running mean temperature, default in [°C] or in [°F].
-    acceptability_cat_i : bool or list of bools
-        If the indoor conditions comply with comfort category I.
-    acceptability_cat_ii : bool or list of bools
-        If the indoor conditions comply with comfort category II.
-    acceptability_cat_iii : bool or list of bools
-        If the indoor conditions comply with comfort category III.
+    acceptability_cat_i : float or array of floats
+        1.0 if the indoor conditions comply with comfort category I, 0.0 if not, and
+        NaN where the inputs are outside the applicability limits.
+    acceptability_cat_ii : float or array of floats
+        1.0 if the indoor conditions comply with comfort category II, 0.0 if not, and
+        NaN where the inputs are outside the applicability limits.
+    acceptability_cat_iii : float or array of floats
+        1.0 if the indoor conditions comply with comfort category III, 0.0 if not, and
+        NaN where the inputs are outside the applicability limits.
     tmp_cmf_cat_i_up : float or list of floats
         Upper acceptable comfort temperature for category I, default in [°C] or in [°F].
     tmp_cmf_cat_ii_up : float or list of floats
@@ -170,9 +175,9 @@ class AdaptiveEN(AutoStrMixin):
     """
 
     tmp_cmf: NumericInput
-    acceptability_cat_i: bool | list[bool]
-    acceptability_cat_ii: bool | list[bool]
-    acceptability_cat_iii: bool | list[bool]
+    acceptability_cat_i: NumericInput
+    acceptability_cat_ii: NumericInput
+    acceptability_cat_iii: NumericInput
     tmp_cmf_cat_i_up: NumericInput
     tmp_cmf_cat_ii_up: NumericInput
     tmp_cmf_cat_iii_up: NumericInput
@@ -189,12 +194,14 @@ class AnkleDraft(AutoStrMixin):
     ----------
     ppd_ad : float or list of floats
         Predicted Percentage of Dissatisfied occupants with ankle draft, [%].
-    acceptability : bool or list of bools
-        Indicates if the air speed at the ankle level is acceptable according to ASHRAE 55 2020 standard.
+    acceptability : float or array of floats
+        1.0 if the air speed at the ankle level is acceptable according to ASHRAE 55
+        (PPD_ad ≤ 20 %), 0.0 if not, and NaN where the inputs are outside the
+        applicability limits.
     """
 
     ppd_ad: NumericInput
-    acceptability: bool | list[bool]
+    acceptability: NumericInput
 
 
 @dataclass(frozen=True, repr=False)
@@ -445,13 +452,13 @@ class PMVPPDAshrae(PMVPPD):
         Predicted Percentage of Dissatisfied.
     tsv : str or list of strings
         Predicted thermal sensation vote.
-    compliance : bool or list of bools
-        True if PMV is within the acceptable range (-0.5 < PMV < 0.5) according to
-        ASHRAE Standard 55-2023. When ``limit_inputs=True`` and any input is outside
-        the standard applicability limits, ``compliance`` will be ``nan``.
+    compliance : float or array of floats
+        1.0 if PMV is within the acceptable range (-0.5 < PMV < 0.5) according to
+        ASHRAE Standard 55-2023, 0.0 if not, and NaN where the inputs are outside the
+        applicability limits (``limit_inputs=True``).
     """
 
-    compliance: bool | list[bool]
+    compliance: NumericInput
 
 
 @dataclass(frozen=True, repr=False)
@@ -658,14 +665,18 @@ class UseFansHeatwaves(AutoStrMixin):
         Skin wettedness, adimensional. Ranges from 0 to 1.
     w_max : float or list of floats
         Skin wettedness (w) practical upper limit, adimensional. Ranges from 0 to 1.
-    heat_strain : bool or list of bools
-        True if the model predicts that the person may be experiencing heat strain.
-    heat_strain_blood_flow : bool or list of bools
-        True if heat strain is caused by skin blood flow (m_bl) reaching its maximum value.
-    heat_strain_w : bool or list of bools
-        True if heat strain is caused by skin wettedness (w) reaching its maximum value.
-    heat_strain_sweating : bool or list of bools
-        True if heat strain is caused by regulatory sweating (m_rsw) reaching its maximum value.
+    heat_strain : float or array of floats
+        1.0 if the model predicts that the person may be experiencing heat strain, 0.0
+        if not, and NaN where the inputs are outside the applicability limits.
+    heat_strain_blood_flow : float or array of floats
+        1.0 if skin blood flow (m_bl) reaches its maximum value, otherwise 0.0, or NaN
+        outside the applicability limits.
+    heat_strain_w : float or array of floats
+        1.0 if skin wettedness (w) reaches its maximum value, otherwise 0.0, or NaN
+        outside the applicability limits.
+    heat_strain_sweating : float or array of floats
+        1.0 if regulatory sweating (m_rsw) reaches its maximum value, otherwise 0.0,
+        or NaN outside the applicability limits.
     """
 
     e_skin: NumericInput
@@ -680,10 +691,10 @@ class UseFansHeatwaves(AutoStrMixin):
     m_rsw: NumericInput
     w: NumericInput
     w_max: NumericInput
-    heat_strain: bool | list[bool]
-    heat_strain_blood_flow: bool | list[bool]
-    heat_strain_w: bool | list[bool]
-    heat_strain_sweating: bool | list[bool]
+    heat_strain: NumericInput
+    heat_strain_blood_flow: NumericInput
+    heat_strain_w: NumericInput
+    heat_strain_sweating: NumericInput
 
 
 @dataclass(frozen=True, repr=False)
@@ -711,12 +722,13 @@ class VerticalTGradPPD(AutoStrMixin):
     ----------
     ppd_vg : float or list of floats
         Predicted Percentage of Dissatisfied occupants with vertical temperature gradient.
-    acceptability : bool or list of bools
-        True if the value of air speed at the ankle level is acceptable (PPD_vg <= 5%).
+    acceptability : float or array of floats
+        1.0 if the vertical air temperature difference is acceptable (PPD_vg ≤ 5 %),
+        0.0 if not, and NaN where the inputs are outside the applicability limits.
     """
 
     ppd_vg: NumericInput
-    acceptability: bool | list[bool]
+    acceptability: NumericInput
 
 
 @dataclass(frozen=True, repr=False)

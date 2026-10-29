@@ -585,7 +585,7 @@ class SummaryPlot(BasePlot):
         --------
         Adaptive comfort has no single continuous column to threshold — each
         row's acceptability depends on its own running mean temperature, so
-        the model itself returns per-row boolean acceptability fields.
+        the model itself returns per-row acceptability flags (1.0, 0.0 or NaN).
         ``np.select`` picks the narrowest (best) band each row satisfies,
         falling back to "Outside" for rows that satisfy none:
 
@@ -598,7 +598,7 @@ class SummaryPlot(BasePlot):
                 tdb=df["tdb"], tr=df["tr"], t_running_mean=df["t_rm"], v=df["v"]
             )
             categories = np.select(
-                [result.acceptability_90, result.acceptability_80],
+                [result.acceptability_90 == 1, result.acceptability_80 == 1],
                 ["90% Acceptability", "80% Acceptability"],
                 default="Outside",
             )

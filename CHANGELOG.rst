@@ -4,6 +4,19 @@ Changelog
 Unreleased
 ----------
 
+* **Breaking:** every yes/no model output is now a float: 1.0 if the condition holds,
+  0.0 if not, and NaN where the inputs are outside the model's applicability limits.
+  Before, the same outputs were booleans in some models and in some settings, floats
+  or object arrays in others, and the adaptive models returned ``False`` instead of
+  NaN outside their limits. This affects ``acceptability_80`` and ``acceptability_90``
+  of ``adaptive_ashrae``, the three ``acceptability_cat_*`` of ``adaptive_en``,
+  ``acceptability`` of ``ankle_draft`` and ``vertical_tmp_grad_ppd``, ``compliance``
+  of ``pmv_ppd_ashrae`` and the four ``heat_strain*`` outputs of
+  ``use_fans_heatwaves``. Code that uses one of them as a boolean mask, for example
+  ``df[result.acceptability_80]`` or ``np.select([result.acceptability_80], ...)``,
+  should compare with 1 instead: ``result.acceptability_80 == 1``. That comparison
+  also works with earlier versions
+  (`#484 <https://github.com/pythermalcomfort/pythermalcomfort/issues/484>`_).
 * Removed the ``temp_core_neutral`` keyword argument of ``two_nodes_gagge_sleep``. The
   model always derived core temperature from the Yan et al. (2022) time polynomial and
   ignored the value passed. Passing it now raises ``TypeError`` instead of being

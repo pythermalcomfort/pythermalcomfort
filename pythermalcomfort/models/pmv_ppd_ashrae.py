@@ -4,6 +4,7 @@ import numpy as np
 
 from pythermalcomfort._internal.ashrae55 import _check_ashrae55_compliance
 from pythermalcomfort._internal.validation import (
+    _as_flag,
     _CategoryBins,
     _finalize_scalar_or_array,
 )
@@ -204,10 +205,8 @@ def pmv_ppd_ashrae(
         -0.03353 * pmv_array**4.0 - 0.2179 * pmv_array**2.0,
     )
 
-    # Calculate compliance: True if -0.5 < PMV < 0.5
-    compliance_array = (pmv_array > -0.5) & (pmv_array < 0.5)
-    # Ensure object dtype for compliance array
-    compliance_array = np.asarray(compliance_array, dtype=object)
+    # 1.0 if -0.5 < PMV < 0.5, otherwise 0.0
+    compliance_array = _as_flag((pmv_array > -0.5) & (pmv_array < 0.5))
 
     if limit_inputs:
         (

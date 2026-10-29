@@ -178,6 +178,30 @@ HEAT_INDEX_STRESS_CATEGORIES = {
 }
 
 
+def _as_flag(condition, valid=None) -> np.ndarray:
+    """Return a condition as 1.0 where it holds and 0.0 where it does not.
+
+    Every yes/no model output uses this form, so it can hold NaN where the inputs are
+    outside the model's applicability limits. A boolean array cannot.
+
+    Parameters
+    ----------
+    condition : bool or array-like of bool
+        The condition to report.
+    valid : bool or array-like of bool, optional
+        Where False, the result is NaN.
+
+    Returns
+    -------
+    np.ndarray
+        1.0, 0.0 or NaN for each element.
+    """
+    flag = np.asarray(condition, dtype=float)
+    if valid is None:
+        return flag
+    return np.where(valid, flag, np.nan)
+
+
 def _mapping(
     value: float | np.ndarray, map_dictionary: Mapping[float, Any], right: bool = True
 ) -> np.ndarray:

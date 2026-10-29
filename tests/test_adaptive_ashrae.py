@@ -145,9 +145,9 @@ def test_nan_values_for_invalid_inputs() -> None:
     # Check that the comfort temperature is nan
     assert np.isnan(result.tmp_cmf)
 
-    # Check that the acceptability flags are False
-    assert result.acceptability_80 == False
-    assert result.acceptability_90 == False
+    # outside the applicability limits the acceptability flags are NaN, not 0.0 (#484)
+    assert np.isnan(result.acceptability_80)
+    assert np.isnan(result.acceptability_90)
 
 
 def test_round_output_default_preserves_behaviour() -> None:

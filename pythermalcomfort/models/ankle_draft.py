@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from pythermalcomfort._internal.ashrae55 import _check_ashrae55_compliance
+from pythermalcomfort._internal.validation import _as_flag
 from pythermalcomfort.classes_input import AnkleDraftInputs, NumericInput
 from pythermalcomfort.classes_return import AnkleDraft
 from pythermalcomfort.models.pmv_ppd_ashrae import pmv_ppd_ashrae
@@ -90,7 +91,7 @@ def ankle_draft(
             tdb=25, tr=25, vr=0.2, rh=50, met=1.2, clo=0.5, v_ankle=0.3, units="SI"
         )
         print(results)
-        # AnkleDraft(ppd_ad=18.5, acceptability=True)
+        # AnkleDraft(ppd_ad=18.5, acceptability=1.0)
     """
     # Validate inputs using the AnkleDraftInputs class
     AnkleDraftInputs(
@@ -133,7 +134,7 @@ def ankle_draft(
         * 100,
         1,
     )
-    acceptability = ppd_val <= 20
+    acceptability = _as_flag(ppd_val <= 20)
 
     if limit_inputs:
         tdb_valid, tr_valid, v_valid, met_valid, clo_valid, v_limited = (

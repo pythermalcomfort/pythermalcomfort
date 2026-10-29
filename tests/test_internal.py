@@ -3,7 +3,12 @@ import pytest
 
 import pythermalcomfort._internal.validation as validation
 from pythermalcomfort._internal.ashrae55 import _check_ashrae55_compliance
-from pythermalcomfort._internal.validation import _mapping, _valid_range, validate_type
+from pythermalcomfort._internal.validation import (
+    _as_flag,
+    _mapping,
+    _valid_range,
+    validate_type,
+)
 from pythermalcomfort.classes_input import BaseInputs
 
 
@@ -192,3 +197,12 @@ def test_base_inputs_store_normalized_numpy_scalar() -> None:
 
     assert inputs.tdb == 25.0
     assert not isinstance(inputs.tdb, np.generic)
+
+
+def test_as_flag() -> None:
+    """Yes/no outputs are 1.0 or 0.0, and NaN where the inputs are invalid (#484)."""
+    np.testing.assert_array_equal(_as_flag([True, False]), [1.0, 0.0])
+    np.testing.assert_array_equal(
+        _as_flag([True, False, True], valid=[True, True, False]), [1.0, 0.0, np.nan]
+    )
+    assert _as_flag(True).dtype == float

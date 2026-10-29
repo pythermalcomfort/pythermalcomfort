@@ -4,7 +4,7 @@ from dataclasses import asdict
 
 import numpy as np
 
-from pythermalcomfort._internal.validation import _valid_range
+from pythermalcomfort._internal.validation import _as_flag, _valid_range
 from pythermalcomfort.classes_input import NumericInput, UseFansHeatwavesInputs
 from pythermalcomfort.classes_return import UseFansHeatwaves
 from pythermalcomfort.models.two_nodes_gagge import two_nodes_gagge
@@ -152,19 +152,11 @@ def use_fans_heatwaves(
         "heat_strain",
     ]
 
-    output["heat_strain_blood_flow"] = np.where(
-        output["m_bl"] == max_skin_blood_flow,
-        True,
-        False,
-    )
-    output["heat_strain_w"] = np.where(output["w"] == output["w_max"], True, False)
-    output["heat_strain_sweating"] = np.where(
-        output["m_rsw"] == max_sweating,
-        True,
-        False,
-    )
+    output["heat_strain_blood_flow"] = _as_flag(output["m_bl"] == max_skin_blood_flow)
+    output["heat_strain_w"] = _as_flag(output["w"] == output["w_max"])
+    output["heat_strain_sweating"] = _as_flag(output["m_rsw"] == max_sweating)
 
-    output["heat_strain"] = np.any(
+    output["heat_strain"] = np.max(
         [
             output["heat_strain_blood_flow"],
             output["heat_strain_w"],

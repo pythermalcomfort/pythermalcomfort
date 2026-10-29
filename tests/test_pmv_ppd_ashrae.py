@@ -120,7 +120,7 @@ class TestPmvPpd:
             clo=0.5,
             model=Models.ashrae_55_2023.value,
         )
-        assert result.compliance is True
+        assert result.compliance == 1.0
 
         # Test scalar values - non-compliant case (PMV outside -0.5 to 0.5)
         result = pmv_ppd_ashrae(
@@ -132,7 +132,7 @@ class TestPmvPpd:
             clo=0.5,
             model=Models.ashrae_55_2023.value,
         )
-        assert result.compliance is False
+        assert result.compliance == 0.0
 
         # Test array values with known PMV results
         result = pmv_ppd_ashrae(
@@ -146,7 +146,7 @@ class TestPmvPpd:
         )
         # PMV around -0.77, -0.03, 1.17 approximately
         # First is not compliant (< -0.5), second is compliant, third is not compliant (> 0.5)
-        expected_compliance = np.array([False, True, False])
+        expected_compliance = np.array([0.0, 1.0, 0.0])
         np.testing.assert_array_equal(result.compliance, expected_compliance)
 
         result = pmv_ppd_ashrae(
@@ -160,7 +160,7 @@ class TestPmvPpd:
         )
         # For these inputs, PMV is outside (-0.5, 0.5), so should be non-compliant
         assert result.pmv < -0.5 or result.pmv > 0.5
-        assert result.compliance is False
+        assert result.compliance == 0.0
 
         # Also test inputs that produce PMV close to upper bound
         result = pmv_ppd_ashrae(
