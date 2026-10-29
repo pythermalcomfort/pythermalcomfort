@@ -22,6 +22,15 @@ Unreleased
   the five reported temperatures are rounded. For example, ``tdb=tr=21.11``,
   ``t_running_mean=22`` and ``v=0.1`` is now outside the 80 % band for both settings
   (`#500 <https://github.com/pythermalcomfort/pythermalcomfort/issues/500>`_).
+* Refined the default look of ``PsychrometricPlot``. The humidity-ratio axis is now on
+  the right, a band between two thresholds is drawn green between blue and
+  terracotta, and out-of-model areas use a lighter gray. Explicit ``labels``,
+  ``colors`` and ``invalid_color`` still take precedence
+  (`#417 <https://github.com/pythermalcomfort/pythermalcomfort/issues/417>`_).
+* The default region labels of ``ThresholdPlot`` and ``PsychrometricPlot`` now show on
+  which side of a threshold a value exactly on it falls, as the model classifies it.
+  For example, ``pmv_ppd_ashrae`` gives ``-0.5 < PMV ≤ 0.5`` and ``pmv_ppd_iso`` gives
+  ``-0.5 ≤ PMV < 0.5``. Before, every label read ``a ≤ X < b``.
 
 4.7.0 (2026-10-27)
 ------------------

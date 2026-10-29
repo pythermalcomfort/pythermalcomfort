@@ -11,6 +11,7 @@ from matplotlib.axes import Axes
 from matplotlib.path import Path as MplPath
 
 from pythermalcomfort.plots.matplotlib._shared import (
+    _PSYCHROMETRIC_REGION_COLORS,
     _apply_default_links_to_kwargs,
     _apply_font_family,
     _AxisConfig,
@@ -138,6 +139,8 @@ class PsychrometricPlot(ThresholdPlot):
             .plot(title="PMV — Psychrometric Chart")
         )
     """
+
+    _region_palette = _PSYCHROMETRIC_REGION_COLORS
 
     def set_x_axis(
         self,
@@ -357,7 +360,7 @@ class PsychrometricPlot(ThresholdPlot):
         line_kws: Mapping[str, Any] | None = None,
         fill_kws: Mapping[str, Any] | None = None,
         legend_kws: Mapping[str, Any] | None = None,
-        invalid_color: str = _PlotDefaults.color_out_of_model,
+        invalid_color: str = _PlotDefaults.Psychrometric.color_out_of_model,
         font_family: str | Sequence[str] | None = None,
     ) -> ThresholdPlotResult:
         """Render the psychrometric chart with threshold regions and RH curves.
@@ -368,9 +371,9 @@ class PsychrometricPlot(ThresholdPlot):
         - A white fill masking the physically impossible RH > 100 % area,
           starting exactly at the smooth saturation curve.
         - Dotted constant-RH background curves at 25 % intervals.
-        - A y-axis label naming the humidity ratio and its units, replacing
-          the bare parameter name the base class would otherwise use.  Call
-          ``result.ax.set_ylabel(...)`` afterwards to override it.
+        - A right-side y-axis label naming the humidity ratio and its units,
+          replacing the bare parameter name the base class would otherwise
+          use. Call ``result.ax.set_ylabel(...)`` afterwards to override it.
 
         Parameters
         ----------
@@ -392,7 +395,8 @@ class PsychrometricPlot(ThresholdPlot):
         legend_kws : dict, optional
             Keyword overrides forwarded to ``ax.legend``.
         invalid_color : str
-            Color used for out-of-model/invalid areas.
+            Color used for out-of-model/invalid areas. Defaults to the
+            psychrometric-specific light gray ``"#DADCDD"``.
         font_family : str or sequence of str, optional
             Font family for this plot. If omitted, Matplotlib's current
             ``font.family`` setting is used. Existing annotations on a
@@ -503,6 +507,13 @@ class PsychrometricPlot(ThresholdPlot):
         # units.  Give the chart a correct default instead; callers who want
         # something else can still override it via result.ax.set_ylabel().
         ax.set_ylabel(_HR_AXIS_LABEL)
+        # Psychrometric charts conventionally place the humidity-ratio axis
+        # on the right. The shared axes style hides that spine by default, so
+        # restore it here without changing the appearance of other plot types.
+        ax.yaxis.tick_right()
+        ax.yaxis.set_label_position("right")
+        ax.spines["left"].set_visible(False)
+        ax.spines["right"].set_visible(True)
 
         # ThresholdPlot.plot() already clamped these back from whatever the
         # region fills autoscaled to, which is why the RH labels above compute

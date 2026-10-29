@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Any, cast
+from typing import Any, Self, cast
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -22,7 +22,9 @@ from pythermalcomfort.plots.matplotlib._boundaries import (
     RegionBands,
     solve_region_bands,
 )
+from pythermalcomfort.plots.matplotlib._model_regions import _MODEL_REGIONS
 from pythermalcomfort.plots.matplotlib._shared import (
+    _DEFAULT_REGION_COLORS,
     BasePlotResult,
     _apply_axes_style,
     _apply_font_family,
@@ -107,6 +109,9 @@ class ThresholdPlot(GridBasePlot):
         print(lower.threshold, lower.x[:3], lower.y[:3])
     """
 
+    # default region colors keyed by number of regions; subclasses can override it
+    _region_palette: Mapping[int, tuple[str, ...]] = _DEFAULT_REGION_COLORS
+
     def set_regions(
         self,
         *,
@@ -114,7 +119,7 @@ class ThresholdPlot(GridBasePlot):
         thresholds: Sequence[float],
         labels: Sequence[str] | None = None,
         colors: Sequence[str] | None = None,
-    ) -> ThresholdPlot:
+    ) -> Self:
         """Configure output regions.
 
         Parameters
@@ -142,8 +147,22 @@ class ThresholdPlot(GridBasePlot):
         ValueError
             If output name is empty, or thresholds/labels/colors are invalid.
         """
+        # label boundaries the way the model classifies values on them, e.g.
+        # "-0.5 ≤ PMV < 0.5" for pmv_ppd_iso but "-0.5 < PMV ≤ 0.5" for pmv_ppd_ashrae
+        model_regions = _MODEL_REGIONS.get(self._model_func)
+        right = (
+            model_regions is not None
+            and isinstance(output, str)
+            and output.strip() == model_regions.output
+            and model_regions.bins.right
+        )
         self._region_config = _configure_regions(
-            output=output, thresholds=thresholds, labels=labels, colors=colors
+            output=output,
+            thresholds=thresholds,
+            labels=labels,
+            colors=colors,
+            right=right,
+            palette=self._region_palette,
         )
         return self
 
