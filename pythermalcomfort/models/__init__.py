@@ -9,6 +9,7 @@ from .esi import esi
 from .heat_index_lu import heat_index_lu
 from .heat_index_rothfusz import heat_index_rothfusz
 from .heat_index_schoen import heat_index_schoen
+from .heatwatch import Persona, heatwatch
 from .humidex import humidex
 from .ireq import ireq
 from .jos3 import JOS3
@@ -41,6 +42,7 @@ from .work_capacity_niosh import work_capacity_niosh
 
 __all__ = [
     "JOS3",
+    "Persona",
     "Sports",
     "adaptive_ashrae",
     "adaptive_en",
@@ -53,6 +55,7 @@ __all__ = [
     "heat_index_lu",
     "heat_index_rothfusz",
     "heat_index_schoen",
+    "heatwatch",
     "humidex",
     "ireq",
     "net",

@@ -576,6 +576,29 @@ class GaggeTwoNodesJi(AutoStrMixin):
 
 
 @dataclass(frozen=True, repr=False)
+class HeatWatch(AutoStrMixin):
+    """Dataclass to represent the results of the HeatWatch heat-health risk score.
+
+    Attributes
+    ----------
+    hhrs : float or list of floats
+        Heat-health risk score, from 0 to 6, [dimensionless].
+    risk_category : str or list of str
+        Risk category: Minimal (0 to 1), Low (above 1 to 2), Moderate, High, Severe or
+        Extreme (above 5 to 6).
+    disc : float or list of floats
+        Thermal discomfort (DISC) from the Gagge two-node model, [dimensionless].
+    t_core : float or list of floats
+        Core temperature from the Gagge two-node model, [°C].
+    """
+
+    hhrs: NumericInput
+    risk_category: str | list[str]
+    disc: NumericInput
+    t_core: NumericInput
+
+
+@dataclass(frozen=True, repr=False)
 class THI(AutoStrMixin):
     """Dataclass to represent the Temperature-Humidity Index (THI).
 

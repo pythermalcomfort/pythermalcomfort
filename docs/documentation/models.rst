@@ -166,6 +166,17 @@ Heat Index (HI) Schoen (2005)
     :noindex:
     :members:
 
+HeatWatch Heat-Health Risk Score
+--------------------------------
+
+.. autofunction:: pythermalcomfort.models.heatwatch.heatwatch
+
+.. autoclass:: pythermalcomfort.models.heatwatch.Persona
+    :members:
+
+.. autoclass:: pythermalcomfort.classes_return.HeatWatch
+    :members:
+
 Humidex
 -------
 
