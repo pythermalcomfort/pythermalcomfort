@@ -73,10 +73,24 @@ jobs:
                         Write each fix as a GitHub suggestion block so the author can
                         commit it with one click. Write a one-paragraph summary in
                         your tracking comment, and say which threads you resolved.
+
+                        jsthermalcomfort is a JavaScript port of the models in this
+                        package. It needs the same change when this PR changes what a
+                        model, environment, psychrometrics or clothing function returns,
+                        accepts, defaults to or treats as an applicability limit. It
+                        does not need one for plots, docs, tests, typing, performance
+                        or a refactor that leaves every output unchanged. End your
+                        summary with one line, "jsthermalcomfort: needed" or
+                        "jsthermalcomfort: not needed", and the reason in one sentence.
+                        If the PR has neither the "js: needed" nor the "js: not needed"
+                        label, add the matching one with
+                        gh pr edit ${{ github.event.pull_request.number }} --add-label "<label>".
+                        Never remove or change a js label that is already there,
+                        because a maintainer may have set it.
                     claude_args: |
                         --model claude-haiku-5-5
                         --max-turns 30
-                        --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(gh api graphql:*),mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+                        --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(gh api graphql:*),mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr edit:*)"
 
     on-demand-review:
 
