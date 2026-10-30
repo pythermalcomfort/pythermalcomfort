@@ -4,6 +4,9 @@ Changelog
 Unreleased
 ----------
 
+* Added ``clo_individual_garment_groups`` and missing sweater-vest, sandal, and
+  chair entries. Existing garment keys and values are preserved (`#478
+  <https://github.com/pythermalcomfort/pythermalcomfort/issues/478>`_).
 * Removed the ``temp_core_neutral`` keyword argument of ``two_nodes_gagge_sleep``. The
   model always derived core temperature from the Yan et al. (2022) time polynomial and
   ignored the value passed. Passing it now raises ``TypeError`` instead of being

@@ -263,6 +263,99 @@ clo_individual_garments = {
     "Single-breasted coat (thick)": 0.44,
     "Double-breasted coat (thin)": 0.42,
     "Double-breasted coat (thick)": 0.48,
+    "Sweater vest (thin)": 0.13,
+    "Sweater vest (thick)": 0.22,
+    "Sandals/thongs": 0.02,
+    "Net chair": 0.0,
+    "Wooden side arm chair": 0.0,
+}
+
+#: Garment keys follow the garment insulation table of ASHRAE 55 [55ASHRAE2023]_,
+#: then its chair adjustments. A freely available copy is Addendum h to ASHRAE
+#: 55-2010 (Tables 5.2.2.2B and 5.2.2.2C).
+#: Values remain in ``clo_individual_garments``; legacy keys are preserved.
+#: The legacy key "Shoes or sandals" represents the table's "Shoes" row;
+#: "Sandals/thongs" is the separate sandals row.
+clo_individual_garment_groups = {
+    "Underwear": (
+        "Bra",
+        "Women's underwear",
+        "Men's underwear",
+        "T-shirt",
+        "Half slip",
+        "Long underwear bottoms",
+        "Full slip",
+        "Long underwear top",
+    ),
+    "Footwear": (
+        "Ankle socks",
+        "Panty hose",
+        "Sandals/thongs",
+        "Shoes or sandals",
+        "Slippers",
+        "Calf length socks",
+        "Knee socks (thick)",
+        "Boots",
+    ),
+    "Shirts and Blouses": (
+        "Sleeveless scoop-neck blouse",
+        "Short-sleeve knit shirt",
+        "Short-sleeve dress shirt",
+        "Long-sleeve dress shirt",
+        "Long-sleeve flannel shirt",
+        "Long-sleeve sweat shirt",
+    ),
+    "Trousers and Coveralls": (
+        "Short shorts",
+        "Walking shorts",
+        "Thin trousers",
+        "Thick trousers",
+        "Sweatpants",
+        "Overalls",
+        "Coveralls",
+    ),
+    "Dress and Skirts": (
+        "Thin skirt",
+        "Thick skirt",
+        "Sleeveless, scoop-neck shirt (thin)",
+        "Sleeveless, scoop-neck shirt (thick)",
+        "Short-sleeve shirt dress",
+        "Long-sleeve shirt dress (thin)",
+        "Long-sleeve shirt dress (thick)",
+    ),
+    "Sweaters": (
+        "Sweater vest (thin)",
+        "Sweater vest (thick)",
+        "Long sleeve shirt (thin)",
+        "Long sleeve shirt (thick)",
+    ),
+    "Suit Jackets and Vests": (
+        "Sleeveless vest (thin)",
+        "Sleeveless vest (thick)",
+        "Single-breasted coat (thin)",
+        "Single-breasted coat (thick)",
+        "Double-breasted coat (thin)",
+        "Double-breasted coat (thick)",
+    ),
+    "Sleepwear and Robes": (
+        "Sleeveless short gown (thin)",
+        "Sleeveless long gown (thin)",
+        "Short-sleeve hospital gown",
+        "Short-sleeve short robe (thin)",
+        "Short-sleeve pajamas",
+        "Long-sleeve long gown",
+        "Long-sleeve short wrap robe (thick)",
+        "Long-sleeve pajamas (thick)",
+        "Long-sleeve long wrap robe (thick)",
+    ),
+    "Chairs": (
+        "Net chair",
+        "Metal chair",
+        "Wooden side arm chair",
+        "Wooden stool",
+        "Standard office chair",
+        "Executive chair",
+    ),
 }
 
 #: This dictionary contains the reflection coefficients, Fr, for different
