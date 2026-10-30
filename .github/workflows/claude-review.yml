@@ -80,12 +80,12 @@ jobs:
 
     on-demand-review:
 
-        # only maintainers can trigger a review, so outsiders cannot spend the API budget
+        # only the owner, org members and collaborators can trigger a review, so outsiders cannot spend the API budget
         if: >
             github.event_name == 'issue_comment' &&
             github.event.issue.pull_request &&
             contains(github.event.comment.body, '@claude') &&
-            contains(fromJSON('["OWNER", "MEMBER"]'), github.event.comment.author_association)
+            contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
         runs-on: ubuntu-latest
         permissions:
             contents: read

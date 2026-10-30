@@ -15,16 +15,36 @@ from pythermalcomfort.utilities import Units
 
 def test_transpose_sharp_altitude() -> None:
     """Test the transpose_sharp_altitude function."""
-    assert transpose_sharp_altitude(sharp=0, altitude=0) == (0, 90)
-    assert transpose_sharp_altitude(sharp=0, altitude=20) == (0, 70)
-    assert transpose_sharp_altitude(sharp=0, altitude=45) == (0, 45)
-    assert transpose_sharp_altitude(sharp=0, altitude=60) == (0, 30)
-    assert transpose_sharp_altitude(sharp=90, altitude=0) == (90, 0)
-    assert transpose_sharp_altitude(sharp=90, altitude=45) == (45, 0)
-    assert transpose_sharp_altitude(sharp=90, altitude=30) == (60, 0)
-    assert transpose_sharp_altitude(sharp=135, altitude=60) == (22.208, 20.705)
-    assert transpose_sharp_altitude(sharp=120, altitude=75) == (13.064, 7.435)
-    assert transpose_sharp_altitude(sharp=150, altitude=30) == (40.893, 48.590)
+    assert transpose_sharp_altitude(sharp=0, altitude=0) == pytest.approx(
+        (0, 90), abs=5e-4
+    )
+    assert transpose_sharp_altitude(sharp=0, altitude=20) == pytest.approx(
+        (0, 70), abs=5e-4
+    )
+    assert transpose_sharp_altitude(sharp=0, altitude=45) == pytest.approx(
+        (0, 45), abs=5e-4
+    )
+    assert transpose_sharp_altitude(sharp=0, altitude=60) == pytest.approx(
+        (0, 30), abs=5e-4
+    )
+    assert transpose_sharp_altitude(sharp=90, altitude=0) == pytest.approx(
+        (90, 0), abs=5e-4
+    )
+    assert transpose_sharp_altitude(sharp=90, altitude=45) == pytest.approx(
+        (45, 0), abs=5e-4
+    )
+    assert transpose_sharp_altitude(sharp=90, altitude=30) == pytest.approx(
+        (60, 0), abs=5e-4
+    )
+    assert transpose_sharp_altitude(sharp=135, altitude=60) == pytest.approx(
+        (22.208, 20.705), abs=5e-4
+    )
+    assert transpose_sharp_altitude(sharp=120, altitude=75) == pytest.approx(
+        (13.064, 7.435), abs=5e-4
+    )
+    assert transpose_sharp_altitude(sharp=150, altitude=30) == pytest.approx(
+        (40.893, 48.590), abs=5e-4
+    )
 
 
 def test_f_svv() -> None:

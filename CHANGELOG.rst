@@ -7,6 +7,15 @@ Unreleased
 * Added ``clo_individual_garment_groups`` and missing sweater-vest, sandal, and
   chair entries. Existing garment keys and values are preserved (`#478
   <https://github.com/pythermalcomfort/pythermalcomfort/issues/478>`_).
+* Removed the ``temp_core_neutral`` keyword argument of ``two_nodes_gagge_sleep``. The
+  model always derived core temperature from the Yan et al. (2022) time polynomial and
+  ignored the value passed. Passing it now raises ``TypeError`` instead of being
+  silently ignored
+  (`#387 <https://github.com/pythermalcomfort/pythermalcomfort/issues/387>`_).
+* ``solar_gain`` no longer rounds the rotated solar angles to three decimals before it
+  looks up the projected area factor of a supine person, so supine results match the
+  CBE Thermal Comfort Tool. The change is in the fourth or fifth significant figure
+  (`#451 <https://github.com/pythermalcomfort/pythermalcomfort/issues/451>`_).
 * Fixed ``two_nodes_gagge_sleep`` returning negative skin wettedness and an implausibly
   low ``disc`` when the air is more humid than the skin, for example at 38 °C and 90 %
   RH. It now uses the same guards as ``two_nodes_gagge``: no sweat evaporates and
@@ -25,6 +34,21 @@ Unreleased
   the five reported temperatures are rounded. For example, ``tdb=tr=21.11``,
   ``t_running_mean=22`` and ``v=0.1`` is now outside the 80 % band for both settings
   (`#500 <https://github.com/pythermalcomfort/pythermalcomfort/issues/500>`_).
+* Refined the default look of ``PsychrometricPlot``. The humidity-ratio axis is now on
+  the right, a band between two thresholds is drawn green between blue and
+  terracotta, and out-of-model areas use a lighter gray. Explicit ``labels``,
+  ``colors`` and ``invalid_color`` still take precedence
+  (`#417 <https://github.com/pythermalcomfort/pythermalcomfort/issues/417>`_).
+* The default region labels of ``ThresholdPlot`` and ``PsychrometricPlot`` now show on
+  which side of a threshold a value exactly on it falls, as the model classifies it.
+  For example, ``pmv_ppd_ashrae`` gives ``-0.5 < PMV ≤ 0.5`` and ``pmv_ppd_iso`` gives
+  ``-0.5 ≤ PMV < 0.5``. Before, every label read ``a ≤ X < b``.
+* Added ``SummaryPlot.set_regions(preset=...)`` with the presets ``"pmv_iso"``,
+  ``"pmv_ashrae"``, ``"utci"`` and ``"heat_index"``. Each preset takes its thresholds,
+  labels and boundary rule from the model, so a summary matches the model's own
+  categories. UTCI and Heat Index values must be in °C. Column names, labels and colors
+  can be overridden
+  (`#458 <https://github.com/pythermalcomfort/pythermalcomfort/issues/458>`_).
 
 4.7.0 (2026-10-27)
 ------------------

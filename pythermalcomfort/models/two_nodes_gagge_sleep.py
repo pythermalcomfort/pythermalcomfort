@@ -63,8 +63,6 @@ def two_nodes_gagge_sleep(
             Driving coefficient for vasoconstriction. Defaults to 0.5.
         * temp_skin_neutral : float, optional
             Skin temperature at neutral conditions, [°C]. Defaults to 33.7.
-        * temp_core_neutral : float, optional
-            Core temperature at neutral conditions, [°C]. Defaults to 36.8.
         * e_skin : float, optional
             Total evaporative heat loss, [W]. Defaults to 0.094.
         * alfa : float, optional
@@ -94,9 +92,6 @@ def two_nodes_gagge_sleep(
     c_dil = kwargs.pop("c_dil", 120)
     c_str = kwargs.pop("c_str", 0.5)
     temp_skin_neutral = kwargs.pop("temp_skin_neutral", 33.7)
-    # Kept as an accepted keyword for backwards compatibility. The model derives
-    # core temperature from the Yan et al. time polynomial at every time step.
-    kwargs.pop("temp_core_neutral", 36.8)
     e_skin = kwargs.pop("e_skin", 0.094)
     alfa = kwargs.pop("alfa", 0.1)
     skin_blood_flow = kwargs.pop("skin_blood_flow", 6.3)
