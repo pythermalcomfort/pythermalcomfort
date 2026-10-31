@@ -1,8 +1,8 @@
 Changelog
 =========
 
-Unreleased
-----------
+4.8.0 (2026-10-31)
+------------------
 
 * **Breaking:** every yes/no model output is now a float: 1.0 if the condition holds,
   0.0 if not, and NaN where the inputs are outside the model's applicability limits.
