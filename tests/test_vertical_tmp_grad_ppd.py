@@ -69,3 +69,18 @@ def test_vertical_tmp_grad_ppd_is_never_negative() -> None:
     )
     np.testing.assert_allclose(result.ppd_vg, [0.0, 0.0, 12.6])
     np.testing.assert_array_equal(result.acceptability, [True, True, False])
+
+
+def test_vertical_tmp_grad_ppd_acceptability_nan_where_ppd_undefined() -> None:
+    """With limit_inputs=False, a NaN input gives NaN acceptability, not 0.0."""
+    result = vertical_tmp_grad_ppd(
+        tdb=[25, np.nan],
+        tr=25,
+        vr=0.1,
+        rh=50,
+        met=1.2,
+        clo=0.5,
+        vertical_tmp_grad=7,
+        limit_inputs=False,
+    )
+    np.testing.assert_array_equal(result.acceptability, [0.0, np.nan])
