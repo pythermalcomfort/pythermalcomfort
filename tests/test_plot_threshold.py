@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import warnings
+from dataclasses import dataclass
 from types import SimpleNamespace
 
 import matplotlib
@@ -867,3 +868,22 @@ def test_title_clears_a_legend_anchored_in_figure_coordinates() -> None:
     title_bottom = to_axes.transform(ax.title.get_window_extent().p0)[1]
 
     assert title_bottom >= legend_top
+
+
+def test_unhashable_callable_model_uses_default_labels() -> None:
+    """A callable dataclass is unhashable, so it is treated as an unregistered model."""
+
+    @dataclass
+    class OffsetModel:
+        offset: float = 0.0
+
+        def __call__(self, tdb, rh):
+            return vectorized_attribute_model(tdb + self.offset, rh)
+
+    plot = (
+        ThresholdPlot(OffsetModel())
+        .set_x_axis("tdb", 20.0, 30.0, resolution=1.0)
+        .set_y_axis("rh", 20.0, 80.0, resolution=10.0)
+        .set_regions(output="pmv", thresholds=[-0.5, 0.5])
+    )
+    plot.plot()

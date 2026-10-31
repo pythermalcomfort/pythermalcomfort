@@ -3,12 +3,29 @@ from __future__ import annotations
 import numpy as np
 
 from pythermalcomfort._internal.ashrae55 import _check_ashrae55_compliance
-from pythermalcomfort._internal.validation import _finalize_scalar_or_array, _mapping
+from pythermalcomfort._internal.validation import (
+    _as_flag,
+    _CategoryBins,
+)
 from pythermalcomfort.classes_input import NumericInput, PMVPPDInputs
 from pythermalcomfort.classes_return import PMVPPDAshrae
 from pythermalcomfort.models._pmv_ppd_optimized import _pmv_ppd_optimized
 from pythermalcomfort.models.cooling_effect import cooling_effect
 from pythermalcomfort.utilities import Models, Units, units_converter
+
+#: Thermal sensation of each PMV range. Bins include their upper edge.
+TSV_CATEGORIES = _CategoryBins(
+    edges={
+        -2.5: "Cold",
+        -1.5: "Cool",
+        -0.5: "Slightly Cool",
+        0.5: "Neutral",
+        1.5: "Slightly Warm",
+        2.5: "Warm",
+        10: "Hot",
+    },
+    right=True,
+)
 
 
 def pmv_ppd_ashrae(
@@ -124,7 +141,7 @@ def pmv_ppd_ashrae(
         )
         print(results.pmv)  # 0.0
         print(results.ppd)  # 5.0
-        print(results.compliance)  # True
+        print(results.compliance)  # 1.0
 
         result = pmv_ppd_ashrae(
             tdb=[22, 25, 28],
@@ -187,10 +204,10 @@ def pmv_ppd_ashrae(
         -0.03353 * pmv_array**4.0 - 0.2179 * pmv_array**2.0,
     )
 
-    # Calculate compliance: True if -0.5 < PMV < 0.5
-    compliance_array = (pmv_array > -0.5) & (pmv_array < 0.5)
-    # Ensure object dtype for compliance array
-    compliance_array = np.asarray(compliance_array, dtype=object)
+    # 1.0 if -0.5 < PMV < 0.5, otherwise 0.0, and NaN where PMV is undefined
+    compliance_array = _as_flag(
+        (pmv_array > -0.5) & (pmv_array < 0.5), valid=~np.isnan(pmv_array)
+    )
 
     if limit_inputs:
         (
@@ -218,25 +235,14 @@ def pmv_ppd_ashrae(
         pmv_array = np.where(all_valid, pmv_array, np.nan)
         ppd_array = np.where(all_valid, ppd_array, np.nan)
         compliance_array = np.where(all_valid, compliance_array, np.nan)
-        compliance_array = _finalize_scalar_or_array(compliance_array)
 
     if round_output:
         pmv_array = np.round(pmv_array, 2)
         ppd_array = np.round(ppd_array, 1)
 
-    thermal_sensation = {
-        -2.5: "Cold",
-        -1.5: "Cool",
-        -0.5: "Slightly Cool",
-        0.5: "Neutral",
-        1.5: "Slightly Warm",
-        2.5: "Warm",
-        10: "Hot",
-    }
-
     return PMVPPDAshrae(
         pmv=pmv_array,
         ppd=ppd_array,
-        tsv=_mapping(pmv_array, thermal_sensation),
+        tsv=TSV_CATEGORIES.map(pmv_array),
         compliance=compliance_array,
     )

@@ -367,6 +367,41 @@ Running against a tag that's several releases behind is treated as a bug to
 flag/fix, not a "leave it be" — open an issue if you notice this and can't fix
 it in the same PR.
 
+Keeping jsthermalcomfort in sync
+--------------------------------
+
+`jsthermalcomfort <https://github.com/FedericoTartarini/jsthermalcomfort>`_ is a
+JavaScript port of the models here, so a change to a model's outputs, inputs,
+defaults or limits usually needs the same change there. Rather than one issue per
+PR, jsthermalcomfort keeps one open issue, labelled ``pythermalcomfort sync``, with
+one line per merged PR that may need porting.
+
+Three steps decide whether a PR gets a line:
+
+1. The Claude review recommends ``jsthermalcomfort: needed`` or ``not needed`` at
+   the end of its summary, and adds the ``js: needed`` or ``js: not needed`` label
+   if the PR has neither.
+2. Before merging, the maintainer keeps the label or swaps it. The label on the PR
+   at merge time is the final decision.
+3. When the PR merges into ``development``, ``.github/workflows/js-sync.yml`` adds
+   a line unless the PR is labelled ``js: not needed``. It also skips PRs that
+   touched no model code and have no ``js: needed`` label. A PR with no label that
+   touched model code still gets a line, marked "not triaged", because a missed
+   port costs more than an extra line.
+
+When a final ``vX.Y.Z`` tag is pushed, the workflow opens the next issue with
+every unticked line, then closes the old one. Ticked lines stay in the closed
+issue as the record of that release.
+
+The workflow uses the ``JS_SYNC_TOKEN`` repository secret, a fine-grained token
+with "Issues: read and write" on jsthermalcomfort only. To try it without changing
+anything, run it from the Actions tab with ``dry_run`` ticked. GitHub only offers
+this manual run once the workflow file is on ``master``:
+
+.. code-block:: bash
+
+    gh workflow run js-sync.yml -f mode=merge -f pr_number=514 -f dry_run=true
+
 8) Formatting, linting and tests locally
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

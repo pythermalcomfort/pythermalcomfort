@@ -1,0 +1,78 @@
+name: jsthermalcomfort sync
+
+# Keeps one open issue in jsthermalcomfort that lists the merged PRs that may
+# need porting. The Claude review recommends a "js: needed" or "js: not needed"
+# label, the maintainer keeps or flips it before merging, and this workflow only
+# reads the label at merge time. No AI runs here. See CONTRIBUTING.rst,
+# "Keeping jsthermalcomfort in sync".
+#
+# Needs the JS_SYNC_TOKEN secret: a fine-grained token with "Issues: read and
+# write" on FedericoTartarini/jsthermalcomfort only.
+
+on:
+    # pull_request_target, not pull_request, so merged fork PRs can use the
+    # secret too. It is safe because no PR code is checked out or run: the
+    # checkout below is the base branch, and the script only reads PR metadata.
+    pull_request_target:
+        types: [ closed ]
+        branches:
+            - development
+    push:
+        tags:
+            # final releases only, e.g. v4.8.0, not v4.8.0rc1 or v4.8.0-test
+            - "v[0-9]+.[0-9]+.[0-9]+"
+    workflow_dispatch:
+        inputs:
+            mode:
+                description: "merge: add one PR. release: close the issue and open the next one."
+                type: choice
+                options: [ merge, release ]
+                default: merge
+            pr_number:
+                description: "PR number (merge mode)"
+                required: false
+            tag:
+                description: "Release tag, e.g. v3.9.0 (release mode)"
+                required: false
+            dry_run:
+                description: "Only log what would change"
+                type: boolean
+                default: true
+
+# two merges in quick succession must not overwrite each other's line. GitHub
+# keeps only one pending run per group and cancels older pending ones, so a
+# merge run also adds any other merged PR that a cancelled run missed.
+concurrency:
+    group: js-sync
+    cancel-in-progress: false
+
+permissions:
+    contents: read
+    pull-requests: read
+
+jobs:
+
+    sync:
+        if: >
+            github.event_name != 'pull_request_target' ||
+            github.event.pull_request.merged == true
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@v6.0.2
+                with:
+                    # the base branch, never the PR head
+                    ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.base.ref || github.ref }}
+                    sparse-checkout: .github/scripts
+                    persist-credentials: false
+            # v9 is the first version that passes getOctokit to the script
+            -   uses: actions/github-script@v9.0.0
+                env:
+                    JS_SYNC_TOKEN: ${{ secrets.JS_SYNC_TOKEN }}
+                    MODE: ${{ github.event_name == 'push' && 'release' || github.event_name == 'pull_request_target' && 'merge' || inputs.mode }}
+                    PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+                    TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
+                    DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+                with:
+                    script: |
+                        const sync = require("./.github/scripts/js_sync.js");
+                        await sync({ github, context, core, getOctokit });

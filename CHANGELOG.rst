@@ -1,6 +1,65 @@
 Changelog
 =========
 
+4.8.0 (2026-10-31)
+------------------
+
+* **Breaking:** every yes/no model output is now a float: 1.0 if the condition holds,
+  0.0 if not, and NaN where the inputs are outside the model's applicability limits.
+  Before, the same outputs were booleans in some models and in some settings, floats
+  or object arrays in others, and the adaptive models returned ``False`` instead of
+  NaN outside their limits. This affects ``acceptability_80`` and ``acceptability_90``
+  of ``adaptive_ashrae``, the three ``acceptability_cat_*`` of ``adaptive_en``,
+  ``acceptability`` of ``ankle_draft`` and ``vertical_tmp_grad_ppd``, ``compliance``
+  of ``pmv_ppd_ashrae`` and the four ``heat_strain*`` outputs of
+  ``use_fans_heatwaves``. Code that uses one of them as a boolean mask, for example
+  ``df[result.acceptability_80]`` or ``np.select([result.acceptability_80], ...)``,
+  should compare with 1 instead: ``result.acceptability_80 == 1``. That comparison
+  also works with earlier versions
+  (`#484 <https://github.com/pythermalcomfort/pythermalcomfort/issues/484>`_).
+* Removed the ``temp_core_neutral`` keyword argument of ``two_nodes_gagge_sleep``. The
+  model always derived core temperature from the Yan et al. (2022) time polynomial and
+  ignored the value passed. Passing it now raises ``TypeError`` instead of being
+  silently ignored
+  (`#387 <https://github.com/pythermalcomfort/pythermalcomfort/issues/387>`_).
+* ``solar_gain`` no longer rounds the rotated solar angles to three decimals before it
+  looks up the projected area factor of a supine person, so supine results match the
+  CBE Thermal Comfort Tool. The change is in the fourth or fifth significant figure
+  (`#451 <https://github.com/pythermalcomfort/pythermalcomfort/issues/451>`_).
+* Fixed ``two_nodes_gagge_sleep`` returning negative skin wettedness and an implausibly
+  low ``disc`` when the air is more humid than the skin, for example at 38 °C and 90 %
+  RH. It now uses the same guards as ``two_nodes_gagge``: no sweat evaporates and
+  wettedness is ``w_max`` when the maximum evaporative capacity is zero or negative, and
+  ``disc`` is 6 when sweating can no longer cope. In that example ``wet`` changes from
+  -1.69 to 0.71, ``disc`` from 1.32 to 6.0 and ``set`` from 52.6 °C to 42.4 °C
+  (`#501 <https://github.com/pythermalcomfort/pythermalcomfort/issues/501>`_).
+* ``adaptive_ashrae`` now rounds reported IP temperatures to one decimal place
+  when ``round_output=True``
+  (`#428 <https://github.com/pythermalcomfort/pythermalcomfort/issues/428>`_).
+* ``round_output`` no longer changes ``acceptability_80`` and ``acceptability_90`` in
+  ``adaptive_ashrae``. It used to round ``t_cmf`` before the comfort limits were
+  calculated, so an operative temperature within 0.05 °C of a limit could be accepted
+  with ``round_output=True`` and rejected with ``round_output=False``. The limits and
+  acceptability now always come from unrounded values, as in jsthermalcomfort, and only
+  the five reported temperatures are rounded. For example, ``tdb=tr=21.11``,
+  ``t_running_mean=22`` and ``v=0.1`` is now outside the 80 % band for both settings
+  (`#500 <https://github.com/pythermalcomfort/pythermalcomfort/issues/500>`_).
+* Refined the default look of ``PsychrometricPlot``. The humidity-ratio axis is now on
+  the right, a band between two thresholds is drawn green between blue and
+  terracotta, and out-of-model areas use a lighter gray. Explicit ``labels``,
+  ``colors`` and ``invalid_color`` still take precedence
+  (`#417 <https://github.com/pythermalcomfort/pythermalcomfort/issues/417>`_).
+* The default region labels of ``ThresholdPlot`` and ``PsychrometricPlot`` now show on
+  which side of a threshold a value exactly on it falls, as the model classifies it.
+  For example, ``pmv_ppd_ashrae`` gives ``-0.5 < PMV ≤ 0.5`` and ``pmv_ppd_iso`` gives
+  ``-0.5 ≤ PMV < 0.5``. Before, every label read ``a ≤ X < b``.
+* Added ``SummaryPlot.set_regions(preset=...)`` with the presets ``"pmv_iso"``,
+  ``"pmv_ashrae"``, ``"utci"`` and ``"heat_index"``. Each preset takes its thresholds,
+  labels and boundary rule from the model, so a summary matches the model's own
+  categories. UTCI and Heat Index values must be in °C. Column names, labels and colors
+  can be overridden
+  (`#458 <https://github.com/pythermalcomfort/pythermalcomfort/issues/458>`_).
+
 4.7.0 (2026-10-27)
 ------------------
 

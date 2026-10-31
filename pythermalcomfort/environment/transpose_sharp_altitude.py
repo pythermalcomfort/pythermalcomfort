@@ -19,4 +19,4 @@ def transpose_sharp_altitude(sharp: float, altitude: float) -> tuple[float, floa
         ),
     )
     sol_altitude = altitude_new
-    return round(sharp, 3), round(sol_altitude, 3)
+    return sharp, sol_altitude

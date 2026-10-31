@@ -96,3 +96,18 @@ def test_ankle_draft_limit_inputs_true_still_warns_and_nans() -> None:
     with pytest.warns(UserWarning):
         result = ankle_draft(50, 25, 0.1, 50, 1.2, 0.5, 0.1)
     assert np.isnan(result.ppd_ad)
+
+
+def test_ankle_draft_acceptability_nan_where_ppd_undefined() -> None:
+    """With limit_inputs=False, a NaN input gives NaN acceptability, not 0.0."""
+    result = ankle_draft(
+        tdb=[25, np.nan],
+        tr=25,
+        vr=0.1,
+        rh=50,
+        met=1.2,
+        clo=0.5,
+        v_ankle=0.1,
+        limit_inputs=False,
+    )
+    np.testing.assert_array_equal(result.acceptability, [1.0, np.nan])

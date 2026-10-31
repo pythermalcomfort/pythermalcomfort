@@ -63,8 +63,6 @@ def two_nodes_gagge_sleep(
             Driving coefficient for vasoconstriction. Defaults to 0.5.
         * temp_skin_neutral : float, optional
             Skin temperature at neutral conditions, [°C]. Defaults to 33.7.
-        * temp_core_neutral : float, optional
-            Core temperature at neutral conditions, [°C]. Defaults to 36.8.
         * e_skin : float, optional
             Total evaporative heat loss, [W]. Defaults to 0.094.
         * alfa : float, optional
@@ -94,9 +92,6 @@ def two_nodes_gagge_sleep(
     c_dil = kwargs.pop("c_dil", 120)
     c_str = kwargs.pop("c_str", 0.5)
     temp_skin_neutral = kwargs.pop("temp_skin_neutral", 33.7)
-    # Kept as an accepted keyword for backwards compatibility. The model derives
-    # core temperature from the Yan et al. time polynomial at every time step.
-    kwargs.pop("temp_core_neutral", 36.8)
     e_skin = kwargs.pop("e_skin", 0.094)
     alfa = kwargs.pop("alfa", 0.1)
     skin_blood_flow = kwargs.pop("skin_blood_flow", 6.3)
@@ -430,6 +425,8 @@ def _sleep_set_optimized(
         r_ea = 1 / (lr * f_a_cl * chc)
         r_ecl = r_clo / (lr * i_cl)
         e_max = (_fnsvp(t_skin) - pa) / (r_ea + r_ecl)
+        if e_max == 0:  # otherwise e_rsw / e_max cannot be calculated
+            e_max = 0.001
         p_rsw = e_rsw / e_max
         p_wet = 0.06 + 0.94 * p_rsw
         e_diff = p_wet * e_max - e_rsw
@@ -440,6 +437,10 @@ def _sleep_set_optimized(
             p_rsw = (w_max - 0.06) / 0.94
             e_rsw = p_rsw * e_max
             e_diff = 0.06 * (1 - p_rsw) * e_max
+        if e_max < 0:  # the air is more humid than the skin, so no sweat evaporates
+            e_diff = 0
+            e_rsw = 0
+            p_wet = w_max
         e_skin = e_rsw + e_diff
         met_shivering = 19.4 * cold_s * cold_c
         m = rmm + met_shivering
@@ -523,9 +524,14 @@ def _sleep_set_optimized(
     else:
         t_sens = w_max * 4.7 + 0.4685 * (t_body - tbm_h)
 
-    disc = 4.7 * (e_rsw - e_comfort) / (e_max - e_comfort - e_diff)
+    # e_max was multiplied by w_max above, as in two_nodes_gagge's e_max * w_max
+    if t_sens > 0 > e_max - e_comfort - e_diff:
+        disc = 6.0
+    else:
+        disc = 4.7 * (e_rsw - e_comfort) / (e_max - e_comfort - e_diff)
     if disc < 0:
         disc = t_sens
+    disc = min(disc, 6.0)
 
     return (
         set_temp,

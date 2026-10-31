@@ -3,7 +3,7 @@ from typing import Literal
 import numpy as np
 
 from pythermalcomfort._internal.adaptive_cooling_effect import adaptive_cooling_effect
-from pythermalcomfort._internal.validation import _valid_range
+from pythermalcomfort._internal.validation import _as_flag, _valid_range
 from pythermalcomfort.classes_input import ENInputs, NumericInput
 from pythermalcomfort.classes_return import AdaptiveEN
 from pythermalcomfort.environment import operative_tmp
@@ -72,20 +72,20 @@ def adaptive_en(
 
         results = adaptive_en(tdb=25, tr=25, t_running_mean=20, v=0.1)
         print(results)
-        # AdaptiveEN(tmp_cmf=np.float64(25.4), acceptability_cat_i=np.True_, acceptability_cat_ii=np.True_, ...)
+        # AdaptiveEN(tmp_cmf=np.float64(25.4), acceptability_cat_i=array(1.), acceptability_cat_ii=array(1.), ...)
 
         print(results.acceptability_cat_i)  # or print(results["acceptability_cat_i"])
-        # True
+        # 1.0
         # The conditions you entered are considered to comply with Category I
 
         # For users who want to use the IP system, units="IP" or "ip" are both valid
         results = adaptive_en(tdb=77, tr=77, t_running_mean=68, v=0.3, units="IP")
         print(results)
-        # AdaptiveEN(tmp_cmf=np.float64(77.7), acceptability_cat_i=np.True_, ...)
+        # AdaptiveEN(tmp_cmf=np.float64(77.7), acceptability_cat_i=array(1.), ...)
 
         results = adaptive_en(tdb=25, tr=25, t_running_mean=9, v=0.1)
         print(results)
-        # AdaptiveEN(tmp_cmf=np.float64(nan), acceptability_cat_i=np.False_, ...)
+        # AdaptiveEN(tmp_cmf=np.float64(nan), acceptability_cat_i=array(nan), ...)
         # The adaptive thermal comfort model can only be used
         # if the running mean temperature is between 10 °C and 30 °C.
     """
@@ -131,9 +131,14 @@ def adaptive_en(
     t_cmf_ii_upper = t_cmf + 3.0 + ce
     t_cmf_iii_upper = t_cmf + 4.0 + ce
 
-    acceptability_i = (t_cmf_i_lower <= to) & (to <= t_cmf_i_upper)
-    acceptability_ii = (t_cmf_ii_lower <= to) & (to <= t_cmf_ii_upper)
-    acceptability_iii = (t_cmf_iii_lower <= to) & (to <= t_cmf_iii_upper)
+    # NaN where the inputs are outside the applicability limits (t_cmf is NaN) or
+    # where a NaN input makes the operative temperature or cooling effect NaN
+    valid = ~(np.isnan(t_cmf) | np.isnan(to) | np.isnan(ce))
+    acceptability_i = _as_flag((t_cmf_i_lower <= to) & (to <= t_cmf_i_upper), valid)
+    acceptability_ii = _as_flag((t_cmf_ii_lower <= to) & (to <= t_cmf_ii_upper), valid)
+    acceptability_iii = _as_flag(
+        (t_cmf_iii_lower <= to) & (to <= t_cmf_iii_upper), valid
+    )
 
     if units.upper() == Units.IP.value:
         t_cmf, t_cmf_i_upper, t_cmf_ii_upper, t_cmf_iii_upper = units_converter(
