@@ -1,2 +1,3 @@
-# Federico must review and approve all pull requests before merge.
+# Requests a review from Federico on every pull request. The rulesets do not require
+# an approval, because GitHub does not let an author approve their own PR.
 * @FedericoTartarini
