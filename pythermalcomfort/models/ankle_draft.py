@@ -134,7 +134,7 @@ def ankle_draft(
         * 100,
         1,
     )
-    acceptability = _as_flag(ppd_val <= 20)
+    acceptability = _as_flag(ppd_val <= 20, valid=~np.isnan(ppd_val))
 
     if limit_inputs:
         tdb_valid, tr_valid, v_valid, met_valid, clo_valid, v_limited = (

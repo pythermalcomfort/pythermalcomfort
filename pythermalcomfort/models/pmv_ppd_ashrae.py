@@ -6,7 +6,6 @@ from pythermalcomfort._internal.ashrae55 import _check_ashrae55_compliance
 from pythermalcomfort._internal.validation import (
     _as_flag,
     _CategoryBins,
-    _finalize_scalar_or_array,
 )
 from pythermalcomfort.classes_input import NumericInput, PMVPPDInputs
 from pythermalcomfort.classes_return import PMVPPDAshrae
@@ -205,8 +204,10 @@ def pmv_ppd_ashrae(
         -0.03353 * pmv_array**4.0 - 0.2179 * pmv_array**2.0,
     )
 
-    # 1.0 if -0.5 < PMV < 0.5, otherwise 0.0
-    compliance_array = _as_flag((pmv_array > -0.5) & (pmv_array < 0.5))
+    # 1.0 if -0.5 < PMV < 0.5, otherwise 0.0, and NaN where PMV is undefined
+    compliance_array = _as_flag(
+        (pmv_array > -0.5) & (pmv_array < 0.5), valid=~np.isnan(pmv_array)
+    )
 
     if limit_inputs:
         (
@@ -234,7 +235,6 @@ def pmv_ppd_ashrae(
         pmv_array = np.where(all_valid, pmv_array, np.nan)
         ppd_array = np.where(all_valid, ppd_array, np.nan)
         compliance_array = np.where(all_valid, compliance_array, np.nan)
-        compliance_array = _finalize_scalar_or_array(compliance_array)
 
     if round_output:
         pmv_array = np.round(pmv_array, 2)

@@ -152,9 +152,17 @@ def use_fans_heatwaves(
         "heat_strain",
     ]
 
-    output["heat_strain_blood_flow"] = _as_flag(output["m_bl"] == max_skin_blood_flow)
-    output["heat_strain_w"] = _as_flag(output["w"] == output["w_max"])
-    output["heat_strain_sweating"] = _as_flag(output["m_rsw"] == max_sweating)
+    # NaN where the underlying value is NaN, which np.max then carries into heat_strain
+    output["heat_strain_blood_flow"] = _as_flag(
+        output["m_bl"] == max_skin_blood_flow, valid=~np.isnan(output["m_bl"])
+    )
+    output["heat_strain_w"] = _as_flag(
+        output["w"] == output["w_max"],
+        valid=~(np.isnan(output["w"]) | np.isnan(output["w_max"])),
+    )
+    output["heat_strain_sweating"] = _as_flag(
+        output["m_rsw"] == max_sweating, valid=~np.isnan(output["m_rsw"])
+    )
 
     output["heat_strain"] = np.max(
         [

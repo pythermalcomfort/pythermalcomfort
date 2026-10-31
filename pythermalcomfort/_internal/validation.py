@@ -178,7 +178,10 @@ HEAT_INDEX_STRESS_CATEGORIES = {
 }
 
 
-def _as_flag(condition, valid=None) -> np.ndarray:
+def _as_flag(
+    condition: bool | np.ndarray | list[bool],
+    valid: bool | np.ndarray | list[bool] | None = None,
+) -> np.ndarray:
     """Return a condition as 1.0 where it holds and 0.0 where it does not.
 
     Every yes/no model output uses this form, so it can hold NaN where the inputs are

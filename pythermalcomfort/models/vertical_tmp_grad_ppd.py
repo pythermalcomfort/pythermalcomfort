@@ -126,7 +126,7 @@ def vertical_tmp_grad_ppd(
     numerator = np.exp(0.13 * (tsv - 1.91) ** 2 + 0.15 * vertical_tmp_grad - 1.6)
     # 34.5 % baseline subtracted, negative values set to zero (Liu et al. 2020, eq. 3)
     ppd_val = np.maximum((numerator / (1 + numerator) - 0.345) * 100, 0.0)
-    acceptability = _as_flag(ppd_val <= 5)
+    acceptability = _as_flag(ppd_val <= 5, valid=~np.isnan(ppd_val))
 
     if round_output:
         ppd_val = np.round(ppd_val, 1)
