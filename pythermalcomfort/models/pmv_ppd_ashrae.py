@@ -141,7 +141,7 @@ def pmv_ppd_ashrae(
         )
         print(results.pmv)  # 0.0
         print(results.ppd)  # 5.0
-        print(results.compliance)  # True
+        print(results.compliance)  # 1.0
 
         result = pmv_ppd_ashrae(
             tdb=[22, 25, 28],

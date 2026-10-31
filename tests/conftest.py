@@ -41,7 +41,6 @@ class Urls(Enum):
     HEAT_INDEX = "ts_heat_index.json"
     NET = "ts_net.json"
     PMV_PPD = "ts_pmv_ppd.json"
-    PMV = "ts_pmv.json"
     SET = "ts_set.json"
     HUMIDEX = "ts_humidex.json"
     USE_FANS_HEATWAVES = "ts_use_fans_heatwaves.json"

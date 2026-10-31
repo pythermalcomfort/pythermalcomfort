@@ -149,7 +149,11 @@ class ThresholdPlot(GridBasePlot):
         """
         # label boundaries the way the model classifies values on them, e.g.
         # "-0.5 ≤ PMV < 0.5" for pmv_ppd_iso but "-0.5 < PMV ≤ 0.5" for pmv_ppd_ashrae
-        model_regions = _MODEL_REGIONS.get(self._model_func)
+        try:
+            model_regions = _MODEL_REGIONS.get(self._model_func)
+        except TypeError:
+            # an unhashable callable cannot be a registered model
+            model_regions = None
         right = (
             model_regions is not None
             and isinstance(output, str)

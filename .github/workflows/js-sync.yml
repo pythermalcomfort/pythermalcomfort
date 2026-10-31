@@ -19,8 +19,8 @@ on:
             - development
     push:
         tags:
-            - "v*"
-            - "!v*rc*"
+            # final releases only, e.g. v4.8.0, not v4.8.0rc1 or v4.8.0-test
+            - "v[0-9]+.[0-9]+.[0-9]+"
     workflow_dispatch:
         inputs:
             mode:
@@ -63,6 +63,7 @@ jobs:
                     # the base branch, never the PR head
                     ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.base.ref || github.ref }}
                     sparse-checkout: .github/scripts
+                    persist-credentials: false
             # v9 is the first version that passes getOctokit to the script
             -   uses: actions/github-script@v9.0.0
                 env:

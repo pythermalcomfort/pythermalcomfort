@@ -147,8 +147,10 @@ def adaptive_ashrae(
     tmp_cmf_80_up = t_cmf + 3.5 + ce
     tmp_cmf_90_up = t_cmf + 2.5 + ce
 
-    # NaN where t_cmf is NaN, i.e. where the inputs are outside the applicability limits
-    valid = ~np.isnan(t_cmf)
+    # NaN where the inputs are outside the applicability limits (t_cmf is NaN) or
+    # where an input is NaN. The cooling effect treats a NaN v as still air, so v is
+    # checked directly.
+    valid = ~(np.isnan(t_cmf) | np.isnan(to) | np.isnan(ce) | np.isnan(v))
     acceptability_80 = _as_flag(
         (tmp_cmf_80_low <= to) & (to <= tmp_cmf_80_up), valid=valid
     )

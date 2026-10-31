@@ -131,8 +131,9 @@ def adaptive_en(
     t_cmf_ii_upper = t_cmf + 3.0 + ce
     t_cmf_iii_upper = t_cmf + 4.0 + ce
 
-    # NaN where t_cmf is NaN, i.e. where the inputs are outside the applicability limits
-    valid = ~np.isnan(t_cmf)
+    # NaN where the inputs are outside the applicability limits (t_cmf is NaN) or
+    # where a NaN input makes the operative temperature or cooling effect NaN
+    valid = ~(np.isnan(t_cmf) | np.isnan(to) | np.isnan(ce))
     acceptability_i = _as_flag((t_cmf_i_lower <= to) & (to <= t_cmf_i_upper), valid)
     acceptability_ii = _as_flag((t_cmf_ii_lower <= to) & (to <= t_cmf_ii_upper), valid)
     acceptability_iii = _as_flag(

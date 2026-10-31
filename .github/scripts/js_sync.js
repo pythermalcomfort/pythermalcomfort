@@ -40,7 +40,10 @@ const UNTICKED = /^- \[ \] .+$/gm;
 
 function itemLine(pr, unlabelled) {
   const note = unlabelled ? " _(not triaged: no `js:` label at merge)_" : "";
-  return `- [ ] ${pr.base.repo.full_name}#${pr.number} ${pr.title} (@${pr.user.login})${note}`;
+  // a zero-width space after @ and # stops a title from mentioning people in
+  // jsthermalcomfort or faking another PR's "owner/repo#N " marker
+  const title = pr.title.replace(/[@#]/g, (c) => `${c}\u200b`).replace(/\s+/g, " ").trim();
+  return `- [ ] ${pr.base.repo.full_name}#${pr.number} ${title} (@${pr.user.login})${note}`;
 }
 
 function issueBody(items, carriedFrom) {
@@ -152,11 +155,21 @@ async function onMerge({ github, js, context, core, prNumber, dryRun }) {
 
   core.info(`Adding to ${issue.html_url}:\n${lines.join("\n")}`);
   if (!dryRun) {
+    // re-read the body just before writing, so a line ticked while this run
+    // fetched the PRs is not unticked
+    const { data: fresh } = await js.rest.issues.get({
+      owner: JS_OWNER,
+      repo: JS_REPO,
+      issue_number: issue.number,
+    });
+    const freshBody = fresh.body || "";
+    const missing = lines.filter((line) => !freshBody.includes(markerOf(line)));
+    if (missing.length === 0) return;
     await js.rest.issues.update({
       owner: JS_OWNER,
       repo: JS_REPO,
       issue_number: issue.number,
-      body: body.replace(/\s*$/, "\n") + lines.join("\n") + "\n",
+      body: freshBody.replace(/\s*$/, "\n") + missing.join("\n") + "\n",
     });
   }
 }
