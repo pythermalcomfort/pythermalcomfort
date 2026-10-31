@@ -428,7 +428,7 @@ def test_set_categories_adaptive_np_select_recipe_end_to_end() -> None:
         tdb=df["tdb"], tr=df["tr"], t_running_mean=df["t_rm"], v=df["v"]
     )
     categories = np.select(
-        [result.acceptability_90, result.acceptability_80],
+        [result.acceptability_90 == 1, result.acceptability_80 == 1],
         ["90% Acceptability", "80% Acceptability"],
         default="Outside",
     )

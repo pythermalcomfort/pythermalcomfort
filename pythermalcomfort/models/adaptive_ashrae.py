@@ -4,7 +4,7 @@ import numpy as np
 
 from pythermalcomfort._internal.adaptive_cooling_effect import adaptive_cooling_effect
 from pythermalcomfort._internal.ashrae55 import _check_ashrae55_compliance
-from pythermalcomfort._internal.validation import _valid_range
+from pythermalcomfort._internal.validation import _as_flag, _valid_range
 from pythermalcomfort.classes_input import ASHRAEInputs, NumericInput
 from pythermalcomfort.classes_return import AdaptiveASHRAE
 from pythermalcomfort.environment import operative_tmp
@@ -77,24 +77,24 @@ def adaptive_ashrae(
 
         results = adaptive_ashrae(tdb=25, tr=25, t_running_mean=20, v=0.1)
         print(results)
-        # AdaptiveASHRAE(tmp_cmf=np.float64(24.0), tmp_cmf_80_low=np.float64(20.5), tmp_cmf_80_up=np.float64(27.5), tmp_cmf_90_low=np.float64(21.5), tmp_cmf_90_up=np.float64(26.5), acceptability_80=array(True), acceptability_90=array(True))
+        # AdaptiveASHRAE(tmp_cmf=np.float64(24.0), tmp_cmf_80_low=np.float64(20.5), tmp_cmf_80_up=np.float64(27.5), tmp_cmf_90_low=np.float64(21.5), tmp_cmf_90_up=np.float64(26.5), acceptability_80=array(1.), acceptability_90=array(1.))
 
         print(results.acceptability_80)  # or use print(results["acceptability_80"])
-        # True
+        # 1.0
         # The conditions you entered are considered to be comfortable for 80% of the occupants.
 
         # You can also pass arrays as input to the function
         results = adaptive_ashrae(tdb=[25, 26], tr=25, t_running_mean=20, v=0.1)
         print(results)
-        # AdaptiveASHRAE(tmp_cmf=array([24., 24.]), tmp_cmf_80_low=array([20.5, 20.5]), tmp_cmf_80_up=array([27.5, 27.5]), tmp_cmf_90_low=array([21.5, 21.5]), tmp_cmf_90_up=array([26.5, 26.5]), acceptability_80=array([ True,  True]), acceptability_90=array([ True,  True]))
+        # AdaptiveASHRAE(tmp_cmf=array([24., 24.]), tmp_cmf_80_low=array([20.5, 20.5]), tmp_cmf_80_up=array([27.5, 27.5]), tmp_cmf_90_low=array([21.5, 21.5]), tmp_cmf_90_up=array([26.5, 26.5]), acceptability_80=array([1., 1.]), acceptability_90=array([1., 1.]))
 
         # For users who want to use the IP system
         results = adaptive_ashrae(tdb=77, tr=77, t_running_mean=68, v=0.3, units="IP")
         print(results)
-        # AdaptiveASHRAE(tmp_cmf=np.float64(75.2), tmp_cmf_80_low=np.float64(68.9), tmp_cmf_80_up=np.float64(81.5), tmp_cmf_90_low=np.float64(70.7), tmp_cmf_90_up=np.float64(79.7), acceptability_80=array(True), acceptability_90=array(True))
+        # AdaptiveASHRAE(tmp_cmf=np.float64(75.2), tmp_cmf_80_low=np.float64(68.9), tmp_cmf_80_up=np.float64(81.5), tmp_cmf_90_low=np.float64(70.7), tmp_cmf_90_up=np.float64(79.7), acceptability_80=array(1.), acceptability_90=array(1.))
 
         adaptive_ashrae(tdb=25, tr=25, t_running_mean=9, v=0.1)
-        # AdaptiveASHRAE(tmp_cmf=np.float64(nan), ... acceptability_90=array(False))
+        # AdaptiveASHRAE(tmp_cmf=np.float64(nan), ... acceptability_90=array(nan))
         # The adaptive thermal comfort model can only be used if the running mean temperature is higher than 10°C.
     """
     # Validate inputs using the ASHRAEInputs class
@@ -147,8 +147,14 @@ def adaptive_ashrae(
     tmp_cmf_80_up = t_cmf + 3.5 + ce
     tmp_cmf_90_up = t_cmf + 2.5 + ce
 
-    acceptability_80 = (tmp_cmf_80_low <= to) & (to <= tmp_cmf_80_up)
-    acceptability_90 = (tmp_cmf_90_low <= to) & (to <= tmp_cmf_90_up)
+    # NaN where t_cmf is NaN, i.e. where the inputs are outside the applicability limits
+    valid = ~np.isnan(t_cmf)
+    acceptability_80 = _as_flag(
+        (tmp_cmf_80_low <= to) & (to <= tmp_cmf_80_up), valid=valid
+    )
+    acceptability_90 = _as_flag(
+        (tmp_cmf_90_low <= to) & (to <= tmp_cmf_90_up), valid=valid
+    )
 
     if units.upper() == Units.IP.value:
         (

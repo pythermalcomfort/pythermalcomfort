@@ -18,7 +18,7 @@ import requests
 # validation-data-comfort-models repo can't silently break this repo's CI
 # before they've been reviewed and the pin deliberately bumped. See that
 # repo's CHANGELOG.md when bumping this tag.
-unit_test_data_prefix = "https://raw.githubusercontent.com/FedericoTartarini/validation-data-comfort-models/v1.0.1/"
+unit_test_data_prefix = "https://raw.githubusercontent.com/FedericoTartarini/validation-data-comfort-models/v1.1.0/"
 
 
 class Urls(Enum):
