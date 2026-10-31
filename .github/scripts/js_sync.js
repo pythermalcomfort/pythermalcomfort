@@ -50,15 +50,48 @@ function issueBody(items, carriedFrom) {
   return parts.join("\n") + "\n";
 }
 
-async function findOpenIssue(js) {
+// "- [ ] owner/repo#514 title" -> "owner/repo#514 ", the text that identifies a PR's line
+function markerOf(line) {
+  return line.slice(6).split(" ")[0] + " ";
+}
+
+async function listOpenIssues(js) {
   const issues = await js.paginate(js.rest.issues.listForRepo, {
     owner: JS_OWNER,
     repo: JS_REPO,
     state: "open",
     labels: TRACKING_LABEL,
   });
+  return issues.filter((i) => !i.pull_request).sort((a, b) => a.number - b.number);
+}
+
+async function findOpenIssue(js) {
   // the oldest open one wins, so a duplicate created by hand does not split the list
-  return issues.filter((i) => !i.pull_request).sort((a, b) => a.number - b.number)[0];
+  return (await listOpenIssues(js))[0];
+}
+
+// the issue line for a merged PR, or null when it needs no porting
+async function lineFor({ github, owner, repo, pr, core }) {
+  const labels = pr.labels.map((l) => l.name);
+  if (labels.includes(LABEL_NOT_NEEDED)) {
+    core.info(`#${pr.number} is labelled "${LABEL_NOT_NEEDED}", skipping.`);
+    return null;
+  }
+  const labelledNeeded = labels.includes(LABEL_NEEDED);
+
+  const files = await github.paginate(github.rest.pulls.listFiles, {
+    owner,
+    repo,
+    pull_number: pr.number,
+  });
+  const touchesModels = files.some((f) =>
+    PORTED_PATHS.some((re) => re.test(f.filename) || (f.previous_filename && re.test(f.previous_filename))),
+  );
+  if (!labelledNeeded && !touchesModels) {
+    core.info(`#${pr.number} touched no ported code and has no "${LABEL_NEEDED}" label, skipping.`);
+    return null;
+  }
+  return itemLine(pr, !labelledNeeded);
 }
 
 async function onMerge({ github, js, context, core, prNumber, dryRun }) {
@@ -69,63 +102,68 @@ async function onMerge({ github, js, context, core, prNumber, dryRun }) {
     return;
   }
 
-  const labels = pr.labels.map((l) => l.name);
-  if (labels.includes(LABEL_NOT_NEEDED)) {
-    core.info(`#${prNumber} is labelled "${LABEL_NOT_NEEDED}", skipping.`);
-    return;
-  }
-  const labelledNeeded = labels.includes(LABEL_NEEDED);
-
-  const files = await github.paginate(github.rest.pulls.listFiles, {
-    owner,
-    repo,
-    pull_number: prNumber,
-  });
-  const touchesModels = files.some((f) =>
-    PORTED_PATHS.some((re) => re.test(f.filename) || (f.previous_filename && re.test(f.previous_filename))),
-  );
-  if (!labelledNeeded && !touchesModels) {
-    core.info(`#${prNumber} touched no ported code and has no "${LABEL_NEEDED}" label, skipping.`);
-    return;
-  }
-
-  const line = itemLine(pr, !labelledNeeded);
-  const marker = `${pr.base.repo.full_name}#${pr.number} `;
   const issue = await findOpenIssue(js);
+  const body = issue ? issue.body || "" : "";
+
+  // GitHub cancels a pending run when a newer one queues behind it, so check
+  // every PR merged since the issue opened, not only the one that triggered
+  // this run. Ticked lines still contain their marker, so they are not re-added.
+  const prs = [pr];
+  if (issue) {
+    const { data: recent } = await github.rest.pulls.list({
+      owner,
+      repo,
+      state: "closed",
+      base: pr.base.ref,
+      sort: "updated",
+      direction: "desc",
+      per_page: 50,
+    });
+    for (const other of recent) {
+      if (other.number !== pr.number && other.merged_at && other.merged_at > issue.created_at) prs.push(other);
+    }
+  }
+
+  const lines = [];
+  for (const candidate of prs) {
+    if (body.includes(`${candidate.base.repo.full_name}#${candidate.number} `)) {
+      core.info(`#${candidate.number} is already listed in ${issue.html_url}.`);
+      continue;
+    }
+    const line = await lineFor({ github, owner, repo, pr: candidate, core });
+    if (line) lines.push(line);
+  }
+  if (lines.length === 0) return;
 
   if (!issue) {
-    core.info(`No open tracking issue, creating one with:\n${line}`);
+    core.info(`No open tracking issue, creating one with:\n${lines.join("\n")}`);
     if (!dryRun) {
       const { data } = await js.rest.issues.create({
         owner: JS_OWNER,
         repo: JS_REPO,
         title: TITLE,
         labels: [TRACKING_LABEL],
-        body: issueBody([line]),
+        body: issueBody(lines),
       });
       core.notice(`Created ${data.html_url}`);
     }
     return;
   }
 
-  const body = issue.body || "";
-  if (body.includes(marker)) {
-    core.info(`#${prNumber} is already listed in ${issue.html_url}.`);
-    return;
-  }
-  core.info(`Adding to ${issue.html_url}:\n${line}`);
+  core.info(`Adding to ${issue.html_url}:\n${lines.join("\n")}`);
   if (!dryRun) {
     await js.rest.issues.update({
       owner: JS_OWNER,
       repo: JS_REPO,
       issue_number: issue.number,
-      body: body.replace(/\s*$/, "\n") + line + "\n",
+      body: body.replace(/\s*$/, "\n") + lines.join("\n") + "\n",
     });
   }
 }
 
 async function onRelease({ js, core, tag, dryRun }) {
-  const issue = await findOpenIssue(js);
+  const open = await listOpenIssues(js);
+  const issue = open[0];
   if (!issue) {
     core.info("No open tracking issue, nothing to roll over.");
     return;
@@ -137,14 +175,30 @@ async function onRelease({ js, core, tag, dryRun }) {
     return;
   }
 
-  // open the next issue before closing the old one, so a failure never drops the items
-  const { data: next } = await js.rest.issues.create({
-    owner: JS_OWNER,
-    repo: JS_REPO,
-    title: TITLE,
-    labels: [TRACKING_LABEL],
-    body: issueBody(carried, issue.number),
-  });
+  // open the next issue before closing the old one, so a failure never drops the
+  // items. A retry after a partial failure reuses the successor it already opened.
+  const carriedNote = `carried over from #${issue.number}.`;
+  let next = open.find((i) => i.number !== issue.number && (i.body || "").includes(carriedNote));
+  if (next) {
+    const missing = carried.filter((line) => !next.body.includes(markerOf(line)));
+    core.info(`Reusing #${next.number}, adding ${missing.length} line(s) listed since it opened.`);
+    if (missing.length > 0) {
+      await js.rest.issues.update({
+        owner: JS_OWNER,
+        repo: JS_REPO,
+        issue_number: next.number,
+        body: next.body.replace(/\s*$/, "\n") + missing.join("\n") + "\n",
+      });
+    }
+  } else {
+    ({ data: next } = await js.rest.issues.create({
+      owner: JS_OWNER,
+      repo: JS_REPO,
+      title: TITLE,
+      labels: [TRACKING_LABEL],
+      body: issueBody(carried, issue.number),
+    }));
+  }
   await js.rest.issues.createComment({
     owner: JS_OWNER,
     repo: JS_REPO,

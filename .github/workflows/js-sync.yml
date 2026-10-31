@@ -39,7 +39,9 @@ on:
                 type: boolean
                 default: true
 
-# two merges in quick succession must not overwrite each other's line
+# two merges in quick succession must not overwrite each other's line. GitHub
+# keeps only one pending run per group and cancels older pending ones, so a
+# merge run also adds any other merged PR that a cancelled run missed.
 concurrency:
     group: js-sync
     cancel-in-progress: false
@@ -61,7 +63,8 @@ jobs:
                     # the base branch, never the PR head
                     ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.base.ref || github.ref }}
                     sparse-checkout: .github/scripts
-            -   uses: actions/github-script@v8.0.0
+            # v9 is the first version that passes getOctokit to the script
+            -   uses: actions/github-script@v9.0.0
                 env:
                     JS_SYNC_TOKEN: ${{ secrets.JS_SYNC_TOKEN }}
                     MODE: ${{ github.event_name == 'push' && 'release' || github.event_name == 'pull_request_target' && 'merge' || inputs.mode }}
