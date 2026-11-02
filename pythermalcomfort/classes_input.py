@@ -667,6 +667,7 @@ class SolarGainInputs(BaseInputs):
         asw=0.7,
         posture=Postures.sitting.value,
         floor_reflectance=0.6,
+        limit_inputs=True,
     ):
         # Initialize with only required fields, setting others to None
         super().__init__(
@@ -679,6 +680,7 @@ class SolarGainInputs(BaseInputs):
             asw=asw,
             posture=posture,
             floor_reflectance=floor_reflectance,
+            limit_inputs=limit_inputs,
         )
 
 

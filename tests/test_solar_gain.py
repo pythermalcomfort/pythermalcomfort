@@ -155,3 +155,70 @@ def test_solar_gain_array() -> None:
     )
     assert np.allclose(result.erf, [43.2839, 326.6804], atol=1e-3)
     assert np.allclose(result.delta_mrt, [10.3649, 78.2281], atol=1e-3)
+
+
+def test_solar_gain_limit_inputs() -> None:
+    """Inputs outside the range of Table C-2 of ASHRAE 55 return NaN by default.
+
+    With limit_inputs=False the values are the ones computed before the check was
+    added.
+    """
+    base = {
+        "sol_altitude": 30,
+        "sharp": 90,
+        "sol_radiation_dir": 800,
+        "sol_transmittance": 0.5,
+        "f_svv": 0.5,
+        "f_bes": 0.5,
+    }
+    cases = [
+        # input outside Table C-2, erf with limit_inputs=False
+        ({"sol_radiation_dir": 0}, 0.0),
+        ({"sol_radiation_dir": 100}, 7.2),
+        ({"sol_radiation_dir": 1100}, 78.7),
+        ({"asw": 0.95}, 77.7),
+        ({"asw": 0.1}, 8.2),
+        ({"sol_transmittance": 1.5}, 171.7),
+        ({"f_svv": 1.5}, 120.8),
+        ({"f_bes": -0.1}, 26.7),
+    ]
+    for override, erf_unlimited in cases:
+        name = next(iter(override))
+        with pytest.warns(UserWarning, match=name):
+            result = solar_gain(**{**base, **override})
+        assert np.isnan(result.erf)
+        assert np.isnan(result.delta_mrt)
+
+        result = solar_gain(**{**base, **override}, limit_inputs=False)
+        assert result.erf == erf_unlimited
+
+    result = solar_gain(
+        **{**base, "sol_transmittance": 1.5, "f_svv": 1.5, "f_bes": 1.5},
+        limit_inputs=False,
+    )
+    assert result.erf == 515.1
+
+    # the limits are inclusive
+    for override in [
+        {"sol_radiation_dir": 200},
+        {"sol_radiation_dir": 1000},
+        {"asw": 0.2},
+        {"asw": 0.9},
+        {"sol_transmittance": 0, "f_svv": 0, "f_bes": 0},
+        {"sol_transmittance": 1, "f_svv": 1, "f_bes": 1},
+    ]:
+        result = solar_gain(**{**base, **override})
+        assert np.isfinite(result.erf)
+
+    # just outside the limits of the fractions
+    for name in ("sol_transmittance", "f_svv", "f_bes"):
+        for value in (-0.01, 1.01):
+            with pytest.warns(UserWarning, match=name):
+                result = solar_gain(**{**base, name: value})
+            assert np.isnan(result.erf)
+
+    # arrays: only the element outside the range becomes NaN
+    with pytest.warns(UserWarning, match="sol_radiation_dir"):
+        result = solar_gain(**{**base, "sol_radiation_dir": [800, 100]})
+    assert np.isfinite(result.erf[0])
+    assert np.isnan(result.erf[1])
