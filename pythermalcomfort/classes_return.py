@@ -142,7 +142,7 @@ class AdaptiveASHRAE(AutoStrMixin):
     acceptability_90: NumericInput
 
 
-@dataclass
+@dataclass(frozen=True, repr=False)
 class AdaptiveEN(AutoStrMixin):
     """Dataclass to store the results of the adaptive thermal comfort calculation based
     on EN 16798-1 2019.

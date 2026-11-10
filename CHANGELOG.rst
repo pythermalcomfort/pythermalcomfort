@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* ``adaptive_en`` now returns a frozen dataclass, like every other model: assigning
+  to a field of the result raises ``dataclasses.FrozenInstanceError``. ``repr()`` of
+  the result now prints the same table as ``print()``
+  (`#533 <https://github.com/pythermalcomfort/pythermalcomfort/issues/533>`_).
+
 4.8.1 (2026-11-05)
 ------------------
 

@@ -1,9 +1,12 @@
-from dataclasses import dataclass
+from dataclasses import FrozenInstanceError, dataclass, is_dataclass
 
 import pytest
 
+from pythermalcomfort import classes_return
+
 # Import the AutoStrMixin class
 from pythermalcomfort.classes_return import AutoStrMixin
+from pythermalcomfort.models import adaptive_en
 
 
 @dataclass(repr=False)
@@ -74,3 +77,26 @@ def test_autostr_getitem_method_key_error() -> None:
     obj = TestDataClass(field1=42, field2="test", field3=[1, 2, 3])
     with pytest.raises(KeyError):
         _ = obj["non_existent"]
+
+
+RESULT_DATACLASSES = [
+    obj
+    for obj in vars(classes_return).values()
+    if isinstance(obj, type)
+    and is_dataclass(obj)
+    and obj.__module__ == classes_return.__name__
+]
+
+
+@pytest.mark.parametrize("cls", RESULT_DATACLASSES, ids=lambda cls: cls.__name__)
+def test_result_dataclasses_are_frozen(cls) -> None:
+    """Every result dataclass is frozen."""
+    assert cls.__dataclass_params__.frozen
+
+
+def test_adaptive_en_result_is_frozen() -> None:
+    """Assigning to an adaptive_en result raises, as for the other models."""
+    result = adaptive_en(tdb=25, tr=25, t_running_mean=20, v=0.1)
+    with pytest.raises(FrozenInstanceError):
+        result.tmp_cmf = 0.0
+    assert repr(result) == str(result)
