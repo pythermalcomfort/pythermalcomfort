@@ -4,6 +4,19 @@ Changelog
 4.8.1 (2026-11-05)
 ------------------
 
+* Added ``heatwatch`` and ``HeatWatchPersona``, the HeatWatch heat-health risk score
+  (HHRS). The score runs ``two_nodes_gagge`` with the person's metabolic rate,
+  clothing, posture and maximum skin wettedness, which ``HeatWatchPersona`` derives
+  from age and health conditions. It follows whichever is closer to its limit:
+  relative skin wettedness (``disc / 4.7``) or core temperature between the person's
+  core temperature at the same activity in cool air and the 38.0 °C rectal
+  temperature limit used by ``phs``, so the normal rise in core temperature during
+  work does not count as heat strain. It returns the score from 0 to 6 and one of six
+  categories, from Minimal to Extreme. ``HeatWatchPersona`` accepts metabolic rates
+  up to 3.75 met, above which the Gagge model is least accurate. It accepts ages of
+  10 years and over, because evidence that children have a similar hyperthermia risk
+  to adults covers ages 10 to 16 only
+  (`#503 <https://github.com/pythermalcomfort/pythermalcomfort/pull/503>`_).
 * ``two_nodes_gagge``, and so ``set_tmp`` and ``use_fans_heatwaves``, now return NaN
   for a point where ``tdb``, ``tr``, ``v``, ``rh``, ``met`` or ``clo`` is NaN or
   infinite. Before, one such point raised ``StopIteration`` ("Max iterations
