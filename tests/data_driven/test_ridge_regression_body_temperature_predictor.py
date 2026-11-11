@@ -68,6 +68,19 @@ def test_ridge_regression_scalar_parametrised(sex_in):
     assert result.t_sk[-1] == pytest.approx(37.02, abs=1e-2)
 
 
+@pytest.mark.parametrize(("tdb", "shape"), [(35, (1,)), ([35, 40], (2, 1))])
+def test_ridge_regression_duration_one_keeps_time_axis(tdb, shape):
+    """Test that duration=1 keeps the time axis instead of giving a 0-d array."""
+    inputs = {"sex": "male", "age": 70, "height": 1.8, "weight": 75, "rh": 60}
+    result = ridge_regression_predict_t_re_t_sk(tdb=tdb, duration=1, **inputs)
+    longer = ridge_regression_predict_t_re_t_sk(tdb=tdb, duration=2, **inputs)
+
+    assert result.t_re.shape == shape
+    assert result.t_sk.shape == shape
+    np.testing.assert_array_equal(result.t_re, longer.t_re[..., :1])
+    np.testing.assert_array_equal(result.t_sk, longer.t_sk[..., :1])
+
+
 def test_ridge_regression_vectorized():
     """Test the model with array inputs for vectorization."""
     duration = 540
