@@ -190,6 +190,9 @@ def _cooling_effect_vectorised(tdb, tr, still_air_threshold, rh, met, clo, wme, 
     initial_set_tmp = _set_for_cooling_effect(
         tdb=tdb, tr=tr, v=vr, rh=rh, met=met, clo=clo, wme=wme
     )
+    # A non-finite input gives a NaN SET, and brentq would then fall back to 0
+    if not math.isfinite(initial_set_tmp):
+        return math.nan
 
     def function(x):
         return (
