@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* ``ridge_regression_predict_t_re_t_sk`` with scalar inputs and ``duration=1`` now
+  returns ``t_re`` and ``t_sk`` of shape ``(1,)``, as documented. Before, they were
+  0-d arrays
+  (`#521 <https://github.com/pythermalcomfort/pythermalcomfort/issues/521>`_).
+
 4.8.1 (2026-11-05)
 ------------------
 

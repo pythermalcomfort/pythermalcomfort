@@ -456,10 +456,11 @@ def ridge_regression_predict_t_re_t_sk(
         final_t_re_hist = np.round(final_t_re_hist, 2)
         final_t_sk_hist = np.round(final_t_sk_hist, 2)
 
-    # If original input was scalar, return 1D array instead of 2D
+    # If original input was scalar, return 1D array instead of 2D. Index the single
+    # scenario rather than squeeze, so duration=1 keeps its time axis.
     if not original_shape:
-        final_t_re = final_t_re_hist.squeeze()
-        final_t_sk = final_t_sk_hist.squeeze()
+        final_t_re = final_t_re_hist[0]
+        final_t_sk = final_t_sk_hist[0]
     else:
         final_t_re = final_t_re_hist
         final_t_sk = final_t_sk_hist
