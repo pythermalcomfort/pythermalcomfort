@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* ``clo_tout`` now returns NaN for a NaN ``tout``, and ``humidex`` returns a NaN
+  ``discomfort`` where ``humidex`` is NaN. Before, a NaN input fell through to the
+  last branch and gave a plausible result: ``clo_tout`` returned 0.46 and ``humidex``
+  returned "Heat stroke probable"
+  (`#522 <https://github.com/pythermalcomfort/pythermalcomfort/issues/522>`_).
+
 4.8.1 (2026-11-05)
 ------------------
 
