@@ -76,5 +76,7 @@ def clo_tout(
     clo = np.where(tout < 26, np.power(10, -0.1635 - 0.0066 * tout), 0.46)
     clo = np.where(tout < 5, 0.818 - 0.0364 * tout, clo)
     clo = np.where(tout < -5, 1, clo)
+    # NaN fails every comparison above and would keep the 0.46 of the warmest range
+    clo = np.where(np.isnan(tout), np.nan, clo)
 
     return CloTOut(clo_tout=np.around(clo, 2))

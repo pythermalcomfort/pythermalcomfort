@@ -94,5 +94,7 @@ def humidex(
     stress_category[(hi > 35) & (hi <= 40)] = "Evident discomfort"
     stress_category[(hi > 40) & (hi <= 45)] = "Intense discomfort; avoid exertion"
     stress_category[(hi > 45) & (hi <= 54)] = "Dangerous discomfort"
+    # NaN fails every mask above and would keep the "Heat stroke probable" default
+    stress_category[np.isnan(hi)] = np.nan
 
     return Humidex(humidex=hi, discomfort=stress_category)

@@ -55,3 +55,14 @@ def test_humidex_masterson() -> None:
 
     result = humidex(tdb=31, rh=55, model="masterson")
     assert math.isclose(result.humidex, 39.3, abs_tol=0.01)
+
+
+@pytest.mark.parametrize("model", ["rana", "masterson"])
+@pytest.mark.parametrize(("tdb", "rh"), [(30, math.nan), (math.nan, 50)])
+def test_humidex_returns_nan_for_a_nan_input(model, tdb, rh) -> None:
+    """A NaN input gives a NaN humidex and discomfort, not "Heat stroke probable"."""
+    result = humidex(tdb=[30, tdb], rh=[60, rh], model=model)
+
+    assert result.discomfort[0] == "Evident discomfort"
+    assert math.isnan(result.humidex[1])
+    assert math.isnan(result.discomfort[1])
