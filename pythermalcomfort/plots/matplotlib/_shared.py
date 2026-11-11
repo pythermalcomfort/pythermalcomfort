@@ -731,7 +731,7 @@ _DEFAULT_REGION_COLORS: dict[int, tuple[str, ...]] = {
 # Psychrometric charts usually show one comfort band between two thresholds, so its
 # three-region palette marks the middle band green instead of neutral gray.
 _PSYCHROMETRIC_REGION_COLORS: Mapping[int, tuple[str, ...]] = MappingProxyType(
-    {**_DEFAULT_REGION_COLORS, 3: ("#86AEC8", "#4CB15E", "#D88B7B")}
+    {**_DEFAULT_REGION_COLORS, 3: ("#82C6ED", "#C9E0B0", "#EB6B58")}
 )
 
 

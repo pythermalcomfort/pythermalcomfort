@@ -110,9 +110,9 @@ def test_default_colors_highlight_comfort_and_deemphasize_invalid_area() -> None
     assert result.legend is not None
     patches = result.legend.get_patches()
     labels = [text.get_text() for text in result.legend.get_texts()]
-    assert patches[0].get_facecolor() == pytest.approx(to_rgba("#86AEC8"), abs=1e-3)
-    assert patches[1].get_facecolor() == pytest.approx(to_rgba("#4CB15E"), abs=1e-3)
-    assert patches[2].get_facecolor() == pytest.approx(to_rgba("#D88B7B"), abs=1e-3)
+    assert patches[0].get_facecolor() == pytest.approx(to_rgba("#82C6ED"), abs=1e-3)
+    assert patches[1].get_facecolor() == pytest.approx(to_rgba("#C9E0B0"), abs=1e-3)
+    assert patches[2].get_facecolor() == pytest.approx(to_rgba("#EB6B58"), abs=1e-3)
     invalid_patch = patches[labels.index("Out of model limits")]
     assert invalid_patch.get_facecolor()[:3] == pytest.approx(
         to_rgb("#DADCDD"), abs=1e-3
@@ -120,7 +120,7 @@ def test_default_colors_highlight_comfort_and_deemphasize_invalid_area() -> None
 
     rendered_colors = [fill.get_facecolor()[0] for fill in result.fills]
     assert any(
-        np.allclose(color, to_rgba("#4CB15E"), atol=1e-3) for color in rendered_colors
+        np.allclose(color, to_rgba("#C9E0B0"), atol=1e-3) for color in rendered_colors
     )
     assert (
         sum(
@@ -179,7 +179,7 @@ def test_three_region_psychrometric_palette_marks_the_band_green(
     plot = PsychrometricPlot(pmv_ppd_iso).set_regions(
         output=output, thresholds=thresholds
     )
-    assert plot._region_config.colors == ["#86AEC8", "#4CB15E", "#D88B7B"]
+    assert plot._region_config.colors == ["#82C6ED", "#C9E0B0", "#EB6B58"]
 
 
 def test_threshold_plot_keeps_the_neutral_gray_band() -> None:
@@ -237,7 +237,7 @@ def test_default_labels_and_colors_are_overridden_independently() -> None:
     )
 
     assert labels_plot._region_config.labels == custom_labels
-    assert labels_plot._region_config.colors == ["#86AEC8", "#4CB15E", "#D88B7B"]
+    assert labels_plot._region_config.colors == ["#82C6ED", "#C9E0B0", "#EB6B58"]
     assert colors_plot._region_config.labels == [
         "PMV < -0.5",
         "-0.5 ≤ PMV < 0.5",
