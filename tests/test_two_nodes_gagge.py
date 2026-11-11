@@ -41,16 +41,39 @@ def test_two_nodes_accepts_w_max_in_range(w_max) -> None:
     two_nodes_gagge(tdb=40, tr=40, v=0.1, rh=50, met=2, clo=0.5, w_max=w_max)
 
 
-@pytest.mark.parametrize("name", ["tdb", "tr", "v", "rh"])
+NUMERIC_INPUTS = {
+    "tdb": 30,
+    "tr": 30,
+    "v": 0.2,
+    "rh": 50,
+    "met": 1.2,
+    "clo": 0.5,
+    "wme": 0,
+    "body_surface_area": 1.8258,
+    "p_atm": 101325,
+}
+
+
+@pytest.mark.parametrize("name", list(NUMERIC_INPUTS))
 @pytest.mark.parametrize("bad", [np.nan, np.inf])
 def test_two_nodes_returns_nan_for_non_finite_inputs(name, bad) -> None:
     """A non-finite value gives NaN for that point only, instead of StopIteration."""
-    inputs = {"tdb": [30, 30], "tr": [30, 30], "v": [0.2, 0.2], "rh": [50, 50]}
-    inputs[name] = [inputs[name][0], bad]
-    result = two_nodes_gagge(met=1.2, clo=0.5, **inputs)
-    reference = two_nodes_gagge(tdb=30, tr=30, v=0.2, rh=50, met=1.2, clo=0.5)
+    inputs = {**NUMERIC_INPUTS, name: [NUMERIC_INPUTS[name], bad]}
+    result = two_nodes_gagge(**inputs)
+    reference = two_nodes_gagge(**NUMERIC_INPUTS)
 
     assert result.disc[0] == reference.disc
     assert np.isnan(result.disc[1])
     assert np.isnan(result.t_core[1])
+    assert np.isnan(result.set[1])
+
+
+@pytest.mark.parametrize("name", list(NUMERIC_INPUTS))
+def test_two_nodes_calculate_ce_returns_nan_for_non_finite_inputs(name) -> None:
+    """The SET-only path used by cooling_effect handles a NaN the same way."""
+    inputs = {**NUMERIC_INPUTS, name: [NUMERIC_INPUTS[name], np.nan]}
+    result = two_nodes_gagge(**inputs, calculate_ce=True)
+    reference = two_nodes_gagge(**NUMERIC_INPUTS, calculate_ce=True)
+
+    assert result.set[0] == reference.set
     assert np.isnan(result.set[1])

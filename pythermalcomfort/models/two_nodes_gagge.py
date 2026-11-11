@@ -254,6 +254,9 @@ def _gagge_two_nodes_optimized(
         and math.isfinite(met)
         and math.isfinite(clo)
         and math.isfinite(vapor_pressure)
+        and math.isfinite(wme)
+        and math.isfinite(body_surface_area)
+        and math.isfinite(p_atm)
     ):
         nan = math.nan
         return (

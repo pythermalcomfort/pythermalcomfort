@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from pythermalcomfort.models import (
     set_tmp,
@@ -45,6 +46,28 @@ def test_set_npnan() -> None:
         ).set,
         [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan],
     )
+
+
+@pytest.mark.parametrize("name", ["tdb", "met", "wme", "body_surface_area", "p_atm"])
+def test_set_returns_nan_for_a_nan_input(name) -> None:
+    """A NaN gives NaN for that point only, instead of StopIteration."""
+    inputs = {
+        "tdb": 25,
+        "tr": 25,
+        "v": 0.1,
+        "rh": 50,
+        "met": 1.2,
+        "clo": 0.5,
+        "wme": 0,
+        "body_surface_area": 1.8258,
+        "p_atm": 101325,
+    }
+    reference = set_tmp(**inputs).set
+    inputs[name] = [inputs[name], np.nan]
+    result = set_tmp(**inputs).set
+
+    assert result[0] == reference
+    assert np.isnan(result[1])
 
 
 def test_set_continuous_at_critical_wettedness() -> None:

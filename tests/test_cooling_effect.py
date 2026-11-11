@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pytest
 
@@ -82,3 +84,25 @@ def test_cooling_effect(get_test_url, retrieve_data) -> None:
         result = cooling_effect(**inputs)
 
         validate_result(result, outputs, tolerance)
+
+
+@pytest.mark.parametrize("name", ["tdb", "tr", "vr", "rh", "met", "clo", "wme"])
+def test_cooling_effect_returns_nan_for_a_nan_input(name) -> None:
+    """A NaN gives NaN for that point, not 0 with a warning."""
+    inputs = {
+        "tdb": 25,
+        "tr": 25,
+        "vr": 0.3,
+        "rh": 50,
+        "met": 1.2,
+        "clo": 0.5,
+        "wme": 0,
+    }
+    reference = cooling_effect(**inputs).ce
+    inputs[name] = [inputs[name], np.nan]
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
+        result = cooling_effect(**inputs).ce
+
+    assert result[0] == reference
+    assert np.isnan(result[1])

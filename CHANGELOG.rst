@@ -1,6 +1,17 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* ``two_nodes_gagge``, ``set_tmp`` and ``use_fans_heatwaves`` now also return NaN for a
+  point where ``wme``, ``body_surface_area`` or ``p_atm`` is NaN or infinite. Before,
+  such a point raised ``StopIteration`` and no results were returned for any point
+  (`#537 <https://github.com/pythermalcomfort/pythermalcomfort/issues/537>`_).
+* ``cooling_effect`` now returns NaN for a point with a NaN or infinite input. Before,
+  it returned 0 with a "could not be calculated" warning
+  (`#537 <https://github.com/pythermalcomfort/pythermalcomfort/issues/537>`_).
+
 4.8.1 (2026-11-05)
 ------------------
 
