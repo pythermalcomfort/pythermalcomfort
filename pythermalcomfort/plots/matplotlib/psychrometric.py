@@ -6,6 +6,7 @@ import warnings
 from collections.abc import Mapping, Sequence
 from typing import Any
 
+import matplotlib as mpl
 import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.path import Path as MplPath
@@ -18,6 +19,7 @@ from pythermalcomfort.plots.matplotlib._shared import (
     _caller_texts,
     _extract_output_by_name,
     _parse_axis_range,
+    _plot_rc,
     _PlotDefaults,
     _suppress_applicability_warnings,
     _validate_model_kwargs,
@@ -499,7 +501,10 @@ class PsychrometricPlot(ThresholdPlot):
                 linewidth=_PlotDefaults.Psychrometric.rh_line_linewidth,
                 zorder=_PlotDefaults.Psychrometric.zorder_rh_lines,
             )
-            _label_along_curve(ax, x=curve_t, y=curve_hr, text=f"{rh_target}%")
+            # Drawn after ThresholdPlot.plot() has left the package style, so
+            # the labels would otherwise miss its font.
+            with mpl.rc_context(_plot_rc(font_family)):
+                _label_along_curve(ax, x=curve_t, y=curve_hr, text=f"{rh_target}%")
 
         # ThresholdPlot.plot() labels the y-axis with the raw parameter name,
         # which here would be the bare string "hr".  Every caller was therefore

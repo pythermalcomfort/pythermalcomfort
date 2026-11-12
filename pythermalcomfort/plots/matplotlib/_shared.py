@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import contextlib
+import functools
 import inspect
-import math
 import warnings
 from collections.abc import Collection, Iterator, Mapping, Sequence
 from dataclasses import dataclass
@@ -12,10 +12,13 @@ from numbers import Number
 from types import MappingProxyType
 from typing import Any
 
+import matplotlib as mpl
 import numpy as np
 from matplotlib import colors as mcolors
+from matplotlib import font_manager
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+from matplotlib.legend import Legend
 from matplotlib.text import Text
 from matplotlib.ticker import MaxNLocator
 from matplotlib.transforms import BboxBase
@@ -90,19 +93,11 @@ class _PlotDefaults:
     # When legend and title are both shown, the legend sits just above the axes
     # and the title floats above the legend.
     legend_bbox_to_anchor_with_title: tuple = (0.5, 1.05)
-    title_y_with_legend: float = 1.15
-    #: Height of one legend row in axes coordinates.  A title sitting above a
-    #: legend has to clear every row, so the offset is per-row rather than
-    #: fixed: a five-region chart wraps its legend onto two rows and the old
-    #: fixed offset put the title straight through it.  Measured rather than
-    #: guessed -- 0.10 left the title overlapping the legend by 0.015 even at
-    #: one row, so titles were always very slightly clipped.  Deliberately a
-    #: fixed model rather than measuring the drawn legend: callers who apply
-    #: ``constrained_layout`` or ``tight_layout`` afterwards move everything,
-    #: which would leave a measured position stale.  0.12 is the smallest
-    #: value that clears the legend at both one and two rows with a little
-    #: margin; 0.115 just clears it, and 0.10 overlapped even at one row.
-    title_legend_row_height: float = 0.12
+    #: Gap between the top of the legend and the bottom of the title, in
+    #: points.  An offset in axes coordinates scaled with the axes height, so
+    #: the same chart had an 8 pt gap at the default size and nearly 60 pt on
+    #: a tall figure; points keep it the same everywhere.
+    title_legend_gap: float = 4.0
 
     class Threshold:
         """Defaults specific to :class:`ThresholdPlot`."""
@@ -174,7 +169,6 @@ class _PlotDefaults:
         bar_linewidth: float = 1.0
         layout_pad: float = 0.2
         legend_ncol_max: int = 3
-        title_legend_gap: float = 5.0
         title_spacing_iterations: int = 3
         vertical_legend_ncol: int = 1
         figsize_horizontal_legend: tuple = (6.4, 1.8)
@@ -202,11 +196,34 @@ class _PlotDefaults:
 
 # ── package-wide Matplotlib style ─────────────────────────────────────────
 
-#: rcParams applied via ``mpl.rc_context`` inside every ``plot()`` call.
-_PYTHERMALCOMFORT_RC: dict[str, Any] = {
+#: Package default rcParams, applied via ``mpl.rc_context`` inside every
+#: ``plot()`` call.  Public and mutable: edit a key to change the default for
+#: every chart, or ``plot_style.clear()`` for plain Matplotlib styling.
+#:
+#: A key only applies while the caller's own rcParams value is still
+#: Matplotlib's built-in default, so ``plt.rcParams``, ``plt.style.use``, a
+#: ``matplotlibrc`` file or a seaborn theme take precedence.  Setting a key
+#: back to Matplotlib's default value cannot be told apart from never setting
+#: it, which is why undoing a package default goes through this dict instead.
+#: Avoid ``figure.*`` keys: Jupyter's inline backend changes some of them, so
+#: they would always look caller-set.
+plot_style: dict[str, Any] = {
+    # Fonts are looked up when the figure is drawn, after ``plot()`` has
+    # returned, so Arial has to be named in ``font.family`` itself: reordering
+    # ``font.sans-serif`` inside the rc_context has no effect.  Families that
+    # are not installed are dropped by ``_plot_rc``.
+    "font.family": ["Arial", "sans-serif"],
     "legend.frameon": False,
     "axes.spines.top": False,
     "axes.spines.right": False,
+    "axes.edgecolor": "#555555",
+    "axes.labelcolor": "#333333",
+    # Title matches the legend text size, set apart by weight alone; axis
+    # labels keep Matplotlib's default, the same size as the tick labels.
+    "axes.titlesize": "medium",
+    "axes.titleweight": "bold",
+    "xtick.color": "#555555",
+    "ytick.color": "#555555",
     "grid.linestyle": "--",
     "grid.linewidth": 0.5,
     "grid.alpha": 0.7,
@@ -214,11 +231,82 @@ _PYTHERMALCOMFORT_RC: dict[str, Any] = {
 
 
 def _plot_rc(font_family: str | Sequence[str] | None = None) -> dict[str, Any]:
-    """Return the package style with an optional per-plot font override."""
-    rc = dict(_PYTHERMALCOMFORT_RC)
+    """Return the package style with an optional per-plot font override.
+
+    Keys the caller has already changed from Matplotlib's built-in default
+    are left out, so the caller's rcParams win over :data:`plot_style`.
+    """
+    rc = {
+        key: value
+        for key, value in plot_style.items()
+        if mpl.rcParams[key] == mpl.rcParamsDefault[key]
+    }
+    if "font.family" in rc:
+        rc["font.family"] = _installed_families(rc["font.family"])
     if font_family is not None:
         rc["font.family"] = font_family
     return rc
+
+
+@contextlib.contextmanager
+def plot_style_context(
+    font_family: str | Sequence[str] | None = None,
+) -> Iterator[None]:
+    """Apply the pythermalcomfort chart style to code inside the block.
+
+    ``plot()`` applies :data:`plot_style` only while it runs, so a legend, title
+    or text added to the returned axes afterwards gets plain Matplotlib styling.
+    Wrap the plotting and the follow-up customisation in this context to keep
+    the package style throughout.  The same precedence applies as in ``plot()``:
+    rcParams the caller has set take precedence over :data:`plot_style`.
+
+    Parameters
+    ----------
+    font_family : str or sequence of str, optional
+        Font family override, as accepted by ``plot(font_family=...)``.
+
+    Examples
+    --------
+    .. code-block:: python
+
+        from pythermalcomfort.models import adaptive_ashrae
+        from pythermalcomfort.plots.matplotlib import AdaptivePlot, plot_style_context
+
+        with plot_style_context():
+            result = AdaptivePlot(model_func=adaptive_ashrae).plot(title="ASHRAE 55")
+            result.ax.scatter([25], [29], label="Measured")
+            result.ax.legend()  # frameless, in the package font
+    """
+    with mpl.rc_context(_plot_rc(font_family)):
+        yield
+
+
+_GENERIC_FAMILIES = frozenset(
+    {"serif", "sans-serif", "cursive", "fantasy", "monospace"}
+)
+
+
+def _installed_families(families: str | Sequence[str]) -> list[str]:
+    """Drop named font families that are not installed.
+
+    Matplotlib falls back past a missing family on its own, but logs a
+    "findfont: Font family not found" warning for every text artist, which
+    floods the output on machines without the font (e.g. Arial on Linux).
+    """
+    if isinstance(families, str):
+        families = [families]
+    kept = [f for f in families if f in _GENERIC_FAMILIES or _is_installed(f)]
+    return kept or list(mpl.rcParamsDefault["font.family"])
+
+
+@functools.cache
+def _is_installed(family: str) -> bool:
+    """Return whether *family* resolves to an installed font."""
+    try:
+        font_manager.findfont(family, fallback_to_default=False)
+    except ValueError:
+        return False
+    return True
 
 
 def _caller_texts(ax: Axes | None) -> frozenset[Text]:
@@ -301,29 +389,41 @@ def _legend_anchor_y(
     return float(ax.transAxes.inverted().transform(display)[1])
 
 
-def _title_y_above_legend(*, n_handles: int, ncol: int, anchor_y: float) -> float:
-    """Return a title ``y`` that clears a legend of ``n_handles`` entries.
+def _title_kws_above_legend(
+    ax: Axes, legend: Legend, *, anchor_y: float
+) -> dict[str, Any]:
+    """Return ``ax.set_title`` keywords that put the title just above *legend*.
 
-    The legend grows upward from ``anchor_y``, one row at a time, so a title
-    pinned at a fixed height runs through it as soon as the entries wrap onto
-    a second row.
+    The legend sits a fixed number of points above its anchor -- its padding
+    and rows are sized in points -- so the title is anchored at the same ``y``
+    and lifted by the legend's measured height plus
+    ``_PlotDefaults.title_legend_gap``, all in points.  Only that height is
+    measured, not a position: a layout engine applied afterwards moves the
+    axes, the anchor, the legend and the title together, so the gap holds.
 
     Parameters
     ----------
-    n_handles : int
-        Number of legend entries.
-    ncol : int
-        Number of legend columns.
+    ax : Axes
+        Axis the legend and title belong to.
+    legend : Legend
+        The legend the title has to clear, any number of rows.
     anchor_y : float
         The legend's ``bbox_to_anchor`` y, in axes coordinates.
 
     Returns
     -------
-    float
-        Title ``y`` in axes coordinates.
+    dict
+        ``y``, ``pad`` and ``verticalalignment`` for ``ax.set_title``.
     """
-    rows = max(1, math.ceil(n_handles / max(1, ncol)))
-    return anchor_y + rows * _PlotDefaults.title_legend_row_height
+    anchor_px = ax.transAxes.transform((0.0, anchor_y))[1]
+    legend_top_pt = (legend.get_window_extent().y1 - anchor_px) * 72 / ax.figure.dpi
+    return {
+        "y": anchor_y,
+        "pad": legend_top_pt + _PlotDefaults.title_legend_gap,
+        # "bottom" rather than the default "baseline", so the gap is measured
+        # from the lowest point of the title text.
+        "verticalalignment": "bottom",
+    }
 
 
 #: Matches only warnings raised when a model input is outside its applicability
@@ -363,12 +463,12 @@ def _suppress_applicability_warnings() -> Iterator[None]:
 def _apply_axes_style(ax: Axes) -> None:
     """Apply the package's axes styling to *ax* directly.
 
-    ``_PYTHERMALCOMFORT_RC`` is an ``rc_context``, so its settings only reach
-    axes that are *created* inside it.  An axes the caller made earlier keeps
-    its own frame and grid, which leaves a multi-panel figure styled
-    inconsistently -- panels drawn on caller-supplied axes get a full box,
-    panels drawn on axes the plot created do not.  Setting the same properties
-    on the axes closes that gap.
+    :data:`plot_style` is applied as an ``rc_context``, so its settings only
+    reach axes that are *created* inside it.  An axes the caller made earlier
+    keeps its own frame, tick and label styling, which leaves a multi-panel
+    figure styled inconsistently -- panels drawn on caller-supplied axes get a
+    full black box, panels drawn on axes the plot created do not.  Must be
+    called inside that context: it copies the resolved rcParams onto the axes.
 
     Callers who want the grid back can call ``result.ax.grid(True)``.
 
@@ -377,9 +477,24 @@ def _apply_axes_style(ax: Axes) -> None:
     ax : Axes
         Axis to style in place.
     """
+    rc = mpl.rcParams
     ax.grid(False)
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
+    for side, spine in ax.spines.items():
+        spine.set_visible(rc[f"axes.spines.{side}"])
+        spine.set_edgecolor(rc["axes.edgecolor"])
+    for axis in ("x", "y"):
+        ax.tick_params(
+            axis=axis,
+            colors=rc[f"{axis}tick.color"],
+            labelsize=rc[f"{axis}tick.labelsize"],
+            labelfontfamily=rc["font.family"],
+        )
+    for label in (ax.xaxis.label, ax.yaxis.label):
+        label.set_color(rc["axes.labelcolor"])
+        label.set_fontsize(rc["axes.labelsize"])
+        label.set_fontfamily(rc["font.family"])
+    # set_title() restyles size and weight from rcParams but not the family.
+    ax.title.set_fontfamily(rc["font.family"])
     _limit_labeled_ticks(ax)
 
 
@@ -616,7 +731,7 @@ _DEFAULT_REGION_COLORS: dict[int, tuple[str, ...]] = {
 # Psychrometric charts usually show one comfort band between two thresholds, so its
 # three-region palette marks the middle band green instead of neutral gray.
 _PSYCHROMETRIC_REGION_COLORS: Mapping[int, tuple[str, ...]] = MappingProxyType(
-    {**_DEFAULT_REGION_COLORS, 3: ("#86AEC8", "#4CB15E", "#D88B7B")}
+    {**_DEFAULT_REGION_COLORS, 3: ("#82C6ED", "#C9E0B0", "#EB6B58")}
 )
 
 

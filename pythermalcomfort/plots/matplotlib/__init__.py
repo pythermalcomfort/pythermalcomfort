@@ -1,4 +1,8 @@
-from pythermalcomfort.plots.matplotlib._shared import BasePlotResult
+from pythermalcomfort.plots.matplotlib._shared import (
+    BasePlotResult,
+    plot_style,
+    plot_style_context,
+)
 from pythermalcomfort.plots.matplotlib.adaptive import (
     AdaptivePlot,
     AdaptivePlotResult,
@@ -21,4 +25,6 @@ __all__ = [
     "AdaptivePlot",
     "AdaptivePlotResult",
     "RegionsConfig",
+    "plot_style",
+    "plot_style_context",
 ]
