@@ -1,6 +1,18 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* Tests for ``at``, ``esi``, ``pmv_ppd_iso`` and ``vertical_tmp_grad_ppd`` now assert
+  their comparisons. Before, six checks discarded the result and passed whatever the
+  model returned. Corrected the expected values of ``test_at_q`` and
+  ``test_esi_boundary_conditions``, which were wrong
+  (`#527 <https://github.com/pythermalcomfort/pythermalcomfort/issues/527>`_).
+* Added tests of ``use_fans_heatwaves`` with ``limit_inputs=False``, for scalar and
+  array inputs inside and outside the applicability limits
+  (`#526 <https://github.com/pythermalcomfort/pythermalcomfort/issues/526>`_).
+
 4.8.1 (2026-11-05)
 ------------------
 
