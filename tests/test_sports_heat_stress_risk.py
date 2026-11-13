@@ -1,3 +1,4 @@
+import dataclasses
 import warnings
 
 import numpy as np
@@ -402,6 +403,30 @@ def test_sports_croquet_values():
         0.5,
     )
     assert Sports.CROQUET.duration == 90
+
+
+def test_sports_presets_are_immutable():
+    """Test that a preset's values cannot be changed in place (#534)."""
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        Sports.RUNNING.clo = 1.0
+    assert Sports.RUNNING.clo == 0.37
+
+
+def test_sports_presets_can_be_copied_with_replace():
+    """Test that dataclasses.replace gives a modified copy and keeps the preset."""
+    custom = dataclasses.replace(Sports.RUNNING, clo=1.0)
+    assert custom.clo == 1.0
+    assert Sports.RUNNING.clo == 0.37
+    assert custom != Sports.RUNNING
+    with pytest.raises(ValueError, match="clo must be a positive number"):
+        dataclasses.replace(Sports.RUNNING, clo=0)
+
+
+def test_sports_presets_equality_and_hashing():
+    """Test that presets compare by value and can be used as dict keys."""
+    assert Sports.RUGBY_LEAGUE == Sports.RUGBY_UNION
+    assert Sports.RUNNING != Sports.WALKING
+    assert {Sports.RUNNING: "run"}[Sports.RUNNING] == "run"
 
 
 def test_sports_heat_stress_risk_all_sports():

@@ -1,6 +1,17 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* The ``Sports`` presets used by ``sports_heat_stress_risk`` are now immutable.
+  Before, ``Sports.RUNNING.clo = 1.0`` silently changed the running preset for every
+  later call in the session. It now raises ``dataclasses.FrozenInstanceError``. Use
+  ``dataclasses.replace(Sports.RUNNING, clo=1.0)`` to get a modified copy. The
+  ``Sports`` docstring now says that rebinding a name, as in ``Sports.RUNNING = ...``,
+  is not prevented
+  (`#534 <https://github.com/pythermalcomfort/pythermalcomfort/issues/534>`_).
+
 4.8.1 (2026-11-05)
 ------------------
 
