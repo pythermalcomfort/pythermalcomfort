@@ -1,5 +1,6 @@
 import math
 
+import numpy as np
 import pytest
 
 from pythermalcomfort.models import phs
@@ -341,3 +342,118 @@ def test_2023_forces_skin_temperature_to_equilibrium_on_minute_one() -> None:
     result_2004 = phs(model="7933-2004", **kwargs)
     assert result_2023.t_sk > 30
     assert result_2004.t_sk < result_2023.t_sk
+
+
+PHS_OUTPUTS = [
+    "t_re",
+    "t_sk",
+    "t_cr",
+    "t_cr_eq",
+    "t_sk_t_cr_wg",
+    "d_lim_loss_50",
+    "d_lim_loss_95",
+    "d_lim_t_re",
+    "sweat_rate_watt",
+    "sweat_loss_g",
+    "evap_load_wm2_min",
+]
+PHS_BASE = dict(tdb=40, tr=40, rh=33.85, v=0.3, met=2.5, clo=0.5, posture="standing")
+
+
+# Before #524 was fixed, each of these calls never returned.
+@pytest.mark.parametrize(
+    ("name", "bad"),
+    [
+        (name, bad)
+        for name in [
+            "tdb",
+            "tr",
+            "v",
+            "rh",
+            "met",
+            "clo",
+            "wme",
+            "t_sk",
+            "t_cr",
+            "t_re",
+            "t_cr_eq",
+            "sweat_rate_watt",
+            "evap_load_wm2_min",
+        ]
+        for bad in [np.nan, np.inf]
+    ]
+    + [("t_sk_t_cr_wg", np.nan)],
+)
+@pytest.mark.parametrize("model", ["7933-2004", "7933-2023"])
+def test_phs_returns_nan_for_non_finite_point_inputs(name, bad, model) -> None:
+    """A non-finite value gives NaN for that point only, and the call returns (#524)."""
+    reference = phs(**PHS_BASE, model=model, limit_inputs=False, round_output=False)
+    default = {
+        "wme": 0,
+        "t_sk": 34.1,
+        "t_cr": 36.8,
+        "t_re": 36.8,
+        "t_cr_eq": 36.8,
+        "t_sk_t_cr_wg": 0.3,
+        "sweat_rate_watt": 0,
+        "evap_load_wm2_min": 0,
+    }
+    inputs = {**PHS_BASE, name: [PHS_BASE.get(name, default.get(name)), bad]}
+    inputs["posture"] = ["standing", "standing"]
+    result = phs(**inputs, model=model, limit_inputs=False, round_output=False)
+    scalar = phs(
+        **{**PHS_BASE, name: bad}, model=model, limit_inputs=False, round_output=False
+    )
+
+    for output in PHS_OUTPUTS:
+        assert getattr(result, output)[0] == getattr(reference, output)
+        assert np.isnan(getattr(result, output)[1])
+        assert np.isnan(getattr(scalar, output))
+
+
+@pytest.mark.parametrize(
+    "name", ["weight", "height", "i_mst", "a_p", "walk_sp", "theta", "f_r"]
+)
+def test_phs_returns_nan_for_non_finite_scalar_inputs(name) -> None:
+    """A NaN optional input that applies to every point gives NaN everywhere (#524)."""
+    result = phs(**PHS_BASE, **{name: np.nan})
+    for output in PHS_OUTPUTS:
+        assert np.isnan(getattr(result, output))
+
+
+def test_phs_returns_nan_when_the_temperature_loop_does_not_converge() -> None:
+    """A tiny weight makes the core temperature diverge, so the iteration cap returns
+    NaN instead of looping forever (#524)."""
+    result = phs(**PHS_BASE, weight=1e-300, limit_inputs=False)
+    assert np.isnan(result.t_re)
+
+
+@pytest.mark.parametrize("name", ["height", "i_mst"])
+@pytest.mark.parametrize("value", [0, -1])
+def test_phs_rejects_zero_height_and_i_mst(name, value) -> None:
+    """The kernel divides by the body surface area and by i_mst (#523)."""
+    with pytest.raises(ValueError, match=name):
+        phs(**PHS_BASE, **{name: value}, limit_inputs=False)
+
+
+@pytest.mark.parametrize("model", ["7933-2004", "7933-2023"])
+def test_phs_zero_clo_returns_the_skin_temperature_limit(model) -> None:
+    """At clo=0 and v=0.3 the dynamic clothing insulation is exactly 0, which raised a
+    ZeroDivisionError that the parallel kernel lost, leaving uninitialised memory in
+    the output (#523). The clothing surface is then the skin, so the result is the
+    limit of a vanishingly small clo.
+    """
+    kwargs = dict(PHS_BASE, model=model, limit_inputs=False, round_output=False)
+    scalar = phs(**{**kwargs, "clo": 0})
+    thin = phs(**{**kwargs, "clo": 1e-9})
+    reference = phs(**kwargs)
+    result = phs(**{**kwargs, "clo": [0.5, 0, 0.5], "posture": ["standing"] * 3})
+
+    for output in PHS_OUTPUTS:
+        assert getattr(scalar, output) == pytest.approx(getattr(thin, output), rel=1e-6)
+        assert getattr(result, output)[1] == getattr(scalar, output)
+        assert getattr(result, output)[0] == getattr(reference, output)
+        assert getattr(result, output)[2] == getattr(reference, output)
+
+    # clo=0 is outside the applicability limits, so limit_inputs=True still masks it
+    assert np.isnan(phs(**{**PHS_BASE, "clo": 0}).t_re)

@@ -79,7 +79,8 @@ def phs(
             standard, and 0.96 < met [met] < 4.3 (56-250 W/m2) in the 2023 standard.
 
     i_mst : float, optional
-        Static moisture permeability index, [dimensionless]. Defaults to 0.38.
+        Static moisture permeability index, [dimensionless]. Defaults to 0.38. Must be
+        above 0.
     a_p : float, optional
         Fraction of the body surface covered by the reflective clothing, [dimensionless]. Defaults to 0.54.
     drink : int, optional
@@ -87,7 +88,7 @@ def phs(
     weight : float, optional
         Body weight, [kg]. Defaults to 75.
     height : float, optional
-        Height, [m]. Defaults to 1.8.
+        Height, [m]. Defaults to 1.8. Must be above 0.
     walk_sp : float, optional
         Walking speed, [m/s]. Defaults to 0.
     theta : float, optional
@@ -309,6 +310,14 @@ def phs(
             "The weight of the person should be in kg and it cannot exceed 1000",
         )
 
+    # The kernel divides by the body surface area and by the moisture permeability,
+    # so a zero height or i_mst has no defined result.
+    if height <= 0:
+        raise ValueError("The height of the person should be in m and above 0")
+
+    if i_mst <= 0:
+        raise ValueError("i_mst should be above 0")
+
     # Use explicit None sentinel for missing t_re and t_cr_eq
     if t_re is None:
         t_re = t_cr
@@ -465,6 +474,15 @@ _MODEL_2023 = 1
 _POSTURE_STANDING = 0
 _POSTURE_SITTING = 1
 _POSTURE_CROUCHING = 2
+# Upper bound on the iterations of the clothing and core temperature loops. Valid
+# inputs converge in far fewer, so hitting it means the inputs have no solution.
+_MAX_ITERATIONS = 1000
+
+
+@jit(nopython=True, cache=True)
+def _phs_nan_outputs():
+    nan = math.nan
+    return nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan
 
 
 def _posture_to_code(posture: np.ndarray | str) -> np.ndarray | int:
@@ -554,6 +572,33 @@ def _phs_optimized_scalar(
     sweat_rate_watt,
     model_code,
 ):
+    # A missing or infinite input never converges in the temperature loops below,
+    # so return NaN for every output instead.
+    if not (
+        math.isfinite(tdb)
+        and math.isfinite(tr)
+        and math.isfinite(v)
+        and math.isfinite(p_a)
+        and math.isfinite(met)
+        and math.isfinite(clo)
+        and math.isfinite(weight)
+        and math.isfinite(wme)
+        and math.isfinite(i_mst)
+        and math.isfinite(a_p)
+        and math.isfinite(height)
+        and math.isfinite(walk_sp)
+        and math.isfinite(theta)
+        and math.isfinite(f_r)
+        and math.isfinite(t_sk)
+        and math.isfinite(t_cr)
+        and math.isfinite(t_re)
+        and math.isfinite(t_cr_eq)
+        and math.isfinite(t_sk_t_cr_wg)
+        and math.isfinite(evap_load_wm2_min)
+        and math.isfinite(sweat_rate_watt)
+    ):
+        return _phs_nan_outputs()
+
     # DuBois body surface area [m2]
     a_dubois = 0.202 * (weight**0.425) * (height**0.725)
     # specific heat of the body [J/kg/C/min]
@@ -721,15 +766,24 @@ def _phs_optimized_scalar(
         # Saturated water vapour pressure at the surface of the skin
         p_sk = 0.6105 * math.exp(17.27 * t_sk / (t_sk + 237.3))
         t_cl = tr + 0.1  # clothing surface temperature
+        n_iterations = 0
         while True:
             # radiative heat transfer coefficient
             h_r = f_cl_r * aux_r * ((t_cl + 273) ** 4 - (tr + 273) ** 4) / (t_cl - tr)
-            t_cl_new = (fcl * (hc_dyn * tdb + h_r * tr) + t_sk / i_cl_dyn) / (
-                fcl * (hc_dyn + h_r) + 1 / i_cl_dyn
-            )
+            if i_cl_dyn == 0:
+                # with no clothing insulation the clothing surface is the skin, the
+                # limit of the expression below as i_cl_dyn tends to 0
+                t_cl_new = t_sk
+            else:
+                t_cl_new = (fcl * (hc_dyn * tdb + h_r * tr) + t_sk / i_cl_dyn) / (
+                    fcl * (hc_dyn + h_r) + 1 / i_cl_dyn
+                )
             if abs(t_cl - t_cl_new) <= 0.001:
                 break
             t_cl = (t_cl + t_cl_new) / 2
+            n_iterations += 1
+            if n_iterations > _MAX_ITERATIONS:
+                return _phs_nan_outputs()
 
         convection = fcl * hc_dyn * (t_cl - tdb)
         radiation = fcl * h_r * (t_cl - tr)
@@ -776,6 +830,7 @@ def _phs_optimized_scalar(
         # body heat storage rate [W/m2]
         d_storage = e_req - e_p + d_stored_eq
         t_cr_new = t_cr0
+        n_iterations = 0
         while True:
             t_sk_t_cr_wg = 0.3 - 0.09 * (t_cr_new - 36.8)
             t_sk_t_cr_wg = min(t_sk_t_cr_wg, 0.3)
@@ -789,6 +844,9 @@ def _phs_optimized_scalar(
             if abs(t_cr - t_cr_new) <= 0.001:
                 break
             t_cr_new = (t_cr_new + t_cr) / 2
+            n_iterations += 1
+            if n_iterations > _MAX_ITERATIONS:
+                return _phs_nan_outputs()
 
         t_re = t_re0 + (2 * t_cr - 1.962 * t_re0 - 1.31) / 9
         if d_lim_t_re == 0 and t_re >= 38:
