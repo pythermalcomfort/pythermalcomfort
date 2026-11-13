@@ -73,8 +73,9 @@ def pmv_e(
         outside the applicability limits of the model. Defaults to True.
 
         .. note::
-            The ISO 7730 [7730ISO2005]_ [7730ISO2025]_ limits are 10 < tdb [°C] < 30, 10 < tr [°C] < 40,
-            0 < vr [m/s] < 1, 0.8 < met [met] < 4, 0 < clo [clo] < 2, 0 < pa [Pa] < 2700, and -2 < PMV < 2.
+            The ISO 7730 [7730ISO2005]_ [7730ISO2025]_ limits are 10 <= tdb [°C] <= 30,
+            10 <= tr [°C] <= 40, 0 <= vr [m/s] <= 1, 0.8 <= met [met] <= 4,
+            0 <= clo [clo] <= 2, 0 <= pa [Pa] <= 2700, and -2 <= PMV <= 2.
 
     Returns
     -------

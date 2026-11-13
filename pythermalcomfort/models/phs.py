@@ -73,10 +73,10 @@ def phs(
             function returns nan. If False returns values even if input values are
             outside the applicability limits of the model.
 
-            The 7933 limits are 15 < tdb [°C] < 50, 0 < (tr - tdb) [°C] < 60,
-            0 < vr [m/s] < 3, and 0.1 < clo [clo] < 1. The metabolic rate limit is
-            standard-specific: 1.7 < met [met] < 7.5 (100-450 W/m2) in the 2004
-            standard, and 0.96 < met [met] < 4.3 (56-250 W/m2) in the 2023 standard.
+            The 7933 limits are 15 <= tdb [°C] <= 50, 0 <= (tr - tdb) [°C] <= 60,
+            0 <= v [m/s] <= 3, and 0.1 <= clo [clo] <= 1. The metabolic rate limit is
+            standard-specific: 1.72 <= met [met] <= 7.73 (100-450 W/m2) in the 2004
+            standard, and 0.97 <= met [met] <= 4.29 (56-250 W/m2) in the 2023 standard.
 
     i_mst : float, optional
         Static moisture permeability index, [dimensionless]. Defaults to 0.38.

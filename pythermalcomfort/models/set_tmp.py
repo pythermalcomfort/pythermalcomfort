@@ -66,8 +66,8 @@ def set_tmp(
         .. note::
             By default, if the inputs are outside the standard applicability limits the
             function returns nan. If False returns values regardless of the input values.
-            The limits are 10 < tdb [°C] < 40, 10 < tr [°C] < 40,
-            0 < v [m/s] < 2, 1 < met [met] < 4, and 0 < clo [clo] < 1.5.
+            The limits are 10 <= tdb [°C] <= 40, 10 <= tr [°C] <= 40,
+            0 <= v [m/s] <= 2, 1 <= met [met] <= 4, and 0 <= clo [clo] <= 1.5.
     round_output : bool, optional
         If True, rounds output value. If False, it does not round it. Defaults to True.
 

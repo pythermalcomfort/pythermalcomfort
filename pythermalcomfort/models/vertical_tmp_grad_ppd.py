@@ -72,8 +72,8 @@ def vertical_tmp_grad_ppd(
         By default, if the inputs are outside the standard applicability limits the
         function returns nan. If False, returns values even if input values are
         outside the applicability limits of the model. Defaults to True. The
-        applicability limits are 10 < tdb [°C] < 40, 10 < tr [°C] < 40,
-        0 < vr [m/s] < 0.2, 1 < met [met] < 4, and 0 < clo [clo] < 1.5.
+        applicability limits are 10 <= tdb [°C] <= 40, 10 <= tr [°C] <= 40,
+        0 <= vr [m/s] <= 0.2, 1 <= met [met] <= 4, and 0 <= clo [clo] <= 1.5.
 
     Returns
     -------

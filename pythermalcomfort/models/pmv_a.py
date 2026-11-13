@@ -61,8 +61,9 @@ def pmv_a(
         If True, returns nan for inputs outside standard limits. Defaults to True.
 
         .. note::
-            ISO 7730 [7730ISO2005]_ [7730ISO2025]_ limits: 10 < tdb [°C] < 30, 10 < tr [°C] < 40, 0 < vr [m/s] < 1,
-            0.8 < met [met] < 4, 0 < clo [clo] < 2, 0 < pa [Pa] < 2700, -2 < PMV < 2.
+            ISO 7730 [7730ISO2005]_ [7730ISO2025]_ limits: 10 <= tdb [°C] <= 30,
+            10 <= tr [°C] <= 40, 0 <= vr [m/s] <= 1, 0.8 <= met [met] <= 4,
+            0 <= clo [clo] <= 2, 0 <= pa [Pa] <= 2700, -2 <= PMV <= 2.
 
     Returns
     -------

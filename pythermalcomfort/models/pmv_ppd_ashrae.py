@@ -97,8 +97,8 @@ def pmv_ppd_ashrae(
             function returns NaN. If False returns pmv and ppd
             values even if input values are outside the applicability limits of the model.
 
-            The ASHRAE 55 2020 limits are 10 < tdb [°C] < 40, 10 < tr [°C] < 40,
-            0 < vr [m/s] < 2, 1 < met [met] < 4, and 0 < clo [clo] < 1.5.
+            The ASHRAE 55 2020 limits are 10 <= tdb [°C] <= 40, 10 <= tr [°C] <= 40,
+            0 <= vr [m/s] <= 2, 1 <= met [met] <= 4, and 0 <= clo [clo] <= 1.5.
 
     airspeed_control : bool, optional
         By default, this function assumes that the
