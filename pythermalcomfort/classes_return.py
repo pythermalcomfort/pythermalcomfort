@@ -308,7 +308,7 @@ class HI(AutoStrMixin):
     Attributes
     ----------
     hi : float or list of floats
-        Heat Index, [°C] or [°F] depending on the units.
+        Heat Index, [°C].
     """
 
     hi: npt.ArrayLike

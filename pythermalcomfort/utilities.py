@@ -117,7 +117,7 @@ def body_surface_area(
 
 
 def units_converter(from_units=Units.IP.value, **kwargs) -> list[float]:
-    """Convert IP values to SI units.
+    """Convert IP values to SI units, or SI values to IP units.
 
     Parameters
     ----------
@@ -127,7 +127,7 @@ def units_converter(from_units=Units.IP.value, **kwargs) -> list[float]:
 
     Returns
     -------
-    converted values in SI units
+    converted values in SI units, or in IP units if `from_units` is 'SI'
     """
     results = []
     from_units = from_units.upper()

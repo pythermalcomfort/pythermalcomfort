@@ -104,10 +104,10 @@ def phs(
     t_cr : float, optional
         Mean core temperature when worker starts working, [°C]. Defaults to 36.8.
     t_re : float, optional
-        Mean rectal temperature when worker starts working, [°C]. If False in the 2004 standard,
+        Mean rectal temperature when worker starts working, [°C]. If None in the 2004 standard,
         then t_re = t_cr, whereas in the 2023 standard t_re = 36.8 °C
     t_cr_eq : float, optional
-        Mean core temperature as a function of met when worker starts working, [°C]. If False in the 2004
+        Mean core temperature as a function of met when worker starts working, [°C]. If None in the 2004
         standard, then t_cr_eq = t_cr, whereas in the 2023 standard t_cr_eq = 36.8 °C.
     t_sk_t_cr_wg : float, optional
         Initial weighting fraction for skin/core temperature coupling, dimensionless.

@@ -22,7 +22,7 @@ def work_capacity_dunne(
 
     This is based upon NIOSH safety standards. See:
     Dunne JP, Stouffer RJ, John JG. Reductions in labour capacity from heat
-    stress under climate warming. Nature Climate Change. 2013 Jun;3(6):563 6.
+    stress under climate warming. Nature Climate Change. 2013 Jun;3(6):563-6.
 
     Heavy intensity work is sometimes labelled as 400 W, but this is only
     nominal. Moderate work is assumed to be half as much as heavy intensity, and

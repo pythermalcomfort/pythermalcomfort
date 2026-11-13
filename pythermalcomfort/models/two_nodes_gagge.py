@@ -75,7 +75,7 @@ def two_nodes_gagge(
     round_output : bool, optional
         If True, rounds output value. If False, it does not round it. Defaults to True.
     max_sweating : float or list of floats, optional
-        Maximum rate at which regulatory sweat is generated, [kg/h/m2]. Defaults to 500.
+        Maximum rate at which regulatory sweat is generated, [mL/h/m2]. Defaults to 500.
     w_max : float or list of floats, optional
         Maximum skin wettedness (w) adimensional, greater than 0.06 and at most 1. 0.06
         is the wettedness from skin diffusion alone, without sweating, so it is
@@ -407,7 +407,7 @@ def _gagge_two_nodes_optimized(
         sk_sig = t_skin - temp_skin_neutral
         warm_sk = (sk_sig > 0) * sk_sig  # vasodilation signal
         colds = ((-1.0 * sk_sig) > 0) * (-1.0 * sk_sig)  # vasoconstriction signal
-        # c_reg_sig thermoregulatory control signal from the skin, °C
+        # c_reg_sig thermoregulatory control signal from the core, °C
         c_reg_sig = t_core - temp_core_neutral
         # c_warm vasodilation signal
         c_warm = (c_reg_sig > 0) * c_reg_sig

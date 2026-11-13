@@ -44,7 +44,7 @@ def psy_ta_rh(
     dew_point_tmp: float or list of floats
         dew point temperature, [°C]
     h: float or list of floats
-        enthalpy_air [J/kg dry air]
+        enthalpy [J/kg dry air]
 
     Notes
     -----
