@@ -90,9 +90,15 @@ def _phs_scalar(
     )
 
 
-@dataclass
+@dataclass(frozen=True)
 class _SportsValues:
-    """Class to hold sport values."""
+    """Class to hold sport values.
+
+    Instances are frozen, so ``Sports.RUNNING.clo = 1.0`` raises
+    ``dataclasses.FrozenInstanceError`` instead of changing the preset for every
+    later call. Use ``dataclasses.replace(Sports.RUNNING, clo=1.0)`` to get a
+    modified copy.
+    """
 
     clo: float
     met: float
@@ -123,9 +129,12 @@ class _SportsValues:
 class Sports:
     """Namespace of predefined sport values.
 
-    Use attributes like `Sports.RUNNING` to obtain a `_SportsValues` instance. This
-    class uses a frozen dataclass decorator to prevent modification of the namespace.
-    Attributes are class-level constants, not instance fields.
+    Use attributes like ``Sports.RUNNING`` to obtain a ``_SportsValues`` instance.
+    Attributes are class-level constants, not instance fields. Each preset is a
+    frozen ``_SportsValues``, so its ``clo``, ``met``, ``vr`` and ``duration`` cannot
+    be changed. The frozen decorator on ``Sports`` itself does not stop a class
+    attribute from being rebound, so ``Sports.RUNNING = ...`` still succeeds. Do not
+    do this, because it changes the preset for all later code in the session.
     """
 
     ABSEILING = _SportsValues(clo=0.6, met=6.0, vr=0.5, duration=120)
