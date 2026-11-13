@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* **Breaking:** ``adaptive_en`` now returns a frozen dataclass, like every other
+  model. Code that assigns to a field of the result, such as
+  ``result.tmp_cmf = 0.0``, now raises ``dataclasses.FrozenInstanceError``. Before,
+  the assignment changed the value. ``repr()`` of the result now prints the same
+  table as ``print()``
+  (`#533 <https://github.com/pythermalcomfort/pythermalcomfort/issues/533>`_).
+
 4.8.1 (2026-11-05)
 ------------------
 
