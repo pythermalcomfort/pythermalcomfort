@@ -21,12 +21,12 @@ def pmv_e(
     limit_inputs: bool = True,
 ) -> EPMV:
     """Return Adjusted Predicted Mean Votes with Expectancy Factor (ePMV). This index
-    was developed by Fanger, P. O. et al. (2002). In non-air- conditioned buildings in
+    was developed by Fanger, P. O. et al. (2002). In non-air-conditioned buildings in
     warm climates, occupants may sense the warmth as being less severe than the PMV
     predicts. The main reason is low expectations, but a metabolic rate that is
     estimated too high can also contribute to explaining the difference. An extension of
-    the PMV model that includes an expectancy factor is introduced for use in non-air-
-    conditioned buildings in warm climates [Fanger2002]_.
+    the PMV model that includes an expectancy factor is introduced for use in
+    non-air-conditioned buildings in warm climates [Fanger2002]_.
 
     Parameters
     ----------
@@ -69,18 +69,19 @@ def pmv_e(
         Supported values are 'SI' and 'IP'. Defaults to 'SI'.
     limit_inputs : bool, optional
         By default, if the inputs are outside the standard applicability limits the
-        function returns nan. If False, returns pmv and ppd values even if input values are
+        function returns nan. If False, returns the e_pmv value even if input values are
         outside the applicability limits of the model. Defaults to True.
 
         .. note::
-            The ISO 7730 [7730ISO2005]_ [7730ISO2025]_ limits are 10 < tdb [°C] < 30, 10 < tr [°C] < 40,
-            0 < vr [m/s] < 1, 0.8 < met [met] < 4, 0 < clo [clo] < 2, 0 < pa [Pa] < 2700, and -2 < PMV < 2.
+            The ISO 7730 [7730ISO2005]_ [7730ISO2025]_ limits are 10 <= tdb [°C] <= 30,
+            10 <= tr [°C] <= 40, 0 <= vr [m/s] <= 1, 0.8 <= met [met] <= 4,
+            0 <= clo [clo] <= 2, 0 <= pa [Pa] <= 2700, and -2 <= PMV <= 2.
 
     Returns
     -------
     EPMV
         A dataclass containing the Adjusted Predicted Mean Votes with Expectancy Factor. See :py:class:`~pythermalcomfort.classes_return.EPMV` for more details.
-        To access the `e_pmv` value, use the `e_pmv` attribute of the returned `e_pmv` instance, e.g., `result.e_pmv`.
+        To access the `e_pmv` value, use the `e_pmv` attribute of the returned `EPMV` instance, e.g., `result.e_pmv`.
 
     Examples
     --------

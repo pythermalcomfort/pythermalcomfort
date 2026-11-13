@@ -86,8 +86,8 @@ def cooling_effect(
     Returns
     -------
     CE
-        A dataclass containing the Cooling Effect value. See :py:class:`~pythermalcomfort.classes_return.CoolingEffect` for more details.
-        To access the `ce` value, use the `ce` attribute of the returned `CoolingEffect` instance, e.g., `result.ce`.
+        A dataclass containing the Cooling Effect value. See :py:class:`~pythermalcomfort.classes_return.CE` for more details.
+        To access the `ce` value, use the `ce` attribute of the returned `CE` instance, e.g., `result.ce`.
 
     Notes
     -----
@@ -113,9 +113,9 @@ def cooling_effect(
             clo=[0.5, 0.6],
             units="IP",
         )
-        print(result.ce)  # [0, 3.95]
+        print(result.ce)  # [0.  3.9]
     """
-    # Validate inputs using the CoolingEffectInputs class
+    # Validate inputs using the CEInputs class
     CEInputs(
         tdb=tdb,
         tr=tr,

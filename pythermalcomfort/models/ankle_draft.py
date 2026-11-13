@@ -24,7 +24,7 @@ def ankle_draft(
     """Calculate the percentage of thermally dissatisfied people with the ankle draft
     (0.1 m) above floor level [Liu2017]_.
 
-    This equation is only applicable for vr < 0.2 m/s (40 fps).
+    This equation is only applicable for vr < 0.2 m/s (40 fpm).
 
     Parameters
     ----------
@@ -73,8 +73,8 @@ def ankle_draft(
         By default, if the inputs are outside the standard applicability limits the
         function returns nan. If False, returns values even if input values are
         outside the applicability limits of the model. Defaults to True. The
-        applicability limits are 10 < tdb [°C] < 40, 10 < tr [°C] < 40,
-        0 < vr [m/s] < 0.2, 1 < met [met] < 4, and 0 < clo [clo] < 1.5.
+        applicability limits are 10 <= tdb [°C] <= 40, 10 <= tr [°C] <= 40,
+        0 <= vr [m/s] <= 0.2, 1 <= met [met] <= 4, and 0 <= clo [clo] <= 1.5.
 
     Returns
     -------

@@ -51,7 +51,7 @@ def wbgt(
     WBGT
         A dataclass containing the Wet Bulb Globe Temperature Index. See
         :py:class:`~pythermalcomfort.classes_return.WBGT` for more details. To access the
-        `wbgt` value, use the `wbgt` attribute of the returned `wbgt` instance, e.g.,
+        `wbgt` value, use the `wbgt` attribute of the returned `WBGT` instance, e.g.,
         `result.wbgt`.
 
     Examples

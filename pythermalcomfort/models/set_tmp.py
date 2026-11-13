@@ -66,16 +66,16 @@ def set_tmp(
         .. note::
             By default, if the inputs are outside the standard applicability limits the
             function returns nan. If False returns values regardless of the input values.
-            The limits are 10 < tdb [°C] < 40, 10 < tr [°C] < 40,
-            0 < v [m/s] < 2, 1 < met [met] < 4, and 0 < clo [clo] < 1.5.
+            The limits are 10 <= tdb [°C] <= 40, 10 <= tr [°C] <= 40,
+            0 <= v [m/s] <= 2, 1 <= met [met] <= 4, and 0 <= clo [clo] <= 1.5.
     round_output : bool, optional
         If True, rounds output value. If False, it does not round it. Defaults to True.
 
     Returns
     -------
     SET
-        A dataclass containing the Standard Effective Temperature. See :py:class:`~pythermalcomfort.classes_return.SetTmp` for more details.
-        To access the `set` value, use the corresponding attribute of the returned `SetTmp` instance, e.g., `result.set`.
+        A dataclass containing the Standard Effective Temperature. See :py:class:`~pythermalcomfort.classes_return.SET` for more details.
+        To access the `set` value, use the corresponding attribute of the returned `SET` instance, e.g., `result.set`.
 
     Examples
     --------
@@ -97,7 +97,7 @@ def set_tmp(
     clo = np.asarray(clo)
     wme = np.asarray(wme)
 
-    # Validate inputs using the SetTmpInputs class
+    # Validate inputs using the SETInputs class
     SETInputs(
         tdb=tdb,
         tr=tr,

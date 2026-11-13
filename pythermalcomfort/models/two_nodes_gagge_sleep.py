@@ -29,7 +29,7 @@ def two_nodes_gagge_sleep(
         Dry bulb air temperature, [°C].
 
         .. note::
-            tdb, tr, v, rh, clo and thickness must have the same length.
+            tdb, tr, v, rh, clo and thickness_quilt must have the same length.
             This length will be the duration of the simulation.
 
     tr : float or list of floats
@@ -64,13 +64,13 @@ def two_nodes_gagge_sleep(
         * temp_skin_neutral : float, optional
             Skin temperature at neutral conditions, [°C]. Defaults to 33.7.
         * e_skin : float, optional
-            Total evaporative heat loss, [W]. Defaults to 0.094.
+            Total evaporative heat loss, [W/m2]. Defaults to 0.094.
         * alfa : float, optional
             Dynamic fraction of total body mass assigned to the skin node. Defaults to 0.1.
         * skin_blood_flow : float, optional
             Skin-blood-flow rate per unit surface area, [kg/h/m2]. Defaults to 6.3.
         * met_shivering : float, optional
-            Metabolic rate due to shivering, [met]. Defaults to 0.
+            Metabolic rate due to shivering, [W/m2]. Defaults to 0.
 
     Returns
     -------
@@ -559,7 +559,7 @@ def _fnsvp(t):
     Returns
     -------
     float
-        Saturation vapor pressure [Pa]
+        Saturation vapor pressure [torr]
     """
     return math.exp(18.6686 - 4030.183 / (t + 235))
 

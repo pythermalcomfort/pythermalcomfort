@@ -44,7 +44,7 @@ def heat_index_lu(
         result = heat_index_lu(tdb=25, rh=50)
         print(result.hi)  # 25.0
     """
-    # Validate inputs using the HeatIndexInputs class
+    # Validate inputs using the HIInputs class
     HIInputs(
         tdb=tdb,
         rh=rh,

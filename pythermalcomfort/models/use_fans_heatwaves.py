@@ -68,12 +68,12 @@ def use_fans_heatwaves(
         By default, if the inputs are outside the standard applicability limits the
         function returns nan. If False, returns values even if input values are
         outside the applicability limits of the model. Defaults to True. The
-        applicability limits are 20 < tdb [°C] < 50, 20 < tr [°C] < 50,
-        0.1 < v [m/s] < 4.5, 0.7 < met [met] < 2, and 0 < clo [clo] < 1.
+        applicability limits are 20 <= tdb [°C] <= 50, 20 <= tr [°C] <= 50,
+        0.1 <= v [m/s] <= 4.5, 0.7 <= met [met] <= 2, and 0 <= clo [clo] <= 1.
     round_output : bool, optional
         If True, rounds output value. If False, it does not round it. Defaults to True.
     max_sweating : float or list of floats, optional
-        Maximum rate at which regulatory sweat is generated, [kg/h/m2]. Defaults to 500.
+        Maximum rate at which regulatory sweat is generated, [mL/h/m2]. Defaults to 500.
 
     Returns
     -------

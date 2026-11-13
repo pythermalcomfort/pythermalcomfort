@@ -79,7 +79,7 @@ def utci(
         A dataclass containing the Universal Thermal Climate Index and stress category.
         See :py:class:`~pythermalcomfort.classes_return.UTCI` for more details. To access the
         `utci` and `stress_category` values, use the corresponding attributes of the
-        returned `Utci` instance, e.g., `result.utci`.
+        returned `UTCI` instance, e.g., `result.utci`.
 
     Notes
     -----
@@ -108,7 +108,7 @@ def utci(
         result = utci(tdb=[25, 40], tr=25, v=1.0, rh=50)
         print(result.utci)  # [24.6, 40.4]
     """
-    # Validate inputs using the UtciInputs class
+    # Validate inputs using the UTCIInputs class
     UTCIInputs(
         tdb=tdb,
         tr=tr,

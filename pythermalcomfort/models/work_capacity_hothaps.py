@@ -23,7 +23,7 @@ def work_capacity_hothaps(
     10% of the time.
 
     Note that for this function "the empirical evidence is from studies in
-    heavyly distinct locations, including a gold mine (Wyndham, 1969), 124 rice
+    highly distinct locations, including a gold mine (Wyndham, 1969), 124 rice
     harvesters in West Bengal in India (Sahu et al., 2013), and six women
     observed in a climatic chamber (Nag and Nag, 1992)."
     (https://adaptecca.es/sites/default/files/documentos/2018_jrc_pesetaiii_impact_labour_productivity.pdf).
@@ -36,7 +36,7 @@ def work_capacity_hothaps(
     The correction citation is: Bröde P, Fiala D, Lemke B, Kjellstrom T.
     Estimated work ability in warm outdoor environments depends on the chosen
     heat stress assessment metric. International Journal of Biometeorology.
-    2018 Mar;62(3):331 45.
+    2018 Mar;62(3):331-45.
 
 
     The relevant definitions of the functions can be found most clearly in:
@@ -48,7 +48,7 @@ def work_capacity_hothaps(
     For a comparison of different functions see Fig 1 of Day E, Fankhauser S, Kingsmill
     N, Costa H, Mavrogianni A. Upholding labour productivity under climate
     change: an assessment of adaptation options. Climate Policy. 2019
-    Mar;19(3):367 85.
+    Mar;19(3):367-85.
 
     Parameters
     ----------

@@ -1,6 +1,18 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* Corrected docstrings and code comments: class names that do not exist, applicability
+  limits written as open intervals although both bounds are included, examples whose
+  shown outputs differ from what the calls return, and wrong units, defaults and
+  wording. No code changed
+  (`#528 <https://github.com/pythermalcomfort/pythermalcomfort/issues/528>`_,
+  `#529 <https://github.com/pythermalcomfort/pythermalcomfort/issues/529>`_,
+  `#531 <https://github.com/pythermalcomfort/pythermalcomfort/issues/531>`_,
+  `#532 <https://github.com/pythermalcomfort/pythermalcomfort/issues/532>`_).
+
 4.8.1 (2026-11-05)
 ------------------
 

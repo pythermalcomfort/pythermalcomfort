@@ -191,7 +191,7 @@ def sports_heat_stress_risk(
     rh : float or list of float
         Relative humidity [%].
     vr : float or list of float
-        Relative air speed [m/s]. Relative air speed [m/s]. If the input ``vr``
+        Relative air speed [m/s]. If the input ``vr``
         is lower than the minimum relative air speed defined for the selected
         sport (``sport.vr``), then ``sport.vr`` will be used for the calculation.
     sport : _SportsValues
@@ -318,7 +318,7 @@ def _calc_risk_single_value(
         Tuple containing (risk_level_interpolated, t_medium, t_high, t_extreme, recommendation).
     """
     # set the max and min thresholds for the risk levels
-    sweat_loss_g = 850  # 850 g per hour
+    sweat_loss_g = 850  # 850 g per 45 minutes
 
     max_t_low = 34.5  # maximum tdb for low risk
     max_t_medium = 39  # maximum tdb for medium risk

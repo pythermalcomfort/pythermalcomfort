@@ -10,7 +10,7 @@ def enthalpy_air(
     tdb: NumericInput,
     hr: NumericInput,
 ) -> NDArray[np.float64]:
-    """Calculate air enthalpy_air.
+    """Calculate air enthalpy.
 
     Parameters
     ----------
@@ -22,7 +22,7 @@ def enthalpy_air(
     Returns
     -------
     enthalpy_air: float or list of floats
-        enthalpy_air [J/kg dry air]
+        enthalpy [J/kg dry air]
     """
     tdb = np.asarray(tdb, dtype=np.float64)
     hr = np.asarray(hr, dtype=np.float64)

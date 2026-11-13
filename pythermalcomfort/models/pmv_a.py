@@ -61,15 +61,16 @@ def pmv_a(
         If True, returns nan for inputs outside standard limits. Defaults to True.
 
         .. note::
-            ISO 7730 [7730ISO2005]_ [7730ISO2025]_ limits: 10 < tdb [°C] < 30, 10 < tr [°C] < 40, 0 < vr [m/s] < 1,
-            0.8 < met [met] < 4, 0 < clo [clo] < 2, 0 < pa [Pa] < 2700, -2 < PMV < 2.
+            ISO 7730 [7730ISO2005]_ [7730ISO2025]_ limits: 10 <= tdb [°C] <= 30,
+            10 <= tr [°C] <= 40, 0 <= vr [m/s] <= 1, 0.8 <= met [met] <= 4,
+            0 <= clo [clo] <= 2, 0 <= pa [Pa] <= 2700, -2 <= PMV <= 2.
 
     Returns
     -------
     APMV
         A dataclass containing the Predicted Mean Vote (a_pmv). See
-        :py:class:`~pythermalcomfort.classes_return.AdaptivePMV` for more details.
-        To access the `a_pmv` value, use the `a_pmv` attribute of the returned `AdaptivePMV` instance,
+        :py:class:`~pythermalcomfort.classes_return.APMV` for more details.
+        To access the `a_pmv` value, use the `a_pmv` attribute of the returned `APMV` instance,
         e.g., `result.a_pmv`.
 
     Examples
@@ -100,7 +101,6 @@ def pmv_a(
             clo=clo_d,
             a_coefficient=0.293,
         )
-        print(results)  # AdaptivePMV(a_pmv=0.74)
         print(results.a_pmv)  # 0.71
     """
     # Validate inputs using the APMVInputs class

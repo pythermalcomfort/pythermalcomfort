@@ -99,9 +99,9 @@ def pmv_ppd_iso(
             function returns nan. If False returns pmv and ppd values even if input values are
             outside the applicability limits of the model.
 
-            The ISO 7730 limits are 10 < tdb [°C] < 30, 10 < tr [°C] < 40,
-            0 < vr [m/s] < 1, 0.8 < met [met] < 4, 0 < clo [clo] < 2, 0 < pa [Pa] < 2700,
-            and -2 < PMV < 2.
+            The ISO 7730 limits are 10 <= tdb [°C] <= 30, 10 <= tr [°C] <= 40,
+            0 <= vr [m/s] <= 1, 0.8 <= met [met] <= 4, 0 <= clo [clo] <= 2,
+            0 <= pa [Pa] <= 2700, and -2 <= PMV <= 2.
 
     round_output : bool, optional
         If True, rounds output value. If False, it does not round it. Defaults to True.

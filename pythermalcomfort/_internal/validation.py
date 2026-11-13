@@ -231,7 +231,7 @@ def _mapping(
 
     Examples
     --------
-    >>> _mapping([20, 25, 30], {15: "low", 25: "medium", 35: "high"})
+    >>> _mapping([10, 20, 30], {15: "low", 25: "medium", 35: "high"})
     array(['low', 'medium', 'high'], dtype=object)
     """
     if not isinstance(map_dictionary, dict):

@@ -72,15 +72,15 @@ def vertical_tmp_grad_ppd(
         By default, if the inputs are outside the standard applicability limits the
         function returns nan. If False, returns values even if input values are
         outside the applicability limits of the model. Defaults to True. The
-        applicability limits are 10 < tdb [°C] < 40, 10 < tr [°C] < 40,
-        0 < vr [m/s] < 0.2, 1 < met [met] < 4, and 0 < clo [clo] < 1.5.
+        applicability limits are 10 <= tdb [°C] <= 40, 10 <= tr [°C] <= 40,
+        0 <= vr [m/s] <= 0.2, 1 <= met [met] <= 4, and 0 <= clo [clo] <= 1.5.
 
     Returns
     -------
     VerticalTGradPPD
         A dataclass containing the Predicted Percentage of Dissatisfied occupants with vertical temperature gradient and acceptability.
-        See :py:class:`~pythermalcomfort.classes_return.VerticalTmpGradPPD` for more details.
-        To access the `ppd_vg` and `acceptability` values, use the corresponding attributes of the returned `VerticalTmpGradPPD` instance, e.g., `result.ppd_vg`.
+        See :py:class:`~pythermalcomfort.classes_return.VerticalTGradPPD` for more details.
+        To access the `ppd_vg` and `acceptability` values, use the corresponding attributes of the returned `VerticalTGradPPD` instance, e.g., `result.ppd_vg`.
 
     Examples
     --------
@@ -94,7 +94,7 @@ def vertical_tmp_grad_ppd(
         print(result.ppd_vg)  # 12.6
         print(result.acceptability)  # 0.0
     """
-    # Validate inputs using the VerticalTmpGradPPDInputs class
+    # Validate inputs using the VerticalTGradPPDInputs class
     VerticalTGradPPDInputs(
         tdb=tdb,
         tr=tr,

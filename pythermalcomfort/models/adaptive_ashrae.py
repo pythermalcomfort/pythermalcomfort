@@ -56,7 +56,8 @@ def adaptive_ashrae(
         If True, returns nan for inputs outside standard limits. Defaults to True.
 
         .. note::
-            ASHRAE 55 2020 limits: 10 < tdb [°C] < 40, 10 < tr [°C] < 40, 0 < vr [m/s] < 2, 10 < t_running_mean [°C] < 33.5.
+            ASHRAE 55 2020 limits: 10 <= tdb [°C] <= 40, 10 <= tr [°C] <= 40,
+            0 <= v [m/s] <= 2, 10 <= t_running_mean [°C] <= 33.5.
 
     round_output : bool, optional
         If True, rounds the five reported temperatures to one decimal place, after the

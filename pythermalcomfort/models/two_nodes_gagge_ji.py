@@ -81,7 +81,7 @@ def two_nodes_gagge_ji(
     -------
     GaggeTwoNodesJi
         A dataclass containing the simulated core and skin temperatures over time. See :py:class:`~pythermalcomfort.classes_return.GaggeTwoNodesJi` for more details.
-        To access the individual attributes, use the corresonding attrubute of the returned
+        To access the individual attributes, use the corresponding attribute of the returned
         instance, e.g. `result.t_core` or `result.t_skin`.
 
     Example
@@ -302,7 +302,7 @@ def _two_nodes_ji_optimized_scalar(
     m_rsw_max = evap_sweating_reg_max / 0.68
     m_rsw_max = m_rsw_max * max_sweating_rate_factor
 
-    if not w_max:  # if the user did not pass a value of w_max
+    if not w_max:  # if w_max was not set above
         # W_max should be fixed to either 0.85 or 1 (for acclimatized people);  See ISO PHS model and other related standard
         w_max = 1
 

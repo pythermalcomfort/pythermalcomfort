@@ -66,7 +66,7 @@ def pet_steady(
     age : int or list of ints, optional
         Age of the person. Defaults to 23.
     sex : str or list of str, optional
-        Sex of the person "male" or "female". Defaults to "male"
+        Sex of the person "male" or "female". Defaults to "male".
     weight : float or list of floats, optional
         Weight of the person, [kg]. Defaults to 75.
     height : float or list of floats, optional
@@ -263,7 +263,7 @@ def _pet_steady_vectorised(
         e_skin = 0.99  # Skin emissivity
         e_clo = 0.95  # Clothing emissivity
         h_vap = 2.42 * 10**6  # Latent heat of evaporation [J/Kg]
-        sbc = 5.67 * 10**-8  # Stefan-Boltzmann constant [W/(m2*K^(-4))]
+        sbc = 5.67 * 10**-8  # Stefan-Boltzmann constant [W/(m2*K^4)]
         cb = 3640  # Blood specific heat [J/kg/k]
 
         t_cr, t_sk, t_clo = t_arr
@@ -370,7 +370,7 @@ def _pet_steady_vectorised(
 
         # Calculation of sweat losses
         qmsw = sweat_rate(tbody)
-        # h_vap/1000 = 2400 000[J/kg] divided by 1000 = [J/g] // qwsw/3600 for [g/m2/h]
+        # h_vap/1000 = 2420 000[J/kg] divided by 1000 = [J/g] // qmsw/3600 for [g/m2/h]
         # to [
         # g/m2/s]
         esw = h_vap / 1000 * qmsw / 3600  # [W/m2]
@@ -381,7 +381,7 @@ def _pet_steady_vectorised(
         he_diff = hc * lr  # diffusion coefficient of air layer
         fecl = 1 / (1 + 0.92 * hc * r_cl)  # Burton efficiency factor
         e_max = he_diff * fecl * (p_v_sk - vpa)  # maximum diffusion at skin surface
-        if e_max == 0:  # added this otherwise e_req / e_max cannot be calculated
+        if e_max == 0:  # added this otherwise esw / e_max cannot be calculated
             e_max = 0.001
         w = esw / e_max  # skin wettedness
         if w > 1:

@@ -73,10 +73,10 @@ def phs(
             function returns nan. If False returns values even if input values are
             outside the applicability limits of the model.
 
-            The 7933 limits are 15 < tdb [°C] < 50, 0 < (tr - tdb) [°C] < 60,
-            0 < vr [m/s] < 3, and 0.1 < clo [clo] < 1. The metabolic rate limit is
-            standard-specific: 1.7 < met [met] < 7.5 (100-450 W/m2) in the 2004
-            standard, and 0.96 < met [met] < 4.3 (56-250 W/m2) in the 2023 standard.
+            The 7933 limits are 15 <= tdb [°C] <= 50, 0 <= (tr - tdb) [°C] <= 60,
+            0 <= v [m/s] <= 3, and 0.1 <= clo [clo] <= 1. The metabolic rate limit is
+            standard-specific: 1.72 <= met [met] <= 7.73 (100-450 W/m2) in the 2004
+            standard, and 0.97 <= met [met] <= 4.29 (56-250 W/m2) in the 2023 standard.
 
     i_mst : float, optional
         Static moisture permeability index, [dimensionless]. Defaults to 0.38.
@@ -104,10 +104,10 @@ def phs(
     t_cr : float, optional
         Mean core temperature when worker starts working, [°C]. Defaults to 36.8.
     t_re : float, optional
-        Mean rectal temperature when worker starts working, [°C]. If False in the 2004 standard,
+        Mean rectal temperature when worker starts working, [°C]. If None in the 2004 standard,
         then t_re = t_cr, whereas in the 2023 standard t_re = 36.8 °C
     t_cr_eq : float, optional
-        Mean core temperature as a function of met when worker starts working, [°C]. If False in the 2004
+        Mean core temperature as a function of met when worker starts working, [°C]. If None in the 2004
         standard, then t_cr_eq = t_cr, whereas in the 2023 standard t_cr_eq = 36.8 °C.
     t_sk_t_cr_wg : float, optional
         Initial weighting fraction for skin/core temperature coupling, dimensionless.
@@ -175,7 +175,7 @@ def phs(
             round_output=False,
             duration=60,
         )
-        print(result.t_re)  # 37.8
+        print(result.t_re.round(1))  # 37.8
         # second simulation - using previous results as initial values
         # NOTE: when chaining runs, prefer round_output=False to avoid rounding drift.
         result = phs(
@@ -197,7 +197,7 @@ def phs(
             sweat_rate_watt=result.sweat_rate_watt,
             evap_load_wm2_min=result.evap_load_wm2_min,
         )
-        print(result.t_re)  # 38.5
+        print(result.t_re.round(1))  # 38.5
     """
     if model not in [Models.iso_7933_2004.value, Models.iso_7933_2023.value]:
         error_msg = (
