@@ -78,6 +78,7 @@ def solar_gain(
     posture: str = Postures.sitting.value,
     floor_reflectance: NumericInput = 0.6,
     round_output: bool = True,
+    limit_inputs: bool = True,
 ) -> SolarGain:
     """Calculate the solar gain to the human body using the Effective Radiant Field
     (ERF) [55ASHRAE2023]_. The ERF is a measure of the net energy flux to or from the
@@ -128,6 +129,7 @@ def solar_gain(
         .. note::
             Short-wave absorptivity typically ranges from 0.57 to 0.84, depending
             on skin and clothing color. More information is available in Blum (1945).
+            Table C-2 of ASHRAE 55 accepts values from 0.2 to 0.9.
 
     posture : str, optional
         Default 'sitting' list of available options 'standing', 'supine' or 'sitting'.
@@ -135,6 +137,13 @@ def solar_gain(
         Floor reflectance. It is assumed to be constant and equal to 0.6. Defaults to 0.6.
     round_output : bool, optional
         If True, rounds output value. If False, it does not round it. Defaults to True.
+    limit_inputs : bool, optional
+        If True, returns NaN where an input is outside the range of Table C-2 of
+        ASHRAE 55 [55ASHRAE2023]_: sol_radiation_dir 200 to 1000 W/m2, asw 0.2 to 0.9,
+        and sol_transmittance, f_svv and f_bes 0 to 1. If False, computes the solar
+        gain for any of these values. Defaults to True. sol_altitude and sharp are
+        always limited to 0-90° and 0-180°, the domain of the projected area factor
+        tables.
 
     Returns
     -------
@@ -173,10 +182,11 @@ def solar_gain(
 
     - Solar altitude (sol_altitude) must be between 0° and 90°.
     - Solar horizontal angle (sharp) must be between 0° and 180°.
-    - Direct-beam solar radiation (sol_radiation_dir) should typically range from 200 to 1000 W/m², as per ASHRAE 55 Table C-2.
+    - Direct-beam solar radiation (sol_radiation_dir) must be between 200 and 1000 W/m², as per ASHRAE 55 Table C-2.
     - Solar transmittance (sol_transmittance) must be between 0 and 1.
     - Sky-vault view fraction (f_svv) and body surface exposure fraction (f_bes) must be between 0 and 1.
-    - Average short-wave absorptivity (asw) typically ranges from 0.57 to 0.84, depending on skin and clothing color.
+    - Average short-wave absorptivity (asw) must be between 0.2 and 0.9, as per ASHRAE 55 Table C-2; it typically ranges from 0.57 to 0.84, depending on skin and clothing color.
+    - With ``limit_inputs=True`` (default), inputs outside these ranges return NaN.
     - Posture must be one of 'standing', 'supine', or 'sitting'.
     - Floor reflectance (floor_reflectance) is assumed constant at 0.6, but can vary.
     - All inputs are in SI units (e.g., angles in degrees, radiation in W/m²).
@@ -191,6 +201,7 @@ def solar_gain(
         f_bes=f_bes,
         asw=asw,
         floor_reflectance=floor_reflectance,
+        limit_inputs=limit_inputs,
     )
 
     sol_altitude = np.asarray(sol_altitude)
@@ -206,6 +217,14 @@ def solar_gain(
     f_bes = np.asarray(f_bes)
     asw = np.asarray(asw)
     floor_reflectance = np.asarray(floor_reflectance)
+
+    if limit_inputs:
+        # ranges of inputs in Table C-2 of ASHRAE 55
+        sol_radiation_dir = _valid_range(sol_radiation_dir, (200.0, 1000.0))
+        sol_transmittance = _valid_range(sol_transmittance, (0.0, 1.0))
+        f_svv = _valid_range(f_svv, (0.0, 1.0))
+        f_bes = _valid_range(f_bes, (0.0, 1.0))
+        asw = _valid_range(asw, (0.2, 0.9))
 
     posture = posture.lower()
     if posture not in _POSTURE_CODES:
