@@ -79,8 +79,8 @@ def vertical_tmp_grad_ppd(
     -------
     VerticalTGradPPD
         A dataclass containing the Predicted Percentage of Dissatisfied occupants with vertical temperature gradient and acceptability.
-        See :py:class:`~pythermalcomfort.classes_return.VerticalTmpGradPPD` for more details.
-        To access the `ppd_vg` and `acceptability` values, use the corresponding attributes of the returned `VerticalTmpGradPPD` instance, e.g., `result.ppd_vg`.
+        See :py:class:`~pythermalcomfort.classes_return.VerticalTGradPPD` for more details.
+        To access the `ppd_vg` and `acceptability` values, use the corresponding attributes of the returned `VerticalTGradPPD` instance, e.g., `result.ppd_vg`.
 
     Examples
     --------
@@ -94,7 +94,7 @@ def vertical_tmp_grad_ppd(
         print(result.ppd_vg)  # 12.6
         print(result.acceptability)  # 0.0
     """
-    # Validate inputs using the VerticalTmpGradPPDInputs class
+    # Validate inputs using the VerticalTGradPPDInputs class
     VerticalTGradPPDInputs(
         tdb=tdb,
         tr=tr,

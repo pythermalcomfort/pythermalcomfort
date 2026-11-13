@@ -74,8 +74,8 @@ def set_tmp(
     Returns
     -------
     SET
-        A dataclass containing the Standard Effective Temperature. See :py:class:`~pythermalcomfort.classes_return.SetTmp` for more details.
-        To access the `set` value, use the corresponding attribute of the returned `SetTmp` instance, e.g., `result.set`.
+        A dataclass containing the Standard Effective Temperature. See :py:class:`~pythermalcomfort.classes_return.SET` for more details.
+        To access the `set` value, use the corresponding attribute of the returned `SET` instance, e.g., `result.set`.
 
     Examples
     --------
@@ -97,7 +97,7 @@ def set_tmp(
     clo = np.asarray(clo)
     wme = np.asarray(wme)
 
-    # Validate inputs using the SetTmpInputs class
+    # Validate inputs using the SETInputs class
     SETInputs(
         tdb=tdb,
         tr=tr,

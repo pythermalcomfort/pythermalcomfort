@@ -55,7 +55,7 @@ def wci(
         print(result.wci)  # [1255.2 1603.9]
 
     """
-    # Validate inputs using the WCYInputs class
+    # Validate inputs using the WCIInputs class
     WCIInputs(
         tdb=tdb,
         v=v,

@@ -59,7 +59,7 @@ def heat_index_rothfusz(
         print(result.hi)  # 29.7
         print(result.stress_category)  # "caution"
     """
-    # Validate inputs using the HeatIndexInputs class
+    # Validate inputs using the HIInputs class
     HIInputs(
         tdb=tdb,
         rh=rh,

@@ -80,7 +80,7 @@ def pmv_e(
     -------
     EPMV
         A dataclass containing the Adjusted Predicted Mean Votes with Expectancy Factor. See :py:class:`~pythermalcomfort.classes_return.EPMV` for more details.
-        To access the `e_pmv` value, use the `e_pmv` attribute of the returned `e_pmv` instance, e.g., `result.e_pmv`.
+        To access the `e_pmv` value, use the `e_pmv` attribute of the returned `EPMV` instance, e.g., `result.e_pmv`.
 
     Examples
     --------
