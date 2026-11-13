@@ -113,7 +113,7 @@ def cooling_effect(
             clo=[0.5, 0.6],
             units="IP",
         )
-        print(result.ce)  # [0, 3.95]
+        print(result.ce)  # [0.  3.9]
     """
     # Validate inputs using the CEInputs class
     CEInputs(

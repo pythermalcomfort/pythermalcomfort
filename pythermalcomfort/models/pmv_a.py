@@ -101,7 +101,6 @@ def pmv_a(
             clo=clo_d,
             a_coefficient=0.293,
         )
-        print(results)  # AdaptivePMV(a_pmv=0.74)
         print(results.a_pmv)  # 0.71
     """
     # Validate inputs using the APMVInputs class

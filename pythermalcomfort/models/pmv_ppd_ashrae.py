@@ -139,7 +139,7 @@ def pmv_ppd_ashrae(
         results = pmv_ppd_ashrae(
             tdb=tdb, tr=tr, vr=v_r, rh=rh, met=met, clo=clo_d, model="55-2023"
         )
-        print(results.pmv)  # 0.0
+        print(results.pmv)  # -0.0
         print(results.ppd)  # 5.0
         print(results.compliance)  # 1.0
 

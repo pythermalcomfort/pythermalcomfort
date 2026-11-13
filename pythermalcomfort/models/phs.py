@@ -175,7 +175,7 @@ def phs(
             round_output=False,
             duration=60,
         )
-        print(result.t_re)  # 37.8
+        print(result.t_re.round(1))  # 37.8
         # second simulation - using previous results as initial values
         # NOTE: when chaining runs, prefer round_output=False to avoid rounding drift.
         result = phs(
@@ -197,7 +197,7 @@ def phs(
             sweat_rate_watt=result.sweat_rate_watt,
             evap_load_wm2_min=result.evap_load_wm2_min,
         )
-        print(result.t_re)  # 38.5
+        print(result.t_re.round(1))  # 38.5
     """
     if model not in [Models.iso_7933_2004.value, Models.iso_7933_2023.value]:
         error_msg = (
