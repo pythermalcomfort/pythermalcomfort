@@ -1,6 +1,20 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* ``phs`` now returns NaN for a point where any input is NaN or infinite, and for
+  inputs whose temperature loops do not converge, such as ``weight=1e-300``. Before,
+  the call never returned, and in an array call one such point stopped every point
+  from returning
+  (`#524 <https://github.com/pythermalcomfort/pythermalcomfort/issues/524>`_).
+* ``phs`` now raises ``ValueError`` when ``height`` or ``i_mst`` is 0 or below, and
+  with ``limit_inputs=False`` returns a value for ``clo=0``. Before, these inputs
+  divided by zero inside the kernel and returned uninitialised memory, for example
+  ``t_re=4.6e-310``
+  (`#523 <https://github.com/pythermalcomfort/pythermalcomfort/issues/523>`_).
+
 4.8.1 (2026-11-05)
 ------------------
 
