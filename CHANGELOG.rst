@@ -1,6 +1,17 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* Added ``clo_individual_garment_groups``, which lists the keys of
+  ``clo_individual_garments`` under the headings of the ASHRAE 55 garment table, in
+  table order, with the chairs as a last group. Added the five rows the dictionary
+  lacked: ``"Sweater vest (thin)"`` 0.13, ``"Sweater vest (thick)"`` 0.22,
+  ``"Sandals/thongs"`` 0.02, ``"Net chair"`` 0.0 and ``"Wooden side arm chair"`` 0.0.
+  Existing keys and values are unchanged
+  (`#478 <https://github.com/pythermalcomfort/pythermalcomfort/issues/478>`_).
+
 4.8.1 (2026-11-05)
 ------------------
 
