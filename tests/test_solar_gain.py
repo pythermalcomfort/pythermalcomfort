@@ -222,3 +222,5 @@ def test_solar_gain_limit_inputs() -> None:
         result = solar_gain(**{**base, "sol_radiation_dir": [800, 100]})
     assert np.isfinite(result.erf[0])
     assert np.isnan(result.erf[1])
+    assert np.isfinite(result.delta_mrt[0])
+    assert np.isnan(result.delta_mrt[1])
