@@ -75,7 +75,7 @@ def two_nodes_gagge(
     round_output : bool, optional
         If True, rounds output value. If False, it does not round it. Defaults to True.
     max_sweating : float or list of floats, optional
-        Maximum rate at which regulatory sweat is generated, [kg/h/m2]. Defaults to 500.
+        Maximum rate at which regulatory sweat is generated, [mL/h/m2]. Defaults to 500.
     w_max : float or list of floats, optional
         Maximum skin wettedness (w) adimensional, greater than 0.06 and at most 1. 0.06
         is the wettedness from skin diffusion alone, without sweating, so it is
