@@ -73,7 +73,7 @@ def use_fans_heatwaves(
     round_output : bool, optional
         If True, rounds output value. If False, it does not round it. Defaults to True.
     max_sweating : float or list of floats, optional
-        Maximum rate at which regulatory sweat is generated, [kg/h/m2]. Defaults to 500.
+        Maximum rate at which regulatory sweat is generated, [mL/h/m2]. Defaults to 500.
 
     Returns
     -------
