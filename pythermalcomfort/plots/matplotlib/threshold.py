@@ -34,7 +34,7 @@ from pythermalcomfort.plots.matplotlib._shared import (
     _legend_anchor_y,
     _plot_rc,
     _PlotDefaults,
-    _title_y_above_legend,
+    _title_kws_above_legend,
 )
 
 #: Default color for grid cells that fall outside the model's applicability limits.
@@ -435,7 +435,7 @@ class ThresholdPlot(GridBasePlot):
             )
 
             legend_artist: Legend | None = None
-            title_y: float | None = None
+            title_kws: dict[str, Any] = {}
             if legend:
                 handles = [
                     Patch(
@@ -460,9 +460,9 @@ class ThresholdPlot(GridBasePlot):
                     handles=handles,
                     **legend_opts,
                 )
-                title_y = _title_y_above_legend(
-                    n_handles=len(handles),
-                    ncol=int(legend_opts["ncol"]),
+                title_kws = _title_kws_above_legend(
+                    ax,
+                    legend_artist,
                     anchor_y=_legend_anchor_y(
                         legend_opts["bbox_to_anchor"],
                         ax=ax,
@@ -475,7 +475,7 @@ class ThresholdPlot(GridBasePlot):
             ax.set_xlabel(x_axis.name)
             ax.set_ylabel(y_axis.name)
             if title is not None:
-                ax.set_title(title, y=title_y)
+                ax.set_title(title, **title_kws)
             _apply_font_family(ax, font_family, exclude=existing_annotations)
 
             return ThresholdPlotResult(

@@ -30,8 +30,10 @@ from pythermalcomfort.plots.matplotlib._shared import (
     _apply_font_family,
     _configure_regions,
     _is_light_color,
+    _legend_anchor_y,
     _plot_rc,
     _PlotDefaults,
+    _title_kws_above_legend,
 )
 
 # Preset names accepted by SummaryPlot.set_regions. Each one shows the categories of a
@@ -252,7 +254,7 @@ def _ensure_title_legend_spacing(
         return
 
     D = _PlotDefaults.Summary
-    min_gap_px = D.title_legend_gap * fig.dpi / 72
+    min_gap_px = _PlotDefaults.title_legend_gap * fig.dpi / 72
     for _ in range(D.title_spacing_iterations):
         fig.canvas.draw()
         renderer = fig.canvas.get_renderer()
@@ -765,9 +767,18 @@ class SummaryPlot(BasePlot):
                 legend_artist = ax.legend(handles=handles, **lg_opts)
 
             if title is not None:
-                ax.set_title(
-                    title, y=_PlotDefaults.title_y_with_legend if legend else None
-                )
+                title_kws: dict[str, Any] = {}
+                if legend_artist is not None:
+                    title_kws = _title_kws_above_legend(
+                        ax,
+                        legend_artist,
+                        anchor_y=_legend_anchor_y(
+                            lg_opts["bbox_to_anchor"],
+                            ax=ax,
+                            bbox_transform=lg_opts.get("bbox_transform"),
+                        ),
+                    )
+                ax.set_title(title, **title_kws)
 
             if created_figure:
                 _apply_compact_layout(fig)

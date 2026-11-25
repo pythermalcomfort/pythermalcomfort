@@ -15,6 +15,11 @@ from matplotlib.lines import Line2D
 from matplotlib.transforms import Bbox
 
 from pythermalcomfort.models import pmv_ppd_iso
+from pythermalcomfort.plots.matplotlib import plot_style, plot_style_context
+from pythermalcomfort.plots.matplotlib._shared import (
+    _installed_families,
+    _PlotDefaults,
+)
 from pythermalcomfort.plots.matplotlib.threshold import (
     OUT_OF_MODEL_LIMITS_COLOR,
     ThresholdPlot,
@@ -555,7 +560,7 @@ def test_curve_backend_omits_invalid_legend_entry_when_everything_is_valid() -> 
 
 
 def test_plot_styles_an_axis_the_caller_supplied() -> None:
-    # _PYTHERMALCOMFORT_RC only reaches axes created inside its rc_context, so
+    # plot_style only reaches axes created inside its rc_context, so
     # the styling has to be applied to the axis itself for a caller-supplied
     # one to match.
     with plt.rc_context(matplotlib.rcParamsDefault):
@@ -567,6 +572,80 @@ def test_plot_styles_an_axis_the_caller_supplied() -> None:
     assert not result.ax.spines["top"].get_visible()
     assert not result.ax.spines["right"].get_visible()
     assert not result.ax.xaxis.get_gridlines()[0].get_visible()
+
+
+@pytest.mark.parametrize("supply_axis", [False, True])
+def test_plot_applies_plot_style_defaults(supply_axis: bool) -> None:
+    with plt.rc_context(matplotlib.rcParamsDefault):
+        ax = plt.subplots()[1] if supply_axis else None
+        result = _curve_plot().plot(ax=ax, title="Title")
+
+    assert result.ax.title.get_fontweight() == "bold"
+    assert to_rgb(result.ax.spines["left"].get_edgecolor()) == to_rgb(
+        plot_style["axes.edgecolor"]
+    )
+    tick_label = result.ax.xaxis.get_ticklabels()[0]
+    assert to_rgb(tick_label.get_color()) == to_rgb(plot_style["xtick.color"])
+    assert result.ax.xaxis.label.get_fontsize() == tick_label.get_fontsize()
+    legend_text = result.legend.get_texts()[0]
+    assert result.ax.title.get_fontsize() == legend_text.get_fontsize()
+    expected_family = _installed_families(plot_style["font.family"])
+    assert result.ax.title.get_fontfamily() == expected_family
+    assert tick_label.get_fontfamily() == expected_family
+
+
+def test_missing_font_family_is_dropped_without_warnings(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    monkeypatch.setitem(plot_style, "font.family", ["NoSuchFont", "sans-serif"])
+    with plt.rc_context(matplotlib.rcParamsDefault):
+        result = _curve_plot().plot(title="Title")
+        result.fig.canvas.draw()
+
+    assert result.ax.title.get_fontfamily() == ["sans-serif"]
+    assert "not found" not in caplog.text
+
+
+@pytest.mark.parametrize("supply_axis", [False, True])
+def test_plot_callers_rcparams_take_precedence_over_plot_style(
+    supply_axis: bool,
+) -> None:
+    with plt.rc_context(matplotlib.rcParamsDefault):
+        with plt.rc_context({"axes.titleweight": 600, "axes.edgecolor": "red"}):
+            ax = plt.subplots()[1] if supply_axis else None
+            result = _curve_plot().plot(ax=ax, title="Title")
+
+        assert matplotlib.rcParams["axes.titleweight"] == "normal"
+
+    assert result.ax.title.get_fontweight() == 600
+    assert to_rgb(result.ax.spines["left"].get_edgecolor()) == to_rgb("red")
+
+
+def test_editing_plot_style_changes_the_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Setting a key back to Matplotlib's own default in rcParams cannot be told
+    # apart from never setting it, so plot_style is the way to undo a default.
+    monkeypatch.setitem(plot_style, "axes.titleweight", "normal")
+    with plt.rc_context(matplotlib.rcParamsDefault):
+        result = _curve_plot().plot(title="Title")
+
+    assert result.ax.title.get_fontweight() == "normal"
+
+
+def test_plot_style_context_styles_artists_added_after_plot() -> None:
+    with plt.rc_context(matplotlib.rcParamsDefault):
+        with plot_style_context():
+            result = _curve_plot().plot(title="Title")
+            result.ax.scatter([25], [50], label="Measured")
+            legend = result.ax.legend(loc="lower left")
+            result.ax.set_title("New title")
+
+        assert matplotlib.rcParams["legend.frameon"]
+
+    assert not legend.get_frame_on()
+    assert result.ax.title.get_fontweight() == "bold"
+    assert result.ax.title.get_fontsize() == legend.get_texts()[0].get_fontsize()
 
 
 def test_plot_turns_off_a_grid_the_callers_rcparams_switched_on() -> None:
@@ -605,10 +684,30 @@ def test_title_clears_a_legend_that_wraps_onto_two_rows() -> None:
             )
         )
 
-    one_row = make(1).plot(title="t")
-    two_rows = make(4).plot(title="t")
+    for n_thresholds in (1, 4):
+        result = make(n_thresholds).plot(title="t")
+        assert _title_legend_gap_pt(result) == pytest.approx(
+            _PlotDefaults.title_legend_gap, abs=0.1
+        )
 
-    assert two_rows.ax.title.get_position()[1] > one_row.ax.title.get_position()[1]
+
+@pytest.mark.parametrize("figsize", [(7, 4), (7, 7), (4, 3)])
+def test_title_legend_gap_does_not_depend_on_the_figure_size(figsize) -> None:
+    # An offset in axes coordinates scales with the axes height; the gap is set
+    # in points so it stays the same on any figure.
+    _, ax = plt.subplots(figsize=figsize, constrained_layout=True)
+    result = _curve_plot().plot(ax=ax, title="t")
+
+    assert _title_legend_gap_pt(result) == pytest.approx(
+        _PlotDefaults.title_legend_gap, abs=0.1
+    )
+
+
+def _title_legend_gap_pt(result: ThresholdPlotResult) -> float:
+    result.fig.canvas.draw()
+    title_bottom = result.ax.title.get_window_extent().y0
+    legend_top = result.legend.get_window_extent().y1
+    return (title_bottom - legend_top) * 72 / result.fig.dpi
 
 
 def test_title_without_a_legend_keeps_the_default_position() -> None:
@@ -848,7 +947,10 @@ def test_title_offset_accepts_every_bbox_to_anchor_form() -> None:
         Bbox.from_bounds(0.5, 1.02, 0.4, 0.1),
     ):
         result = _curve_plot().plot(title="t", legend_kws={"bbox_to_anchor": anchor})
-        assert result.ax.title.get_position()[1] == pytest.approx(1.14, abs=1e-6)
+        assert result.ax.title.get_position()[1] == pytest.approx(1.02, abs=1e-6)
+        assert _title_legend_gap_pt(result) == pytest.approx(
+            _PlotDefaults.title_legend_gap, abs=0.1
+        )
 
 
 def test_title_clears_a_legend_anchored_in_figure_coordinates() -> None:

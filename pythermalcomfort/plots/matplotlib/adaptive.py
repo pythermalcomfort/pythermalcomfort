@@ -31,11 +31,14 @@ from pythermalcomfort.models.adaptive_en import SLOPE as _EN_SLOPE
 from pythermalcomfort.plots.matplotlib._base import BasePlot
 from pythermalcomfort.plots.matplotlib._shared import (
     BasePlotResult,
+    _apply_axes_style,
     _apply_font_family,
     _caller_texts,
+    _legend_anchor_y,
     _limit_labeled_ticks,
     _plot_rc,
     _PlotDefaults,
+    _title_kws_above_legend,
 )
 
 
@@ -61,6 +64,9 @@ class _BandSpec:
     default_color: str
 
 
+# Default band colors match the CBE Thermal Comfort Tool, which stacks translucent
+# green rgb(0, 125, 0) layers (alpha 0.4 for the outer bands, 0.7 for the innermost).
+# The hex values are those layers composited over white, so the bands stay opaque.
 _STANDARD_CONFIGS: dict[str, dict[str, Any]] = {
     "ashrae": {
         "xlabel": "Prevailing Mean Outdoor Air Temperature [°C]",
@@ -68,8 +74,8 @@ _STANDARD_CONFIGS: dict[str, dict[str, Any]] = {
         "intercept": _ASHRAE_INTERCEPT,
         "t_rm_range": (10.0, 33.5),
         "bands": [
-            _BandSpec("80", -3.5, 3.5, "80% Acceptability", "#B3D9FF"),
-            _BandSpec("90", -2.5, 2.5, "90% Acceptability", "#6BB3FF"),
+            _BandSpec("80", -3.5, 3.5, "80% Acceptability", "#99CB99"),
+            _BandSpec("90", -2.5, 2.5, "90% Acceptability", "#2E942E"),
         ],
     },
     "en": {
@@ -78,9 +84,9 @@ _STANDARD_CONFIGS: dict[str, dict[str, Any]] = {
         "intercept": _EN_INTERCEPT,
         "t_rm_range": (10.0, 30.0),
         "bands": [
-            _BandSpec("cat_iii", -5.0, 4.0, "Category III", "#C5E0B4"),
-            _BandSpec("cat_ii", -4.0, 3.0, "Category II", "#A9D18E"),
-            _BandSpec("cat_i", -3.0, 2.0, "Category I", "#70AD47"),
+            _BandSpec("cat_iii", -5.0, 4.0, "Category III", "#99CB99"),
+            _BandSpec("cat_ii", -4.0, 3.0, "Category II", "#5CAC5C"),
+            _BandSpec("cat_i", -3.0, 2.0, "Category I", "#1C8B1C"),
         ],
     },
 }
@@ -541,6 +547,7 @@ class AdaptivePlot(BasePlot):
                 fig, ax = plt.subplots(figsize=_PlotDefaults.figsize)
             else:
                 fig = ax.figure
+            _apply_axes_style(ax)
 
             fill_opts = dict(fill_kws or {})
             if fill_opts.get("label") is None:
@@ -609,6 +616,7 @@ class AdaptivePlot(BasePlot):
                 (center_line_artist,) = ax.plot(x, y, **cl_opts)
 
             legend_artist: Legend | None = None
+            title_kws: dict[str, Any] = {}
             if legend:
                 lg_opts = dict(legend_kws or {})
                 if title is not None:
@@ -652,6 +660,16 @@ class AdaptivePlot(BasePlot):
                         )
                     )
                 legend_artist = ax.legend(handles=handles, **lg_opts)
+                if title is not None:
+                    title_kws = _title_kws_above_legend(
+                        ax,
+                        legend_artist,
+                        anchor_y=_legend_anchor_y(
+                            lg_opts["bbox_to_anchor"],
+                            ax=ax,
+                            bbox_transform=lg_opts.get("bbox_transform"),
+                        ),
+                    )
 
             if grid:
                 ax.grid(True)
@@ -665,9 +683,7 @@ class AdaptivePlot(BasePlot):
             if ylabel is not None:
                 ax.set_ylabel(ylabel)
             if title is not None:
-                ax.set_title(
-                    title, y=_PlotDefaults.title_y_with_legend if legend else None
-                )
+                ax.set_title(title, **title_kws)
 
             ax.set_xlim(self._t_rm_range)
             if self._y_range is not None:

@@ -36,6 +36,32 @@ This allows users to create richer visualizations by adding overlays or modifyin
 The full list of customizable parameters is available in the class docstrings.
 Use the search functionality in the top-right corner to find specific functions.
 
+The charts apply a few style defaults on top of Matplotlib's, such as the Arial font
+(where installed), bold titles, grey axes and no top or right frame lines. They only
+style pythermalcomfort charts, and your own Matplotlib settings take precedence: anything
+set with ``plt.rcParams``, ``plt.style.use``, a seaborn theme or a ``matplotlibrc`` file
+wins. To change or remove a default, edit ``plot_style``, for example to turn bold titles
+off:
+
+.. code-block:: python
+
+    from pythermalcomfort.plots.matplotlib import plot_style
+
+    plot_style["axes.titleweight"] = "normal"  # or plot_style.clear() for plain Matplotlib
+
+The style applies while ``plot()`` runs, so a legend, title or text you add to the
+returned axes afterwards gets plain Matplotlib styling. Wrap the plot and your additions
+in ``plot_style_context()`` to keep the package style:
+
+.. code-block:: python
+
+    from pythermalcomfort.plots.matplotlib import plot_style_context
+
+    with plot_style_context():
+        result = AdaptivePlot(model_func=adaptive_ashrae).plot(title="ASHRAE 55")
+        result.ax.scatter([25], [29], label="Measured")
+        result.ax.legend()
+
 Click on the links below to show some examples of the plotting functions available in pythermalcomfort.
 The full list of functions is available in the "Plotting Functions Reference" section at the end of this page.
 
