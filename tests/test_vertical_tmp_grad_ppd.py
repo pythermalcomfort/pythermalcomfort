@@ -23,9 +23,11 @@ def test_vertical_tmp_grad_ppd(get_test_url, retrieve_data) -> None:
 
         validate_result(result, outputs, tolerance)
 
-    # Test for ValueError
-    np.isclose(
-        vertical_tmp_grad_ppd(25, 25, 0.3, 50, 1.2, 0.5, 7).ppd_vg,
+    # vr=0.3 is outside the 0.2 m/s limit, so the output is NaN
+    assert np.isclose(
+        vertical_tmp_grad_ppd(
+            tdb=25, tr=25, vr=0.3, rh=50, met=1.2, clo=0.5, vertical_tmp_grad=7
+        ).ppd_vg,
         np.nan,
         equal_nan=True,
     )

@@ -167,14 +167,14 @@ class TestPmvPpd:
 
     def test_no_rounding(self) -> None:
         """Test that the function calculates PMV and PPD without rounding."""
-        np.isclose(
+        assert np.isclose(
             pmv_ppd_iso(
-                25,
-                25,
-                0.1,
-                50,
-                1.1,
-                0.5,
+                tdb=25,
+                tr=25,
+                vr=0.1,
+                rh=50,
+                met=1.1,
+                clo=0.5,
                 round_output=False,
                 model=Models.iso_7730_2005.value,
             ).pmv,
